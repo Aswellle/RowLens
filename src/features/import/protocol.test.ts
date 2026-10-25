@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+// (IMPORT_START carries a File; constructing one needs the DOM globals.)
 import { describe, expect, it } from 'vitest';
 import type { ImportTerminalMessage, ImportWorkerToMain, MainToImportWorker } from './protocol';
 
@@ -14,7 +16,7 @@ describe('MainToImportWorker discriminated union', () => {
         type: 'IMPORT_START',
         jobId: 'job-1',
         options: { format: 'csv', hasHeader: true },
-        byteSize: 10,
+        file: new File(['a,b\n1,2\n'], 'job-1.csv'),
       },
       { type: 'ACK', jobId: 'job-1', batchSeq: 0 },
       { type: 'CANCEL', jobId: 'job-1' },

@@ -32,7 +32,13 @@ export type ImportStartOptions = {
 // --- Main thread → Import Worker -------------------------------------------------
 
 export type MainToImportWorker =
-  | { type: 'IMPORT_START'; jobId: ImportJobId; options: ImportStartOptions; byteSize: number }
+  | {
+      type: 'IMPORT_START';
+      jobId: ImportJobId;
+      options: ImportStartOptions;
+      /** The File handle itself; structured clone delivers it to the worker. */
+      file: File;
+    }
   | { type: 'ACK'; jobId: ImportJobId; batchSeq: number }
   | { type: 'CANCEL'; jobId: ImportJobId };
 
