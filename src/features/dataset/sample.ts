@@ -1,14 +1,12 @@
 /**
- * Deterministic synthetic sample dataset (Phase 1).
- *
- * Fully generated from a seeded LCG — no personal or real-world data. The
- * service exposes windowed reads (getRows) rather than handing the whole table
- * to React state, mirroring the bounded data flow the real dataset repository
- * will use from Phase 2 onwards.
+ * Deterministic synthetic sample dataset (fully generated from a seeded LCG —
+ * no personal or real-world data). `createSampleDataset(rows)` builds a
+ * self-contained sample of any size; the 5,000-row default drives the app,
+ * while tests use smaller sizes for speed. The service exposes windowed
+ * reads rather than handing the whole table to React state, mirroring the
+ * bounded data flow of real datasets.
  */
 import type { ColumnDefinition, DatasetMetadata, RowIndex } from './types';
-
-const ROW_COUNT = 5000;
 
 const COLUMNS: ColumnDefinition[] = [
   { id: 'c0', label: 'Ticket', sourceIndex: 0 },
@@ -20,8 +18,6 @@ const COLUMNS: ColumnDefinition[] = [
   { id: 'c6', label: 'First response (h)', sourceIndex: 6 },
   { id: 'c7', label: 'Note', sourceIndex: 7 },
 ];
-
-const COLUMN_IDS = COLUMNS.map((c) => c.id) as [string, ...string[]];
 
 const STATUSES = ['open', 'pending', 'closed'] as const;
 const PRIORITIES = ['P1', 'P2', 'P3'] as const;
@@ -36,35 +32,38 @@ const NOTES = [
   '',
 ] as const;
 
-/** Small deterministic PRNG so the sample is identical on every load and in tests. */
-function lcg(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 0x100000000;
-  };
-}
+export const DEFAULT_SAMPLE_ROWS = 5000;
 
-const random = lcg(20261025);
+export type SampleDataset = {
+  metadata: DatasetMetadata;
+  columnIds: string[];
+  labels: Record<string, string>;
+  getRowCount(): number;
+  getRows(offset: number, count: number): string[][];
+  rowValues(rowIndex: RowIndex): string[];
+  valueAt(rowIndex: RowIndex, columnIndex: number): string | null;
+};
 
-function pick<T>(items: readonly T[]): T {
-  return items[Math.floor(random() * items.length)] as T;
-}
+export function createSampleDataset(rowCount: number = DEFAULT_SAMPLE_ROWS): SampleDataset {
+  const count = Math.max(0, Math.trunc(rowCount));
+  const random = lcg(20261025 + count);
 
-/** Ticket ids keep leading zeros on purpose: values stay strings, never numerics. */
-function ticketId(rowIndex: number): string {
-  return `T-${String(rowIndex + 1).padStart(5, '0')}`;
-}
+  function pick<T>(items: readonly T[]): T {
+    return items[Math.floor(random() * items.length)] as T;
+  }
 
-function openedDate(rowIndex: number): string {
-  // Deterministic walk over October 2026 dates; string, never a Date object.
-  const day = (rowIndex % 28) + 1;
-  const hour = rowIndex % 24;
-  return `2026-10-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00Z`;
-}
+  /** Ticket ids keep leading zeros on purpose: values stay strings, never numerics. */
+  function ticketId(rowIndex: number): string {
+    return `T-${String(rowIndex + 1).padStart(5, '0')}`;
+  }
 
-function buildRow(rowIndex: number): string[] {
-  return [
+  function openedDate(rowIndex: number): string {
+    const day = (rowIndex % 28) + 1;
+    const hour = rowIndex % 24;
+    return `2026-10-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00Z`;
+  }
+
+  const rows: string[][] = Array.from({ length: count }, (_, rowIndex) => [
     ticketId(rowIndex),
     pick(STATUSES),
     // Duplicate priorities across many rows exercise stable sort visibly.
@@ -74,62 +73,45 @@ function buildRow(rowIndex: number): string[] {
     openedDate(rowIndex),
     String(Math.floor(random() * 72)),
     pick(NOTES),
-  ];
+  ]);
+
+  return {
+    metadata: {
+      id: 'sample-tickets',
+      format: 'csv',
+      fileName: 'sample-tickets.csv (synthetic)',
+      byteSize: 0,
+      status: 'ready',
+      createdAt: 0,
+      lastTouchedAt: 0,
+      rowCount: count,
+      columns: COLUMNS,
+      parseErrorCount: 0,
+      importWarnings: [],
+      schemaVersion: 1,
+    },
+    columnIds: COLUMNS.map((column) => column.id),
+    labels: Object.fromEntries(COLUMNS.map((column) => [column.id, column.label])),
+    getRowCount: () => count,
+    getRows: (offset, size) => {
+      const start = Math.max(0, Math.trunc(offset));
+      const end = Math.min(count, start + Math.trunc(size));
+      return rows.slice(start, end);
+    },
+    rowValues: (rowIndex) => {
+      const row = rows[rowIndex];
+      if (row === undefined) throw new Error(`sample row ${rowIndex} out of range`);
+      return row;
+    },
+    valueAt: (rowIndex, columnIndex) => rows[rowIndex]?.[columnIndex] ?? null,
+  };
 }
 
-const ROWS: string[][] = Array.from({ length: ROW_COUNT }, (_, i) => buildRow(i));
-
-export const SAMPLE_METADATA: DatasetMetadata = {
-  id: 'sample-tickets',
-  format: 'csv',
-  fileName: 'sample-tickets.csv (synthetic)',
-  byteSize: 0,
-  status: 'ready',
-  createdAt: 0,
-  lastTouchedAt: 0,
-  rowCount: ROW_COUNT,
-  columns: COLUMNS,
-  parseErrorCount: 0,
-  importWarnings: [],
-  schemaVersion: 1,
-};
-
-/** Column ids in display order. */
-export function sampleColumnIds(): string[] {
-  return [...COLUMN_IDS];
-}
-
-/** Column labels keyed by column id. */
-export function sampleLabels(): Record<string, string> {
-  return Object.fromEntries(COLUMNS.map((c) => [c.id, c.label]));
-}
-
-/** Bounded window read: only the requested slice is copied, never the table. */
-export function getRows(offset: number, count: number): string[][] {
-  const start = Math.max(0, Math.trunc(offset));
-  const end = Math.min(ROW_COUNT, start + Math.trunc(count));
-  return ROWS.slice(start, end);
-}
-
-export function getRowCount(): number {
-  return ROW_COUNT;
-}
-
-/** All row indices (used to derive filtered/sorted index lists in the demo). */
-export function allIndices(): RowIndex[] {
-  return Array.from({ length: ROW_COUNT }, (_, i) => i);
-}
-
-export function valueAt(rowIndex: RowIndex, columnIndex: number): string | null {
-  const row = ROWS[rowIndex];
-  if (row === undefined) return null;
-  return row[columnIndex] ?? null;
-}
-
-export function rowValues(rowIndex: RowIndex): string[] {
-  const row = ROWS[rowIndex];
-  if (row === undefined) {
-    throw new Error(`sample row ${rowIndex} out of range`);
-  }
-  return row;
+/** Small deterministic PRNG so a sample is identical on every load. */
+function lcg(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
 }
