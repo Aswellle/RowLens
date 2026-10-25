@@ -131,3 +131,16 @@ abort 时主动进入终态。两者均有测试锁定。
 同步发起全部请求；(2) 索引游标逐键删除在 fake-indexeddb 下是平方级（5000 行
 41 秒）。由于行的复合键是 `[datasetId, rowIndex]` 且 `ready` 数据集的 rowCount
 精确描述键范围，改为直接按键删除；未 finalize 的数据集仍走游标兜底。
+
+## ADR-018：清洗 = 可序列化配置的单趟行变换，嵌入查询管线执行
+
+（2026-10-26）清洗步骤是纯数据（trim / remove-empty-rows / remove-duplicates /
+select-columns，含 enabled 与作用范围），经 JSON 往返可复现相同结果。执行上不做
+独立的"清洗 worker"：查询引擎增加可选 transform 钩子，在搜索/筛选命中之后、排序
+键采集之前应用（排序与幸存索引反映清洗后的值），worker 与本地降级在**同一趟数
+据扫描**内完成查询+清洗并返回逐步影响摘要——避免对数据集的第二次全量扫描。
+"全部列"作用域解析为管线该位置的有效列（select-columns 会收窄后续步骤）；
+去重键为 JSON 编码的精确值元组（首见保留、无哈希碰撞风险），比较规则 exact/
+trimmed 由用户选择。原始 IndexedDB 行永不修改；select-columns 同时收窄网格展示
+列（与手动隐藏列正交）。禁用步骤跳过但保留配置；影响计数在后台重算完成前保留
+旧值并显示 Recomputing…。

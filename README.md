@@ -6,12 +6,13 @@
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
 - Source files are read-only: RowLens only ever writes a **new** exported file.
 
-> **Status:** Imports and queries are live — CSV/TSV/JSONL import through a
-> Web Worker into IndexedDB (with a header/delimiter options step), and
-> search, per-column filters, column visibility and sorting run in a second
-> worker over windowed dataset scans. Cleaning steps and export are **not
-> implemented yet**; the UI says so in place instead of faking them. This
-> README only documents capabilities that are actually built and verified.
+> **Status:** Imports, queries and the cleaning pipeline are live —
+> CSV/TSV/JSONL import through a Web Worker into IndexedDB; search, filters,
+> sorting and serializable cleaning steps (trim, empty-row removal,
+> deduplication, column selection) run in one worker pass with per-step
+> impact counts. Export is **not implemented yet**; the UI says so in place
+> instead of faking it. This README only documents capabilities that are
+> actually built and verified.
 
 ## What works today (verified by tests)
 
@@ -33,6 +34,13 @@
   search in place, light/dark themes, responsive layout from 360px. Queries
   run off the main thread; a slow query can never overwrite a newer one, and
   results over the verified match limit are reported, never truncated.
+- **Cleaning pipeline**: add, edit, enable/disable, remove and reset steps
+  (trim whitespace, remove empty rows, remove duplicates with exact or
+  whitespace-trimmed comparison over whole rows or key columns, select
+  columns). Steps run in the same worker pass as the query; each step
+  reports its impact (cells trimmed, rows removed, columns kept) while the
+  stored dataset is never modified, and step configurations round-trip
+  through JSON with identical results (asserted by tests).
 - **CSV/TSV import options**: before importing, choose whether the first row
   is a header and pick a delimiter (or let it be detected).
 - **Try sample data** seeds a deterministic synthetic table (5,000 × 8,

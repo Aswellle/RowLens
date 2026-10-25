@@ -30,7 +30,7 @@ test('column filter narrows results and reports the active filter count', async 
   await expect(page.getByText('1 of 2 rows match')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText('1 active filter')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Reset' }).click();
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(page.getByText('2 of 2 rows match')).toBeVisible({ timeout: 10_000 });
 });
 

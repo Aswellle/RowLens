@@ -89,7 +89,7 @@ test('remove clears the dataset and returns to the empty state', async ({ page }
   await importFixture(page, 'e2e/fixtures/basic.csv');
   await expect(page.getByText('2 of 2 rows match')).toBeVisible({ timeout: 10_000 });
 
-  await page.getByRole('button', { name: 'Remove' }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
   ).toBeVisible();
