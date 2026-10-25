@@ -6,22 +6,35 @@
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
 - Source files are read-only: RowLens only ever writes a **new** exported file.
 
-> **Status:** Phase 1 complete — UI skeleton and design system, driven by
-> synthetic data only. Real file import, cleaning and export are **not
-> implemented yet**; the UI says so in place instead of faking them. This
-> README only documents capabilities that are actually built and verified.
+> **Status:** Local imports are live — CSV, TSV and JSONL/NDJSON files import
+> through a Web Worker into IndexedDB with progress and cancellation; the UI
+> skeleton from the previous milestone renders them in a virtualized grid.
+> Cleaning steps and export are **not implemented yet**; the UI says so in
+> place instead of faking them. This README only documents capabilities that
+> are actually built and verified.
 
 ## What works today (verified by tests)
 
-- Empty state, drag-and-drop zone, toolbar, virtualized data grid, status
-  line, loading / no-results / error states, responsive layout (360px+),
-  light & dark themes.
-- **Try sample data** loads a deterministic, seeded synthetic table (5,000
-  rows × 8 columns, generated on your machine — no real data).
-- Live literal case-insensitive search with announced result counts; stable
-  string sorting with `aria-sort`; Esc clears search in place.
-- Keyboard-operable main path; the grid renders only a viewport-sized DOM
-  window (asserted in unit and browser E2E tests).
+- **Import**: choose or drop a supported file (≤ 100 MiB). Parsing runs off
+  the main thread in bounded batches with explicit backpressure; every batch
+  is persisted before parsing continues; cancellation removes all partial
+  data. Unsupported formats and oversized files are rejected up front with
+  actionable messages.
+- **Parsing fidelity**: quoted fields with embedded commas/quotes/newlines,
+  BOM + CRLF, duplicate/empty headers (kept as separate positional columns),
+  leading zeros and date-like text preserved as strings, mid-file blank lines
+  kept for the (future) cleaning pipeline, JSONL schema growth, invalid JSONL
+  lines recorded with line numbers while parsing continues, oversized JSONL
+  lines dropped safely.
+- **View**: virtualized grid (viewport-sized DOM, asserted in tests), live
+  literal case-insensitive search with announced counts, stable string sort
+  with aria-sort semantics, Esc clears search in place, light/dark themes,
+  responsive layout from 360px.
+- **Try sample data** loads a deterministic synthetic table (5,000 × 8,
+  generated locally — no real data).
+- Data never leaves the browser: parsing happens in a Worker, records are
+  cached in this origin's IndexedDB, and removing the dataset (or the 24h
+  startup cleanup) deletes them.
 
 ## Supported formats (planned for v0.1)
 

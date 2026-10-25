@@ -47,7 +47,7 @@ lockfile 已提交。若 typescript 7 与后续加入的工具链（如 react-vi
 
 ## ADR-008：`papaparse` 与 `@tanstack/react-virtual` 延迟到各自 Phase 安装
 
-（2026-10-25，Phase 0，更新于 Phase 1）工作协议禁止未使用的依赖。`@tanstack/react-virtual` 3.14.22 已随 Phase 1 接入并在此补记；`papaparse` 仍推迟到 Phase 2（import pipeline）接入时安装并补记版本。
+（2026-10-25，Phase 0，更新于 Phase 1）工作协议禁止未使用的依赖。`@tanstack/react-virtual` 3.14.22 已随 Phase 1 接入并在此补记；`papaparse` 5.7.0 已随导入管线接入（见 ADR-015）。
 
 ## ADR-009：`test:unit` 脚本直接为 `vitest run`
 
@@ -97,3 +97,19 @@ Phase 1 已用两级测试固化该边界：组件测试断言 DOM 行数与数�
 workspace grid 隐式 `auto` 行高导致容器被内容撑开、5001 行全部渲染的真实
 布局 bug——证明"DOM 行数与 viewport 相关而非总记录数"必须用测试断言，
 不能凭感觉认为虚拟化自动生效。
+
+## ADR-014：导入期间的主线程写穿缓存
+
+（2026-10-26）Worker 的每个 BATCH 本就要路过主线程写入 IndexedDB；`InMemoryDataset`
+把同一批数据追加进一个模块级、列序紧凑的镜像（React state 之外），网格通过
+`getCell(rowIndex, columnIndex)` 同步读取。内存上界受 `MAX_FILE_BYTES`（100 MiB）
+约束；当查询 worker（后续步骤）就位后，网格读取将改为游标窗口读取，缓存随之
+退役。此为过渡设计，不宣称适用无上限文件。
+
+## ADR-015：Papa Parse 5.7.0 安装与 chunk 模式行为差异
+
+（2026-10-26）papaparse 5.7.0 作为生产依赖安装（ADR-008 补记）。实现时发现并
+处理了两个 chunk 模式的实际行为：(1) 文件以换行结尾时 chunk 模式会产出一个
+`[""]` 幻影空记录（非 chunk 模式不会）——session 扣留末尾空记录并在完成时按
+文件末字节判定真伪；(2) `parser.abort()` 后不保证回调 complete——session 在
+abort 时主动进入终态。两者均有测试锁定。
