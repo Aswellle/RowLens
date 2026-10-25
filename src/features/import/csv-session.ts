@@ -203,6 +203,9 @@ export function runCsvImport(
         return;
       }
       for (const error of chunkResults.errors) {
+        // Papa reports UndetectableDelimiter when falling back to ',' on tiny
+        // files — that fallback is our documented default, not a data problem.
+        if (error.code === 'UndetectableDelimiter') continue;
         // Papa row indices are 0-based data rows; +1 makes them 1-based
         // physical-ish lines (exact when no embedded newlines precede them).
         warnings.add('malformed-row', (error.row ?? 0) + 1);

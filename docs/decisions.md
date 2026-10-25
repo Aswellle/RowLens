@@ -144,3 +144,17 @@ select-columns，含 enabled 与作用范围），经 JSON 往返可复现相同
 trimmed 由用户选择。原始 IndexedDB 行永不修改；select-columns 同时收窄网格展示
 列（与手动隐藏列正交）。禁用步骤跳过但保留配置；影响计数在后台重算完成前保留
 旧值并显示 Recomputing…。
+
+## ADR-019：导出 = 流式序列化 + 保存器抽象；回退下载受独立字节上限
+
+（2026-10-26）导出分三层：纯编码（必要引号、双引号转义、CRLF、OWASP 前缀检测
+=, +, -, @, tab, CR 含空白/控制字符遮蔽；safe 模式加 `'` 前缀并计数，raw 不改动
+值）、流式序列化器（有界 chunk、行/防护单元格/字节统计）、保存器抽象。保存器
+优先 File System Access writable（真流式、无 Object URL；用户关掉选择器视为取消
+静默收场），否则回退内存聚合下载——受 `EXPORT_FALLBACK_MAX_BYTES`（150 MiB）独立
+上限约束，超限拒绝并给出说明而非尝试分配；Object URL 仅在 close 时创建、延迟
+revoke（EXPORT_URL_REVOKE_DELAY_MS）。取消与写错误一律 abort 保存器且绝不声称已
+保存。范围语义：filtered = 当前视图行序（含查询排序）；all = 全部记录过清洗管线
+（"完整数据的清洗版本"，与产品简报一致）。E2E 以 headless 无保存选择器为由在测试
+中移除 showSaveFilePicker 走下载路径并断言下载文件字节内容。另：Papa 的
+UndetectableDelimiter 是提示级信息（回退逗号即我们的默认），不再计为 malformed。

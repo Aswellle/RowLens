@@ -43,6 +43,14 @@ describe('CSV import contract', () => {
     expect(rows[1]).toEqual({ c0: '42', c1: '9' });
   });
 
+  it('does not warn when Papa defaults the delimiter on tiny files', async () => {
+    const { result } = await importAll('id,amount\n00123,"1,050"\n42,9\n', {
+      hasHeader: true,
+    });
+    expect(result.parseErrorCount).toBe(0);
+    expect(result.warnings).toEqual([]);
+  });
+
   it('keeps quoted fields containing quotes, commas and newlines as one record', async () => {
     const content = 'name,note\n"Smith, John","line1\nline2 with ""quotes"""\nJane,plain\n';
     const { result, batches } = await importAll(content, { hasHeader: true });

@@ -6,13 +6,12 @@
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
 - Source files are read-only: RowLens only ever writes a **new** exported file.
 
-> **Status:** Imports, queries and the cleaning pipeline are live —
-> CSV/TSV/JSONL import through a Web Worker into IndexedDB; search, filters,
-> sorting and serializable cleaning steps (trim, empty-row removal,
-> deduplication, column selection) run in one worker pass with per-step
-> impact counts. Export is **not implemented yet**; the UI says so in place
-> instead of faking it. This README only documents capabilities that are
-> actually built and verified.
+> **Status:** The core workflow is live end to end — import CSV/TSV/JSONL,
+> query with search, filters, sorting and cleaning steps in one worker pass,
+> then export CSV as the filtered view or the cleaned dataset, streamed to a
+> File System Access save picker when available (capped in-memory download
+> otherwise). This README only documents capabilities that are actually built
+> and verified.
 
 ## What works today (verified by tests)
 
@@ -41,6 +40,13 @@
   reports its impact (cells trimmed, rows removed, columns kept) while the
   stored dataset is never modified, and step configurations round-trip
   through JSON with identical results (asserted by tests).
+- **CSV export**: CRLF output with minimal quoting, verified by re-parsing
+  every test document with an independent parser. Spreadsheet-safe mode
+  prefixes formula-looking cells (=, +, -, @, tab, CR — including
+  whitespace-obscured ones) with a visible character and reports how many;
+  Raw mode exports original values behind an explicit warning; no universal
+  safety claim is made. Filtered or all-rows-cleaned scope, sanitised file
+  names, cancellation and typed failures that never claim a save.
 - **CSV/TSV import options**: before importing, choose whether the first row
   is a header and pick a delimiter (or let it be detected).
 - **Try sample data** seeds a deterministic synthetic table (5,000 × 8,
