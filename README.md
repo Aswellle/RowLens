@@ -96,6 +96,23 @@ GitHub Actions runs `npm ci`, `typecheck`, `test:unit` and `build` on every
 push/PR (`.github/workflows/ci.yml`). Browser end-to-end tests will run as a
 separate job once implemented (see `docs/07-implementation-roadmap.md`).
 
+## Known limitations
+
+- Search scans every cell of the current dataset on each query (see
+  [docs/performance-results.md](docs/performance-results.md)): ~2.7 s at
+  20k rows, ~65 s at 250k rows. Sorting and exports measured there too.
+- Memory holds a write-through mirror of the dataset (~6.5x file size at the
+  95 MiB benchmark); bounded by the 100 MiB import cap but heavy on
+  low-RAM devices.
+- Long-running queries show a busy marker but have no explicit cancel button;
+  starting a new query supersedes the old one.
+- Copying a full cell value relies on the hover tooltip (title attribute);
+  there is no dedicated copy action yet.
+- Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
+  reduced-motion/200% zoom checks are still manual and unrecorded.
+- The File System Access export path is preferred but only exercised via the
+  capped download fallback under test (headless has no save picker).
+
 ## Privacy boundary
 
 RowLens makes this promise, and no stronger one: file contents are processed
