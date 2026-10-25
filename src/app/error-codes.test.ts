@@ -14,6 +14,9 @@ describe('APP_ERROR_CODES catalogue', () => {
       'PARSE_FAILED',
       'PARTIAL_PARSE_ERRORS',
       'STORAGE_QUOTA_EXCEEDED',
+      // Superset of the architecture list (§9 says "at least"): generic
+      // storage access failures need their own actionable message.
+      'STORAGE_UNAVAILABLE',
       'IMPORT_CANCELLED',
       'EXPORT_TOO_LARGE_FOR_FALLBACK',
       'EXPORT_FAILED',
