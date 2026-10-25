@@ -1,0 +1,176 @@
+import { describe, expect, it } from 'vitest';
+import type { ColumnId } from '../dataset/types';
+import { runQueryEngine, type EngineRow, type QueryEngineSpec } from './engine';
+
+const COLUMNS: ColumnId[] = ['c0', 'c1', 'c2'];
+
+function rows(table: (string | null)[][]): EngineRow[] {
+  return table.map((values, rowIndex) => ({
+    rowIndex,
+    values: Object.fromEntries(
+      COLUMNS.map((id, i) => [id, values[i] ?? null]),
+    ) as Record<ColumnId, string | null>,
+  }));
+}
+
+async function* batchesOf(batches: EngineRow[][]): AsyncGenerator<EngineRow[]> {
+  for (const batch of batches) yield batch;
+}
+
+async function run(
+  table: (string | null)[][],
+  spec: Partial<QueryEngineSpec>,
+  options: { matchLimit?: number; isCancelled?: () => boolean } = {},
+) {
+  const engineOptions: {
+    matchLimit: number;
+    isCancelled?: () => boolean;
+  } = { matchLimit: options.matchLimit ?? 1000 };
+  if (options.isCancelled) engineOptions.isCancelled = options.isCancelled;
+  return runQueryEngine(
+    batchesOf([rows(table)]),
+    {
+      columns: COLUMNS,
+      search: '',
+      columnFilters: {},
+      ...spec,
+    },
+    engineOptions,
+  );
+}
+
+describe('runQueryEngine matching', () => {
+  const table = [
+    ['open', 'emea', 'P1'],
+    ['closed', 'amer', 'P2'],
+    ['pending', 'emea', 'P3'],
+    ['open', 'apac', 'P2'],
+  ];
+
+  it('returns all rows when no predicates are set', async () => {
+    const result = await run(table, {});
+    expect(result).toEqual({
+      status: 'done',
+      rowIndices: [0, 1, 2, 3],
+      matched: 4,
+      totalRows: 4,
+    });
+  });
+
+  it('global search matches case-insensitively across every column', async () => {
+    const result = await run(table, { search: 'EMEA' });
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([0, 2]);
+  });
+
+  it('column filters are literal substrings; empty entries are ignored', async () => {
+    const result = await run(table, {
+      columnFilters: { c0: 'open', c1: '', c2: 'P2' },
+    });
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([3]);
+    // 'open' + 'P1' matches row 0.
+    const second = await run(table, { columnFilters: { c0: 'open', c2: 'P1' } });
+    if (second.status === 'done') expect(second.rowIndices).toEqual([0]);
+  });
+
+  it('combines search with column filters (AND semantics)', async () => {
+    const result = await run(table, { search: 'e', columnFilters: { c0: 'open' } });
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([0, 3]);
+  });
+
+  it('treats missing cell values as non-matching for filters and search', async () => {
+    const sparse = [
+      ['a', null, 'x'],
+      ['a', 'b', 'x'],
+    ];
+    const filtered = await run(sparse, { columnFilters: { c1: 'b' } });
+    if (filtered.status === 'done') expect(filtered.rowIndices).toEqual([1]);
+    const searched = await run(sparse, { search: 'b' });
+    if (searched.status === 'done') expect(searched.rowIndices).toEqual([1]);
+  });
+});
+
+describe('runQueryEngine sorting', () => {
+  const table = [
+    ['b', '1'],
+    ['a', '2'],
+    ['b', '3'],
+    [null, '4'],
+    ['a', '5'],
+  ];
+
+  it('sorts ascending, keeping equal values in original order', async () => {
+    const result = await run(table, { sort: { columnIndex: 0, direction: 'asc' } });
+    expect(result.status === 'done' && result.rowIndices).toEqual([1, 4, 0, 2, 3]);
+  });
+
+  it('sorts descending with missing values still last and ties stable', async () => {
+    const result = await run(table, { sort: { columnIndex: 0, direction: 'desc' } });
+    expect(result.status === 'done' && result.rowIndices).toEqual([0, 2, 1, 4, 3]);
+  });
+
+  it('sorts after filtering', async () => {
+    const result = await run(table, {
+      columnFilters: { c0: 'a' },
+      sort: { columnIndex: 1, direction: 'desc' },
+    });
+    expect(result.status === 'done' && result.rowIndices).toEqual([4, 1]);
+  });
+
+  it('sorts by UTF-16 string order without numeric inference', async () => {
+    const numeric = [
+      ['9', 'x'],
+      ['10', 'x'],
+      ['00123', 'x'],
+    ];
+    const result = await run(numeric, { sort: { columnIndex: 0, direction: 'asc' } });
+    expect(result.status === 'done' && result.rowIndices).toEqual([2, 1, 0]);
+  });
+});
+
+describe('runQueryEngine limits and cancellation', () => {
+  function wideTable(count: number): string[][] {
+    return Array.from({ length: count }, () => ['v', 'v', 'v']);
+  }
+
+  it('reports an explicit limit instead of silently truncating', async () => {
+    const result = await run(wideTable(50), {}, { matchLimit: 10 });
+    expect(result).toEqual({ status: 'limit', matched: 11, limit: 10 });
+  });
+
+  it('stops scanning between batches when cancelled', async () => {
+    const engineOptions: { matchLimit: number; isCancelled?: () => boolean } = {
+      matchLimit: 1000,
+    };
+    let calls = 0;
+    engineOptions.isCancelled = () => {
+      calls += 1;
+      return calls > 1; // let the first batch through, cancel before the second
+    };
+    const result = await runQueryEngine(
+      batchesOf([rows(wideTable(10)), rows(wideTable(10))]),
+      { columns: COLUMNS, search: '', columnFilters: {} },
+      engineOptions,
+    );
+    expect(result.status).toBe('cancelled');
+    if (result.status === 'cancelled') expect(result.scanned).toBe(10);
+  });
+
+  it('emits progress during long scans', async () => {
+    const progress: Array<[number, number]> = [];
+    const result = await runQueryEngine(
+      batchesOf([rows(wideTable(12))]),
+      { columns: COLUMNS, search: '', columnFilters: {} },
+      {
+        matchLimit: 1000,
+        progressEvery: 5,
+        onProgress: (scanned, matched) => progress.push([scanned, matched]),
+      },
+    );
+    expect(result.status).toBe('done');
+    expect(progress.length).toBeGreaterThan(0);
+    expect(progress.at(-1)).toEqual([12, 12]);
+  });
+});
