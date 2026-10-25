@@ -1,12 +1,12 @@
 /**
- * First-run empty state per docs/04-ui-ux-spec.md §2. "Choose a file" opens a
- * real picker to lock in the interaction structure, but Phase 1 has no import
- * pipeline yet — the app says so plainly instead of faking an import.
+ * First-run empty state per docs/04-ui-ux-spec.md §2. "Choose a file" opens
+ * the platform picker and hands the selected file to the import pipeline;
+ * the hidden input keeps a stable id for tests and keyboard-triggered pickers.
  */
 import { useRef } from 'react';
 
 type EmptyStateProps = {
-  onChooseFile: () => void;
+  onChooseFile: (file: File) => void;
   onLoadSample: () => void;
 };
 
@@ -34,14 +34,16 @@ export function EmptyState({ onChooseFile, onLoadSample }: EmptyStateProps) {
       </p>
       <input
         ref={fileInputRef}
+        id="file-input"
         type="file"
         accept=".csv,.tsv,.jsonl,.ndjson"
         className="visually-hidden"
         aria-hidden="true"
         tabIndex={-1}
         onChange={(event) => {
+          const file = event.target.files?.[0];
           event.target.value = '';
-          onChooseFile();
+          if (file) onChooseFile(file);
         }}
       />
     </div>
