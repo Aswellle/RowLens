@@ -190,8 +190,7 @@ export function runCsvImport(
     parserHandle?.resume();
   }
 
-  Papa.parse<string[]>(file, {
-    delimiter: options.delimiter,
+  const parseConfig: Papa.ParseLocalConfig<string[], File> = {
     header: false,
     dynamicTyping: false,
     skipEmptyLines: false,
@@ -232,7 +231,11 @@ export function runCsvImport(
       })().catch(fail);
     },
     error: fail,
-  });
+  };
+  if (options.delimiter !== undefined) {
+    parseConfig.delimiter = options.delimiter;
+  }
+  Papa.parse<string[], File>(file, parseConfig);
 
   return {
     done,
