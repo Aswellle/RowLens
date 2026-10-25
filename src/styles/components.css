@@ -377,6 +377,12 @@
   z-index: 10;
 }
 
+.grid-table th[aria-label='Record number'] {
+  position: sticky;
+  left: 0;
+  z-index: 11; /* above sibling header cells, below the body's sticky rownum */
+}
+
 .grid-table th {
   background: var(--header-bg);
   border-bottom: 1px solid var(--border-strong);

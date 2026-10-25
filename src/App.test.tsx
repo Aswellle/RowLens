@@ -142,4 +142,21 @@ describe('App shell (synthetic data)', () => {
       timeout: 15000,
     });
   }, 20_000);
+  it('shows trimmed values in the grid once a trim step runs', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={300} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15000,
+    });
+
+    // The padded sample note exists raw (title attribute preserves spacing).
+    expect(document.querySelector('[title="  padded note  "]')).not.toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(document.querySelector('[title="padded note"]')).not.toBeNull(), {
+      timeout: 15000,
+    });
+    expect(document.querySelector('[title="  padded note  "]')).toBeNull();
+  }, 20_000);
 });

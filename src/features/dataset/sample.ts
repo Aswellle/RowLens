@@ -29,6 +29,7 @@ const NOTES = [
   'Contains "quoted words" and, commas',
   'Multibyte: 追跡番号 12345 / благодарим / 🚚',
   'Long note: initial triage done, waiting on the second-line team for the translation of the attached export before we can proceed further.',
+  '  padded note  ',
   '',
 ] as const;
 

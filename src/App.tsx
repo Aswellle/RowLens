@@ -40,6 +40,7 @@ import type {
 import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
 import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
 import { createCleaningTransform } from './features/cleaning/transform';
+import { trimmedColumnSet } from './features/cleaning/display';
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
 import { runExport } from './features/export/run';
 import type { ExportScope } from './features/export/types';
@@ -439,6 +440,15 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       .filter((index) => !view.hiddenColumns.includes(view.data.meta.columns[index]?.id ?? ''));
   }, [view]);
 
+  /** Columns whose values are displayed trimmed, mirroring what exports produce. */
+  const trimmedColumns = useMemo(() => {
+    if (view.kind !== 'ready') return new Set<string>();
+    return trimmedColumnSet(
+      view.cleaningSteps,
+      view.data.meta.columns.map((column) => column.id),
+    );
+  }, [view]);
+
   /** Visible columns further narrowed by the last enabled select-columns step. */
   const effectiveDatasetIndexes = useMemo(() => {
     if (view.kind !== 'ready') return [] as number[];
@@ -773,12 +783,15 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   )}
                   totalRowCount={view.data.meta.rowCount}
                   visibleIndices={view.rowIndices}
-                  valueAt={(rowIndex, gridColumnIndex) =>
-                    view.data.store.getCell(
-                      rowIndex,
-                      effectiveDatasetIndexes[gridColumnIndex] ?? -1,
-                    )
-                  }
+                  valueAt={(rowIndex, gridColumnIndex) => {
+                    const datasetIndex = effectiveDatasetIndexes[gridColumnIndex] ?? -1;
+                    const raw = view.data.store.getCell(rowIndex, datasetIndex);
+                    const columnId = view.data.meta.columns[datasetIndex]?.id;
+                    if (raw === null || columnId === undefined || !trimmedColumns.has(columnId)) {
+                      return raw;
+                    }
+                    return raw.trim();
+                  }}
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
                   sort={readyGridSort}
                   onSortChange={(gridSort) =>
