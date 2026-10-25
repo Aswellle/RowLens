@@ -1,0 +1,79 @@
+/*
+ * Design tokens. Light values follow docs/04-ui-ux-spec.md §1; dark values are
+ * an independently tuned set (not a simple inversion) so hover, focus,
+ * selection and disabled states stay distinguishable.
+ */
+:root {
+  color-scheme: light;
+
+  /* surfaces & text */
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f6;
+  --text-primary: #19212b;
+  --text-secondary: #5f6b7a;
+  --border: #dce1e7;
+  --border-strong: #c4ccd6;
+
+  /* accent (primary actions, selection, focus only) */
+  --accent: #315efb;
+  --accent-hover: #2750e0;
+  --accent-contrast: #ffffff;
+  --accent-soft: #e8edfe;
+
+  /* status: low-saturation background + sufficient text contrast */
+  --success-bg: #e7f3e9;
+  --success-text: #1e5c2c;
+  --warning-bg: #fdf3df;
+  --warning-text: #6d4d0a;
+  --danger-bg: #fbe9e7;
+  --danger-text: #96230f;
+
+  /* grid */
+  --row-height: 36px;
+  --cell-font: 13px;
+  --cell-padding-x: 10px;
+  --header-bg: #f7f8fa;
+  --row-stripe: #fbfcfd;
+  --row-hover: #f1f4fa;
+
+  /* layout */
+  --header-height: 48px;
+  --radius: 6px;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  --shadow-panel: 0 1px 2px rgb(25 33 43 / 8%);
+
+  /* motion */
+  --transition-fast: 130ms ease-out;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #13171e;
+  --surface: #1a212b;
+  --surface-hover: #222b37;
+  --text-primary: #e7ebf1;
+  --text-secondary: #9aa6b6;
+  --border: #2b3542;
+  --border-strong: #3a4757;
+
+  --accent: #7b93ff;
+  --accent-hover: #94a8ff;
+  --accent-contrast: #10151f;
+  --accent-soft: #232f4d;
+
+  --success-bg: #1d3325;
+  --success-text: #8fd3a0;
+  --warning-bg: #3a2f16;
+  --warning-text: #e3c26c;
+  --danger-bg: #3d221d;
+  --danger-text: #f0a596;
+
+  --header-bg: #161c25;
+  --row-stripe: #1d242e;
+  --row-hover: #243040;
+
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 40%);
+}

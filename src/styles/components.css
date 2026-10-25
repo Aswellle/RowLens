@@ -1,0 +1,500 @@
+/* Component and layout styles for the Phase 1 shell. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  /* Fixed viewport height so the workspace flexes instead of growing with
+     content — the grid must scroll inside its region, not the page. */
+  height: 100vh;
+  min-height: 360px;
+  min-width: 360px;
+}
+
+/* ---------- header ---------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--header-height);
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.app-header__brand {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.app-header__badge {
+  font-size: 12px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.app-header__spacer {
+  flex: 1;
+}
+
+/* ---------- generic controls ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn--danger {
+  color: var(--danger-text);
+}
+
+.text-input {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font: inherit;
+  min-width: 0;
+}
+
+.text-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ---------- empty state ---------- */
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.empty-state__title {
+  font-size: 24px;
+  max-width: 460px;
+}
+
+.empty-state__subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.empty-state__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------- drop overlay ---------- */
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border: 2px dashed var(--accent);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+/* ---------- notices ---------- */
+
+.notice-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.notice-bar--info {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.notice-bar--warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.notice-bar--error {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.notice-bar__dismiss {
+  margin-left: auto;
+  flex: none;
+}
+
+/* ---------- file info bar ---------- */
+
+.file-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex: none;
+  min-width: 0;
+}
+
+.file-bar__name {
+  color: var(--text-primary);
+  font-weight: 600;
+  max-width: 40%;
+}
+
+.file-bar__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.file-bar__spacer {
+  flex: 1;
+}
+
+/* ---------- toolbar ---------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  flex-wrap: wrap;
+}
+
+.toolbar__search {
+  flex: 1 1 220px;
+  max-width: 420px;
+  display: flex;
+  gap: 6px;
+}
+
+.toolbar__search .text-input {
+  flex: 1;
+}
+
+.toolbar__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar__more {
+  display: none;
+}
+
+/* Narrow viewports: collapse secondary actions behind a "More" menu. */
+@media (max-width: 699px) {
+  .toolbar__actions {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    right: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
+    padding: 8px;
+    z-index: 30;
+    min-width: 160px;
+  }
+
+  .toolbar__actions[data-open='true'] {
+    display: flex;
+  }
+
+  .toolbar__more {
+    display: inline-flex;
+    position: relative;
+    margin-left: auto;
+  }
+
+  .toolbar__search {
+    flex-basis: 100%;
+  }
+}
+
+/* ---------- status line ---------- */
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex: none;
+  flex-wrap: wrap;
+}
+
+/* ---------- workspace ---------- */
+
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  /* minmax(0, 1fr) keeps the row bounded by the viewport even when grid
+     content is taller — required for inner scrolling and virtualization. */
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+
+@media (max-width: 1023px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(200px, 1fr);
+  }
+}
+
+/* ---------- cleaning panel ---------- */
+
+.cleaning-panel {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .cleaning-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.cleaning-panel__title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+}
+
+.cleaning-panel__empty {
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- data grid ---------- */
+
+.grid-region {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-scroll {
+  overflow: auto;
+  flex: 1;
+  position: relative;
+}
+
+.grid-table {
+  display: block;
+  border-collapse: collapse;
+  min-width: max-content;
+}
+
+.grid-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.grid-table th {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border);
+  font-size: var(--cell-font);
+  font-weight: 600;
+  text-align: left;
+  padding: 0 var(--cell-padding-x);
+  height: var(--row-height);
+  position: sticky;
+}
+
+.grid-table th button {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  cursor: pointer;
+  font: inherit;
+  font-weight: inherit;
+  width: 100%;
+}
+
+.grid-table th button:focus-visible {
+  outline: none;
+  box-shadow: inset var(--focus-ring);
+  border-radius: 4px;
+}
+
+.grid-sort-arrow {
+  font-size: 10px;
+  visibility: hidden;
+}
+
+.grid-table th:hover .grid-sort-arrow,
+.grid-table th:focus-within .grid-sort-arrow,
+.grid-table th[aria-sort] .grid-sort-arrow {
+  visibility: visible;
+}
+
+.grid-row {
+  display: flex;
+  height: var(--row-height);
+}
+
+.grid-row--even {
+  background: var(--row-stripe);
+}
+
+.grid-row:hover {
+  background: var(--row-hover);
+}
+
+.grid-cell {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--cell-padding-x);
+  font-size: var(--cell-font);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grid-cell--rownum {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  position: sticky;
+  left: 0;
+  background: inherit;
+  z-index: 5;
+}
+
+.grid-body-window {
+  position: relative;
+  width: max-content;
+}
+
+/* ---------- in-grid states ---------- */
+
+.grid-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  padding: 24px;
+  text-align: center;
+  background: var(--bg);
+}
+
+.progress {
+  width: min(320px, 80%);
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--transition-fast);
+}
+
+/* ---------- loading skeleton ---------- */
+
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-secondary);
+}
