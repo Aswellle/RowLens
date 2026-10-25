@@ -90,7 +90,7 @@ test('narrow viewport collapses feature buttons behind the More menu', async ({ 
   await more.click();
   await expect(more).toHaveAttribute('aria-expanded', 'true');
   // Disabled placeholders are present and honest about their phase.
-  await expect(page.getByRole('button', { name: 'Filter' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Clean steps' })).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(more).toBeFocused();
 });

@@ -9,6 +9,9 @@ import { expect, test } from '@playwright/test';
 async function importFixture(page: import('@playwright/test').Page, path: string): Promise<void> {
   await page.goto('/');
   await page.setInputFiles('#file-input', path);
+  // CSV/TSV files pass through the import-options step; start with defaults.
+  const start = page.getByRole('button', { name: 'Start import' });
+  if (await start.isVisible()) await start.click();
 }
 
 test('imports a CSV, preserving leading zeros and quoted commas as text', async ({ page }) => {
