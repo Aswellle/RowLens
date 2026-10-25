@@ -1,0 +1,6 @@
+# User-provided specification documents — keep byte-identical to source package
+docs/
+
+# Generated files
+package-lock.json
+dist/
