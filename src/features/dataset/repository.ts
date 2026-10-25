@@ -109,40 +109,46 @@ export class DatasetRepository {
     return requestToPromise(txn.objectStore(IDB_STORE_ROWS).count(range) as IDBRequest<number>);
   }
 
-  /** Remove the dataset and every stored row and import error for it. */
+  /**
+   * Remove the dataset and every stored row and import error for it.
+   *
+   * Row keys are the compound [datasetId, rowIndex] with rowIndex < rowCount,
+   * so when the finalized metadata is available the deletes are issued
+   * directly against that key range — all synchronously in one transaction
+   * (awaiting between IndexedDB requests would let the transaction
+   * auto-commit). Falls back to an index-cursor sweep when metadata is gone.
+   */
   async deleteDataset(datasetId: DatasetId): Promise<void> {
-    const txn = this.db.transaction(
-      [IDB_STORE_DATASETS, IDB_STORE_ROWS, IDB_STORE_IMPORT_ERRORS],
-      'readwrite',
-    );
-    txn.objectStore(IDB_STORE_DATASETS).delete(datasetId);
-    const rows = txn.objectStore(IDB_STORE_ROWS);
-    for (const key of await this.scanRowKeys(txn, datasetId)) {
-      rows.delete(key);
-    }
-    txn
-      .objectStore(IDB_STORE_IMPORT_ERRORS)
-      .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));
-    await txnDone(txn);
-  }
-
-  private scanRowKeys(txn: IDBTransaction, datasetId: DatasetId): Promise<IDBValidKey[]> {
-    return new Promise((resolve, reject) => {
-      const keys: IDBValidKey[] = [];
-      const request = txn
-        .objectStore(IDB_STORE_ROWS)
-        .index('byDataset')
-        .openKeyCursor(IDBKeyRange.only(datasetId));
-      request.onsuccess = () => {
-        const cursor = request.result;
-        if (cursor) {
-          keys.push(cursor.primaryKey);
-          cursor.continue();
-        } else {
-          resolve(keys);
+    const meta = await this.getDataset(datasetId);
+    await new Promise<void>((resolve, reject) => {
+      const txn = this.db.transaction(
+        [IDB_STORE_DATASETS, IDB_STORE_ROWS, IDB_STORE_IMPORT_ERRORS],
+        'readwrite',
+      );
+      txn.objectStore(IDB_STORE_DATASETS).delete(datasetId);
+      txn
+        .objectStore(IDB_STORE_IMPORT_ERRORS)
+        .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));
+      const rows = txn.objectStore(IDB_STORE_ROWS);
+      // Only a finalized dataset's rowCount describes the stored key range;
+      // an in-flight or partial one falls back to the cursor sweep.
+      if (meta?.status === 'ready') {
+        for (let rowIndex = 0; rowIndex < meta.rowCount; rowIndex++) {
+          rows.delete([datasetId, rowIndex]);
         }
-      };
-      request.onerror = () => reject(toAppError(request.error));
+      } else {
+        const request = rows.index('byDataset').openKeyCursor(IDBKeyRange.only(datasetId));
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor) {
+            rows.delete(cursor.primaryKey);
+            cursor.continue();
+          }
+        };
+      }
+      txn.oncomplete = () => resolve();
+      txn.onerror = () => reject(toAppError(txn.error));
+      txn.onabort = () => reject(toAppError(txn.error ?? new Error('transaction aborted')));
     });
   }
 
