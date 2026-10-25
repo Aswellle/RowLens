@@ -175,3 +175,15 @@ docs/performance-results.md）。基准过程直接促成两处产品修正：
 基准同时量化了已知瓶颈：全表字面搜索的逐格大小写折叠（P3 64.7s，排序趟
 仅 5.0s 佐证）、写穿缓存内存放大（~6.5×）、导出与导入的近线性扩展。缓解
 方案（小写化缓存、搜索列范围限制、内存剖析）登记为后续候选，未实施。
+
+## ADR-021：生产产物网络审计与逐项豁免
+
+（2026-10-26）`scripts/audit-network.mjs` 随 `npm run build` 扫描 dist 全部
+js/css/html：禁止 fetch/XHR/sendBeacon/WebSocket/EventSource/远程动态
+import/远程 script 标签及非本机 URL。全部豁免按库上下文或裸域固定并注释
+依据——Vite modulepreload polyfill 的 fetch（仅取回本站模块）、Papa Parse
+自带的网络输入模式分支（RowLens 只传 File，bundle 内死代码）、以及仅作为
+标识符/许可证文本出现的域名（w3.org 命名空间、react.dev 错误消息字符串、
+github.com 许可证头）。应用级网络调用无法借道这些豁免。实施中发现并修正：
+Papa 许可证头在 bundle 中被换行拆分导致上下文正则不命中；审计域提取不含
+路径，豁免按域粒度声明。

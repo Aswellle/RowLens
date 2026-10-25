@@ -1,0 +1,2001 @@
+ticket,status,priority,channel,region,opened,first_response_hours,note
+T-00001,open,P2,chat,apac,2026-10-01T00:00:00Z,8,
+T-00002,open,P1,chat,apac,2026-10-02T01:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00003,open,P2,web form,apac,2026-10-03T02:00:00Z,64,Customer asked about invoice re-issue.
+T-00004,closed,P2,chat,emea,2026-10-04T03:00:00Z,59,"Contains ""quoted words"" and, commas"
+T-00005,pending,P3,chat,latam,2026-10-05T04:00:00Z,52,
+T-00006,closed,P1,email,latam,2026-10-06T05:00:00Z,34,Customer asked about invoice re-issue.
+T-00007,closed,P2,chat,apac,2026-10-07T06:00:00Z,51,  padded values  
+T-00008,closed,P2,email,amer,2026-10-08T07:00:00Z,29,Escalated: SLA at risk.
+T-00009,open,P1,web form,latam,2026-10-09T08:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00010,open,P2,web form,amer,2026-10-10T09:00:00Z,59,  padded values  
+T-00011,pending,P2,email,latam,2026-10-11T10:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00012,closed,P2,chat,latam,2026-10-12T11:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-00013,pending,P2,email,amer,2026-10-13T12:00:00Z,8,
+T-00014,open,P3,web form,emea,2026-10-14T13:00:00Z,12,Escalated: SLA at risk.
+T-00015,pending,P2,email,amer,2026-10-15T14:00:00Z,46,
+T-00016,closed,P2,web form,apac,2026-10-16T15:00:00Z,53,  padded values  
+T-00017,open,P3,chat,emea,2026-10-17T16:00:00Z,24,
+T-00018,pending,P1,web form,emea,2026-10-18T17:00:00Z,66,
+T-00019,closed,P2,chat,emea,2026-10-19T18:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00020,closed,P2,chat,latam,2026-10-20T19:00:00Z,8,
+T-00021,closed,P2,web form,latam,2026-10-21T20:00:00Z,68,  padded values  
+T-00022,open,P2,web form,emea,2026-10-22T21:00:00Z,57,Escalated: SLA at risk.
+T-00023,closed,P3,web form,emea,2026-10-23T22:00:00Z,1,  padded values  
+T-00024,pending,P3,email,emea,2026-10-24T23:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-00025,open,P2,web form,latam,2026-10-25T00:00:00Z,29,Customer asked about invoice re-issue.
+T-00026,open,P3,web form,latam,2026-10-26T01:00:00Z,22,Customer asked about invoice re-issue.
+T-00027,open,P1,chat,apac,2026-10-27T02:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00028,pending,P2,email,apac,2026-10-28T03:00:00Z,20,Escalated: SLA at risk.
+T-00029,closed,P1,chat,amer,2026-10-01T04:00:00Z,67,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00030,pending,P3,email,apac,2026-10-02T05:00:00Z,31,Customer asked about invoice re-issue.
+T-00031,closed,P2,chat,amer,2026-10-03T06:00:00Z,28,Customer asked about invoice re-issue.
+T-00032,pending,P3,web form,amer,2026-10-04T07:00:00Z,63,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00033,closed,P2,web form,apac,2026-10-05T08:00:00Z,2,"Contains ""quoted words"" and, commas"
+T-00034,open,P2,email,apac,2026-10-06T09:00:00Z,47,Escalated: SLA at risk.
+T-00035,closed,P2,email,apac,2026-10-07T10:00:00Z,66,  padded values  
+T-00036,open,P3,chat,apac,2026-10-08T11:00:00Z,69,  padded values  
+T-00037,open,P2,chat,latam,2026-10-09T12:00:00Z,38,Customer asked about invoice re-issue.
+T-00038,open,P3,chat,emea,2026-10-10T13:00:00Z,21,
+T-00039,open,P2,chat,emea,2026-10-11T14:00:00Z,7,Escalated: SLA at risk.
+T-00040,pending,P2,web form,latam,2026-10-12T15:00:00Z,31,Escalated: SLA at risk.
+T-00041,open,P3,email,latam,2026-10-13T16:00:00Z,69,  padded values  
+T-00042,open,P3,web form,apac,2026-10-14T17:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00043,closed,P2,chat,apac,2026-10-15T18:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00044,closed,P2,web form,latam,2026-10-16T19:00:00Z,71,Escalated: SLA at risk.
+T-00045,pending,P2,chat,latam,2026-10-17T20:00:00Z,64,  padded values  
+T-00046,pending,P2,web form,apac,2026-10-18T21:00:00Z,15,
+T-00047,open,P3,email,latam,2026-10-19T22:00:00Z,17,Customer asked about invoice re-issue.
+T-00048,closed,P2,web form,latam,2026-10-20T23:00:00Z,32,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00049,open,P2,email,latam,2026-10-21T00:00:00Z,7,Escalated: SLA at risk.
+T-00050,pending,P2,chat,apac,2026-10-22T01:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-00051,closed,P1,web form,latam,2026-10-23T02:00:00Z,19,Customer asked about invoice re-issue.
+T-00052,closed,P2,email,apac,2026-10-24T03:00:00Z,43,Escalated: SLA at risk.
+T-00053,pending,P2,web form,apac,2026-10-25T04:00:00Z,22,
+T-00054,closed,P3,chat,apac,2026-10-26T05:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00055,open,P2,email,emea,2026-10-27T06:00:00Z,70,Escalated: SLA at risk.
+T-00056,closed,P3,web form,amer,2026-10-28T07:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-00057,pending,P1,chat,apac,2026-10-01T08:00:00Z,10,Escalated: SLA at risk.
+T-00058,open,P2,web form,amer,2026-10-02T09:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00059,pending,P2,chat,emea,2026-10-03T10:00:00Z,25,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00060,closed,P2,web form,emea,2026-10-04T11:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-00061,open,P2,email,amer,2026-10-05T12:00:00Z,0,Escalated: SLA at risk.
+T-00062,open,P3,web form,latam,2026-10-06T13:00:00Z,12,  padded values  
+T-00063,pending,P3,chat,emea,2026-10-07T14:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-00064,closed,P2,chat,amer,2026-10-08T15:00:00Z,54,  padded values  
+T-00065,pending,P1,chat,amer,2026-10-09T16:00:00Z,55,Customer asked about invoice re-issue.
+T-00066,pending,P1,web form,emea,2026-10-10T17:00:00Z,1,Escalated: SLA at risk.
+T-00067,open,P2,chat,emea,2026-10-11T18:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00068,closed,P1,email,amer,2026-10-12T19:00:00Z,20,Customer asked about invoice re-issue.
+T-00069,closed,P3,chat,latam,2026-10-13T20:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-00070,open,P2,web form,apac,2026-10-14T21:00:00Z,63,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00071,open,P1,email,amer,2026-10-15T22:00:00Z,43,
+T-00072,pending,P3,chat,latam,2026-10-16T23:00:00Z,59,Escalated: SLA at risk.
+T-00073,closed,P2,chat,latam,2026-10-17T00:00:00Z,58,  padded values  
+T-00074,open,P2,email,latam,2026-10-18T01:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-00075,open,P2,chat,latam,2026-10-19T02:00:00Z,31,"Contains ""quoted words"" and, commas"
+T-00076,closed,P2,chat,emea,2026-10-20T03:00:00Z,47,"Contains ""quoted words"" and, commas"
+T-00077,open,P2,chat,amer,2026-10-21T04:00:00Z,65,Customer asked about invoice re-issue.
+T-00078,open,P3,web form,amer,2026-10-22T05:00:00Z,7,"Contains ""quoted words"" and, commas"
+T-00079,open,P2,web form,apac,2026-10-23T06:00:00Z,61,"Contains ""quoted words"" and, commas"
+T-00080,pending,P3,chat,apac,2026-10-24T07:00:00Z,45,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00081,closed,P2,chat,latam,2026-10-25T08:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-00082,closed,P2,web form,amer,2026-10-26T09:00:00Z,6,  padded values  
+T-00083,pending,P1,chat,apac,2026-10-27T10:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00084,open,P2,email,amer,2026-10-28T11:00:00Z,8,Customer asked about invoice re-issue.
+T-00085,pending,P2,email,latam,2026-10-01T12:00:00Z,50,Escalated: SLA at risk.
+T-00086,closed,P2,chat,emea,2026-10-02T13:00:00Z,36,  padded values  
+T-00087,open,P3,email,amer,2026-10-03T14:00:00Z,60,Escalated: SLA at risk.
+T-00088,closed,P2,email,emea,2026-10-04T15:00:00Z,55,  padded values  
+T-00089,closed,P2,email,amer,2026-10-05T16:00:00Z,53,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00090,closed,P1,email,amer,2026-10-06T17:00:00Z,5,Customer asked about invoice re-issue.
+T-00091,pending,P2,web form,apac,2026-10-07T18:00:00Z,38,"Contains ""quoted words"" and, commas"
+T-00092,closed,P1,email,emea,2026-10-08T19:00:00Z,40,Customer asked about invoice re-issue.
+T-00093,closed,P2,chat,latam,2026-10-09T20:00:00Z,39,
+T-00094,pending,P2,web form,emea,2026-10-10T21:00:00Z,23,Escalated: SLA at risk.
+T-00095,closed,P1,email,apac,2026-10-11T22:00:00Z,32,Escalated: SLA at risk.
+T-00096,closed,P3,web form,apac,2026-10-12T23:00:00Z,1,Escalated: SLA at risk.
+T-00097,open,P2,email,latam,2026-10-13T00:00:00Z,33,
+T-00098,open,P2,web form,emea,2026-10-14T01:00:00Z,14,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00099,closed,P1,web form,apac,2026-10-15T02:00:00Z,13,Escalated: SLA at risk.
+T-00100,pending,P2,email,emea,2026-10-16T03:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-00101,closed,P3,web form,emea,2026-10-17T04:00:00Z,49,
+T-00102,closed,P1,email,apac,2026-10-18T05:00:00Z,20,  padded values  
+T-00103,closed,P2,chat,emea,2026-10-19T06:00:00Z,48,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00104,open,P2,chat,emea,2026-10-20T07:00:00Z,21,
+T-00105,pending,P3,chat,latam,2026-10-21T08:00:00Z,34,Customer asked about invoice re-issue.
+T-00106,closed,P2,email,latam,2026-10-22T09:00:00Z,57,  padded values  
+T-00107,closed,P1,web form,emea,2026-10-23T10:00:00Z,48,
+T-00108,pending,P1,chat,emea,2026-10-24T11:00:00Z,19,Escalated: SLA at risk.
+T-00109,open,P2,chat,latam,2026-10-25T12:00:00Z,22,  padded values  
+T-00110,closed,P3,email,emea,2026-10-26T13:00:00Z,51,Customer asked about invoice re-issue.
+T-00111,pending,P3,web form,emea,2026-10-27T14:00:00Z,2,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00112,closed,P2,web form,emea,2026-10-28T15:00:00Z,53,Escalated: SLA at risk.
+T-00113,closed,P2,web form,emea,2026-10-01T16:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00114,open,P1,email,apac,2026-10-02T17:00:00Z,34,
+T-00115,open,P2,chat,amer,2026-10-03T18:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00116,closed,P3,email,latam,2026-10-04T19:00:00Z,29,Customer asked about invoice re-issue.
+T-00117,pending,P2,web form,emea,2026-10-05T20:00:00Z,58,Customer asked about invoice re-issue.
+T-00118,open,P2,chat,apac,2026-10-06T21:00:00Z,58,"Contains ""quoted words"" and, commas"
+T-00119,pending,P1,web form,amer,2026-10-07T22:00:00Z,50,
+T-00120,pending,P2,chat,emea,2026-10-08T23:00:00Z,57,  padded values  
+T-00121,pending,P2,email,emea,2026-10-09T00:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00122,open,P3,chat,latam,2026-10-10T01:00:00Z,46,Escalated: SLA at risk.
+T-00123,pending,P2,email,emea,2026-10-11T02:00:00Z,6,  padded values  
+T-00124,closed,P2,email,apac,2026-10-12T03:00:00Z,54,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00125,closed,P1,chat,latam,2026-10-13T04:00:00Z,20,
+T-00126,open,P1,chat,latam,2026-10-14T05:00:00Z,8,"Contains ""quoted words"" and, commas"
+T-00127,open,P2,email,latam,2026-10-15T06:00:00Z,13,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00128,pending,P1,web form,latam,2026-10-16T07:00:00Z,24,"Contains ""quoted words"" and, commas"
+T-00129,open,P2,chat,latam,2026-10-17T08:00:00Z,12,Customer asked about invoice re-issue.
+T-00130,pending,P2,web form,latam,2026-10-18T09:00:00Z,3,Escalated: SLA at risk.
+T-00131,closed,P2,chat,amer,2026-10-19T10:00:00Z,26,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00132,open,P3,web form,amer,2026-10-20T11:00:00Z,12,Escalated: SLA at risk.
+T-00133,closed,P2,chat,apac,2026-10-21T12:00:00Z,66,Customer asked about invoice re-issue.
+T-00134,pending,P2,email,latam,2026-10-22T13:00:00Z,15,
+T-00135,closed,P3,email,amer,2026-10-23T14:00:00Z,19,Escalated: SLA at risk.
+T-00136,pending,P2,email,latam,2026-10-24T15:00:00Z,20,Customer asked about invoice re-issue.
+T-00137,pending,P2,chat,latam,2026-10-25T16:00:00Z,27,
+T-00138,pending,P2,email,emea,2026-10-26T17:00:00Z,50,Customer asked about invoice re-issue.
+T-00139,pending,P2,chat,apac,2026-10-27T18:00:00Z,60,  padded values  
+T-00140,open,P2,web form,amer,2026-10-28T19:00:00Z,66,Escalated: SLA at risk.
+T-00141,open,P1,email,apac,2026-10-01T20:00:00Z,70,Customer asked about invoice re-issue.
+T-00142,pending,P2,web form,latam,2026-10-02T21:00:00Z,60,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00143,pending,P3,web form,apac,2026-10-03T22:00:00Z,37,  padded values  
+T-00144,pending,P3,web form,latam,2026-10-04T23:00:00Z,34,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00145,open,P2,web form,emea,2026-10-05T00:00:00Z,44,Escalated: SLA at risk.
+T-00146,closed,P2,web form,amer,2026-10-06T01:00:00Z,64,Escalated: SLA at risk.
+T-00147,open,P3,web form,latam,2026-10-07T02:00:00Z,38,"Contains ""quoted words"" and, commas"
+T-00148,closed,P2,chat,apac,2026-10-08T03:00:00Z,3,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00149,pending,P2,chat,latam,2026-10-09T04:00:00Z,53,
+T-00150,closed,P1,web form,amer,2026-10-10T05:00:00Z,56,  padded values  
+T-00151,open,P2,web form,apac,2026-10-11T06:00:00Z,20,Customer asked about invoice re-issue.
+T-00152,open,P2,web form,apac,2026-10-12T07:00:00Z,68,Escalated: SLA at risk.
+T-00153,pending,P3,email,latam,2026-10-13T08:00:00Z,21,  padded values  
+T-00154,closed,P2,email,emea,2026-10-14T09:00:00Z,0,
+T-00155,pending,P2,chat,emea,2026-10-15T10:00:00Z,53,
+T-00156,pending,P1,email,amer,2026-10-16T11:00:00Z,8,Customer asked about invoice re-issue.
+T-00157,closed,P2,web form,latam,2026-10-17T12:00:00Z,16,  padded values  
+T-00158,open,P1,email,apac,2026-10-18T13:00:00Z,45,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00159,closed,P3,web form,amer,2026-10-19T14:00:00Z,17,
+T-00160,closed,P2,chat,apac,2026-10-20T15:00:00Z,68,  padded values  
+T-00161,closed,P3,web form,latam,2026-10-21T16:00:00Z,42,
+T-00162,closed,P2,web form,latam,2026-10-22T17:00:00Z,68,  padded values  
+T-00163,open,P2,chat,latam,2026-10-23T18:00:00Z,31,  padded values  
+T-00164,closed,P3,web form,amer,2026-10-24T19:00:00Z,64,"Contains ""quoted words"" and, commas"
+T-00165,open,P1,email,apac,2026-10-25T20:00:00Z,1,  padded values  
+T-00166,open,P2,web form,amer,2026-10-26T21:00:00Z,44,Customer asked about invoice re-issue.
+T-00167,closed,P2,email,latam,2026-10-27T22:00:00Z,30,Customer asked about invoice re-issue.
+T-00168,closed,P3,web form,latam,2026-10-28T23:00:00Z,25,Escalated: SLA at risk.
+T-00169,pending,P2,web form,emea,2026-10-01T00:00:00Z,13,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00170,closed,P2,email,apac,2026-10-02T01:00:00Z,37,
+T-00171,closed,P3,web form,amer,2026-10-03T02:00:00Z,45,"Contains ""quoted words"" and, commas"
+T-00172,pending,P2,email,apac,2026-10-04T03:00:00Z,6,  padded values  
+T-00173,open,P2,chat,amer,2026-10-05T04:00:00Z,68,  padded values  
+T-00174,open,P3,email,latam,2026-10-06T05:00:00Z,9,Escalated: SLA at risk.
+T-00175,closed,P2,web form,amer,2026-10-07T06:00:00Z,71,Customer asked about invoice re-issue.
+T-00176,open,P2,web form,apac,2026-10-08T07:00:00Z,43,
+T-00177,closed,P2,chat,latam,2026-10-09T08:00:00Z,49,Escalated: SLA at risk.
+T-00178,closed,P2,chat,latam,2026-10-10T09:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00179,pending,P2,email,emea,2026-10-11T10:00:00Z,66,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00180,pending,P2,chat,apac,2026-10-12T11:00:00Z,54,
+T-00181,closed,P2,web form,latam,2026-10-13T12:00:00Z,28,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00182,open,P2,email,apac,2026-10-14T13:00:00Z,14,
+T-00183,pending,P2,chat,amer,2026-10-15T14:00:00Z,43,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00184,closed,P2,email,latam,2026-10-16T15:00:00Z,71,"Contains ""quoted words"" and, commas"
+T-00185,open,P1,web form,apac,2026-10-17T16:00:00Z,33,
+T-00186,open,P3,chat,latam,2026-10-18T17:00:00Z,16,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00187,open,P2,chat,amer,2026-10-19T18:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00188,open,P1,email,emea,2026-10-20T19:00:00Z,27,"Contains ""quoted words"" and, commas"
+T-00189,open,P2,email,emea,2026-10-21T20:00:00Z,38,"Contains ""quoted words"" and, commas"
+T-00190,open,P2,email,apac,2026-10-22T21:00:00Z,17,Escalated: SLA at risk.
+T-00191,pending,P2,web form,latam,2026-10-23T22:00:00Z,50,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00192,open,P2,email,emea,2026-10-24T23:00:00Z,60,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00193,open,P2,chat,emea,2026-10-25T00:00:00Z,3,
+T-00194,open,P1,chat,amer,2026-10-26T01:00:00Z,17,
+T-00195,closed,P1,web form,latam,2026-10-27T02:00:00Z,53,
+T-00196,closed,P2,email,amer,2026-10-28T03:00:00Z,59,"Contains ""quoted words"" and, commas"
+T-00197,open,P2,web form,latam,2026-10-01T04:00:00Z,65,Customer asked about invoice re-issue.
+T-00198,closed,P3,chat,apac,2026-10-02T05:00:00Z,38,  padded values  
+T-00199,open,P2,web form,latam,2026-10-03T06:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00200,open,P2,email,latam,2026-10-04T07:00:00Z,55,  padded values  
+T-00201,open,P3,chat,amer,2026-10-05T08:00:00Z,58,  padded values  
+T-00202,closed,P2,email,latam,2026-10-06T09:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00203,closed,P2,chat,emea,2026-10-07T10:00:00Z,58,  padded values  
+T-00204,pending,P1,web form,emea,2026-10-08T11:00:00Z,26,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00205,pending,P2,web form,latam,2026-10-09T12:00:00Z,36,Escalated: SLA at risk.
+T-00206,closed,P2,web form,apac,2026-10-10T13:00:00Z,11,Escalated: SLA at risk.
+T-00207,closed,P2,chat,emea,2026-10-11T14:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-00208,closed,P2,chat,latam,2026-10-12T15:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00209,closed,P3,email,emea,2026-10-13T16:00:00Z,60,  padded values  
+T-00210,pending,P1,chat,amer,2026-10-14T17:00:00Z,51,Customer asked about invoice re-issue.
+T-00211,closed,P2,web form,amer,2026-10-15T18:00:00Z,56,
+T-00212,pending,P3,web form,amer,2026-10-16T19:00:00Z,4,Escalated: SLA at risk.
+T-00213,closed,P3,email,amer,2026-10-17T20:00:00Z,29,Customer asked about invoice re-issue.
+T-00214,pending,P2,chat,amer,2026-10-18T21:00:00Z,52,"Contains ""quoted words"" and, commas"
+T-00215,open,P2,chat,latam,2026-10-19T22:00:00Z,1,  padded values  
+T-00216,open,P3,email,latam,2026-10-20T23:00:00Z,31,"Contains ""quoted words"" and, commas"
+T-00217,open,P2,web form,emea,2026-10-21T00:00:00Z,71,
+T-00218,closed,P2,email,apac,2026-10-22T01:00:00Z,8,Escalated: SLA at risk.
+T-00219,pending,P3,chat,apac,2026-10-23T02:00:00Z,35,Customer asked about invoice re-issue.
+T-00220,open,P2,email,latam,2026-10-24T03:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-00221,closed,P1,email,amer,2026-10-25T04:00:00Z,57,
+T-00222,open,P3,web form,emea,2026-10-26T05:00:00Z,15,Customer asked about invoice re-issue.
+T-00223,closed,P2,chat,latam,2026-10-27T06:00:00Z,49,Customer asked about invoice re-issue.
+T-00224,pending,P1,web form,latam,2026-10-28T07:00:00Z,16,  padded values  
+T-00225,closed,P1,chat,emea,2026-10-01T08:00:00Z,12,Escalated: SLA at risk.
+T-00226,open,P2,web form,amer,2026-10-02T09:00:00Z,2,Customer asked about invoice re-issue.
+T-00227,closed,P2,chat,latam,2026-10-03T10:00:00Z,18,Customer asked about invoice re-issue.
+T-00228,pending,P3,chat,emea,2026-10-04T11:00:00Z,1,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00229,open,P2,email,amer,2026-10-05T12:00:00Z,41,Escalated: SLA at risk.
+T-00230,closed,P3,web form,latam,2026-10-06T13:00:00Z,14,  padded values  
+T-00231,closed,P1,web form,apac,2026-10-07T14:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00232,open,P2,web form,amer,2026-10-08T15:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-00233,open,P1,web form,emea,2026-10-09T16:00:00Z,6,  padded values  
+T-00234,open,P3,chat,latam,2026-10-10T17:00:00Z,29,"Contains ""quoted words"" and, commas"
+T-00235,open,P2,chat,latam,2026-10-11T18:00:00Z,25,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00236,pending,P1,email,apac,2026-10-12T19:00:00Z,68,"Contains ""quoted words"" and, commas"
+T-00237,open,P1,chat,emea,2026-10-13T20:00:00Z,46,
+T-00238,open,P2,web form,apac,2026-10-14T21:00:00Z,61,Customer asked about invoice re-issue.
+T-00239,open,P3,chat,amer,2026-10-15T22:00:00Z,38,  padded values  
+T-00240,pending,P1,chat,latam,2026-10-16T23:00:00Z,45,"Contains ""quoted words"" and, commas"
+T-00241,closed,P2,web form,emea,2026-10-17T00:00:00Z,58,
+T-00242,open,P1,email,latam,2026-10-18T01:00:00Z,60,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00243,closed,P1,web form,apac,2026-10-19T02:00:00Z,28,  padded values  
+T-00244,closed,P2,web form,apac,2026-10-20T03:00:00Z,65,Customer asked about invoice re-issue.
+T-00245,open,P2,chat,amer,2026-10-21T04:00:00Z,67,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00246,pending,P2,web form,amer,2026-10-22T05:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-00247,closed,P2,web form,latam,2026-10-23T06:00:00Z,44,  padded values  
+T-00248,pending,P3,email,latam,2026-10-24T07:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00249,closed,P2,chat,emea,2026-10-25T08:00:00Z,68,Escalated: SLA at risk.
+T-00250,open,P2,web form,amer,2026-10-26T09:00:00Z,21,Customer asked about invoice re-issue.
+T-00251,pending,P3,email,latam,2026-10-27T10:00:00Z,25,
+T-00252,pending,P2,email,amer,2026-10-28T11:00:00Z,40,Escalated: SLA at risk.
+T-00253,open,P2,web form,emea,2026-10-01T12:00:00Z,0,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00254,closed,P1,chat,apac,2026-10-02T13:00:00Z,1,  padded values  
+T-00255,closed,P1,email,amer,2026-10-03T14:00:00Z,26,  padded values  
+T-00256,open,P2,chat,latam,2026-10-04T15:00:00Z,48,
+T-00257,pending,P1,email,emea,2026-10-05T16:00:00Z,51,
+T-00258,closed,P1,chat,latam,2026-10-06T17:00:00Z,7,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00259,pending,P2,email,apac,2026-10-07T18:00:00Z,46,
+T-00260,pending,P1,chat,amer,2026-10-08T19:00:00Z,56,  padded values  
+T-00261,pending,P2,chat,apac,2026-10-09T20:00:00Z,14,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00262,pending,P2,web form,emea,2026-10-10T21:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-00263,closed,P3,chat,emea,2026-10-11T22:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00264,closed,P3,web form,latam,2026-10-12T23:00:00Z,30,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00265,closed,P2,chat,amer,2026-10-13T00:00:00Z,60,"Contains ""quoted words"" and, commas"
+T-00266,open,P1,chat,latam,2026-10-14T01:00:00Z,0,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00267,pending,P2,email,apac,2026-10-15T02:00:00Z,1,Customer asked about invoice re-issue.
+T-00268,closed,P2,email,latam,2026-10-16T03:00:00Z,57,Escalated: SLA at risk.
+T-00269,closed,P2,web form,amer,2026-10-17T04:00:00Z,31,  padded values  
+T-00270,pending,P1,web form,amer,2026-10-18T05:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-00271,closed,P2,chat,emea,2026-10-19T06:00:00Z,39,Customer asked about invoice re-issue.
+T-00272,pending,P1,web form,amer,2026-10-20T07:00:00Z,59,Escalated: SLA at risk.
+T-00273,pending,P1,chat,latam,2026-10-21T08:00:00Z,41,
+T-00274,pending,P2,email,latam,2026-10-22T09:00:00Z,57,  padded values  
+T-00275,open,P2,email,emea,2026-10-23T10:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00276,open,P1,web form,emea,2026-10-24T11:00:00Z,25,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00277,closed,P2,email,latam,2026-10-25T12:00:00Z,59,
+T-00278,pending,P2,chat,amer,2026-10-26T13:00:00Z,66,  padded values  
+T-00279,closed,P3,email,amer,2026-10-27T14:00:00Z,67,  padded values  
+T-00280,closed,P2,chat,apac,2026-10-28T15:00:00Z,26,  padded values  
+T-00281,closed,P3,web form,latam,2026-10-01T16:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-00282,closed,P3,email,latam,2026-10-02T17:00:00Z,50,Customer asked about invoice re-issue.
+T-00283,closed,P2,web form,latam,2026-10-03T18:00:00Z,68,Customer asked about invoice re-issue.
+T-00284,open,P3,email,emea,2026-10-04T19:00:00Z,67,Escalated: SLA at risk.
+T-00285,pending,P1,web form,amer,2026-10-05T20:00:00Z,63,
+T-00286,closed,P2,email,amer,2026-10-06T21:00:00Z,44,Customer asked about invoice re-issue.
+T-00287,open,P1,web form,latam,2026-10-07T22:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-00288,closed,P1,web form,emea,2026-10-08T23:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00289,pending,P2,chat,emea,2026-10-09T00:00:00Z,8,  padded values  
+T-00290,pending,P1,chat,amer,2026-10-10T01:00:00Z,34,  padded values  
+T-00291,open,P2,email,apac,2026-10-11T02:00:00Z,53,
+T-00292,pending,P2,web form,amer,2026-10-12T03:00:00Z,7,  padded values  
+T-00293,closed,P3,email,apac,2026-10-13T04:00:00Z,53,
+T-00294,closed,P2,chat,apac,2026-10-14T05:00:00Z,49,Escalated: SLA at risk.
+T-00295,closed,P2,email,emea,2026-10-15T06:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-00296,closed,P2,email,latam,2026-10-16T07:00:00Z,5,  padded values  
+T-00297,open,P1,chat,amer,2026-10-17T08:00:00Z,31,  padded values  
+T-00298,closed,P2,web form,latam,2026-10-18T09:00:00Z,44,"Contains ""quoted words"" and, commas"
+T-00299,pending,P2,email,latam,2026-10-19T10:00:00Z,25,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00300,closed,P2,chat,apac,2026-10-20T11:00:00Z,64,Customer asked about invoice re-issue.
+T-00301,closed,P2,web form,amer,2026-10-21T12:00:00Z,18,
+T-00302,open,P2,web form,apac,2026-10-22T13:00:00Z,33,Escalated: SLA at risk.
+T-00303,closed,P1,web form,amer,2026-10-23T14:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00304,pending,P2,web form,emea,2026-10-24T15:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00305,open,P1,email,emea,2026-10-25T16:00:00Z,43,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00306,closed,P3,web form,amer,2026-10-26T17:00:00Z,55,
+T-00307,open,P2,web form,apac,2026-10-27T18:00:00Z,64,Escalated: SLA at risk.
+T-00308,pending,P3,chat,emea,2026-10-28T19:00:00Z,68,  padded values  
+T-00309,closed,P2,chat,apac,2026-10-01T20:00:00Z,24,
+T-00310,closed,P2,email,latam,2026-10-02T21:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-00311,open,P1,chat,emea,2026-10-03T22:00:00Z,12,
+T-00312,pending,P1,email,latam,2026-10-04T23:00:00Z,68,Escalated: SLA at risk.
+T-00313,pending,P2,email,latam,2026-10-05T00:00:00Z,6,"Contains ""quoted words"" and, commas"
+T-00314,closed,P1,email,amer,2026-10-06T01:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00315,pending,P2,chat,latam,2026-10-07T02:00:00Z,3,  padded values  
+T-00316,open,P2,chat,amer,2026-10-08T03:00:00Z,26,  padded values  
+T-00317,closed,P1,web form,apac,2026-10-09T04:00:00Z,0,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00318,closed,P2,chat,emea,2026-10-10T05:00:00Z,54,  padded values  
+T-00319,closed,P2,email,amer,2026-10-11T06:00:00Z,50,Escalated: SLA at risk.
+T-00320,open,P1,web form,amer,2026-10-12T07:00:00Z,22,  padded values  
+T-00321,closed,P2,chat,apac,2026-10-13T08:00:00Z,47,Customer asked about invoice re-issue.
+T-00322,closed,P2,email,emea,2026-10-14T09:00:00Z,14,"Contains ""quoted words"" and, commas"
+T-00323,closed,P1,web form,emea,2026-10-15T10:00:00Z,15,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00324,closed,P2,email,amer,2026-10-16T11:00:00Z,16,Escalated: SLA at risk.
+T-00325,pending,P2,web form,apac,2026-10-17T12:00:00Z,70,
+T-00326,closed,P1,web form,apac,2026-10-18T13:00:00Z,11,Customer asked about invoice re-issue.
+T-00327,closed,P3,web form,latam,2026-10-19T14:00:00Z,14,"Contains ""quoted words"" and, commas"
+T-00328,closed,P2,web form,apac,2026-10-20T15:00:00Z,19,Escalated: SLA at risk.
+T-00329,closed,P3,email,apac,2026-10-21T16:00:00Z,55,Customer asked about invoice re-issue.
+T-00330,open,P3,web form,apac,2026-10-22T17:00:00Z,36,  padded values  
+T-00331,pending,P2,email,emea,2026-10-23T18:00:00Z,42,"Contains ""quoted words"" and, commas"
+T-00332,closed,P2,web form,amer,2026-10-24T19:00:00Z,36,
+T-00333,closed,P3,chat,apac,2026-10-25T20:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-00334,closed,P2,chat,latam,2026-10-26T21:00:00Z,64,  padded values  
+T-00335,pending,P1,web form,emea,2026-10-27T22:00:00Z,37,
+T-00336,closed,P1,chat,emea,2026-10-28T23:00:00Z,27,Customer asked about invoice re-issue.
+T-00337,open,P2,email,emea,2026-10-01T00:00:00Z,62,"Contains ""quoted words"" and, commas"
+T-00338,pending,P2,email,amer,2026-10-02T01:00:00Z,8,Customer asked about invoice re-issue.
+T-00339,open,P1,web form,emea,2026-10-03T02:00:00Z,24,
+T-00340,pending,P2,chat,apac,2026-10-04T03:00:00Z,21,Escalated: SLA at risk.
+T-00341,open,P2,email,amer,2026-10-05T04:00:00Z,13,Escalated: SLA at risk.
+T-00342,closed,P1,chat,latam,2026-10-06T05:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-00343,pending,P2,email,apac,2026-10-07T06:00:00Z,15,Customer asked about invoice re-issue.
+T-00344,closed,P1,chat,amer,2026-10-08T07:00:00Z,21,Customer asked about invoice re-issue.
+T-00345,closed,P2,chat,emea,2026-10-09T08:00:00Z,62,
+T-00346,open,P2,email,amer,2026-10-10T09:00:00Z,2,
+T-00347,closed,P1,chat,emea,2026-10-11T10:00:00Z,48,  padded values  
+T-00348,open,P2,email,latam,2026-10-12T11:00:00Z,7,  padded values  
+T-00349,open,P2,email,amer,2026-10-13T12:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-00350,pending,P3,email,apac,2026-10-14T13:00:00Z,23,Escalated: SLA at risk.
+T-00351,closed,P3,email,emea,2026-10-15T14:00:00Z,25,  padded values  
+T-00352,open,P2,chat,amer,2026-10-16T15:00:00Z,25,
+T-00353,open,P2,chat,amer,2026-10-17T16:00:00Z,67,Customer asked about invoice re-issue.
+T-00354,closed,P2,web form,emea,2026-10-18T17:00:00Z,68,"Contains ""quoted words"" and, commas"
+T-00355,closed,P2,web form,emea,2026-10-19T18:00:00Z,66,Escalated: SLA at risk.
+T-00356,pending,P3,web form,apac,2026-10-20T19:00:00Z,8,
+T-00357,pending,P2,chat,amer,2026-10-21T20:00:00Z,37,Escalated: SLA at risk.
+T-00358,closed,P2,chat,emea,2026-10-22T21:00:00Z,24,
+T-00359,closed,P3,web form,latam,2026-10-23T22:00:00Z,43,  padded values  
+T-00360,open,P3,chat,latam,2026-10-24T23:00:00Z,52,Customer asked about invoice re-issue.
+T-00361,open,P2,chat,apac,2026-10-25T00:00:00Z,6,Escalated: SLA at risk.
+T-00362,pending,P2,chat,amer,2026-10-26T01:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00363,closed,P1,chat,emea,2026-10-27T02:00:00Z,31,  padded values  
+T-00364,closed,P2,email,emea,2026-10-28T03:00:00Z,15,  padded values  
+T-00365,open,P2,web form,apac,2026-10-01T04:00:00Z,4,
+T-00366,pending,P2,chat,apac,2026-10-02T05:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00367,closed,P2,chat,emea,2026-10-03T06:00:00Z,21,  padded values  
+T-00368,closed,P1,web form,amer,2026-10-04T07:00:00Z,36,  padded values  
+T-00369,open,P1,email,emea,2026-10-05T08:00:00Z,7,"Contains ""quoted words"" and, commas"
+T-00370,pending,P2,email,apac,2026-10-06T09:00:00Z,19,Customer asked about invoice re-issue.
+T-00371,open,P1,web form,apac,2026-10-07T10:00:00Z,44,  padded values  
+T-00372,pending,P3,web form,amer,2026-10-08T11:00:00Z,3,
+T-00373,pending,P2,chat,emea,2026-10-09T12:00:00Z,60,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00374,open,P1,chat,latam,2026-10-10T13:00:00Z,59,"Contains ""quoted words"" and, commas"
+T-00375,pending,P3,email,amer,2026-10-11T14:00:00Z,1,  padded values  
+T-00376,closed,P2,chat,amer,2026-10-12T15:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00377,pending,P3,chat,apac,2026-10-13T16:00:00Z,65,  padded values  
+T-00378,pending,P1,email,emea,2026-10-14T17:00:00Z,38,Customer asked about invoice re-issue.
+T-00379,open,P2,email,latam,2026-10-15T18:00:00Z,61,Customer asked about invoice re-issue.
+T-00380,closed,P3,web form,apac,2026-10-16T19:00:00Z,16,  padded values  
+T-00381,closed,P1,email,apac,2026-10-17T20:00:00Z,19,"Contains ""quoted words"" and, commas"
+T-00382,pending,P2,email,emea,2026-10-18T21:00:00Z,20,Customer asked about invoice re-issue.
+T-00383,closed,P3,web form,latam,2026-10-19T22:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00384,pending,P3,chat,apac,2026-10-20T23:00:00Z,32,  padded values  
+T-00385,closed,P2,email,apac,2026-10-21T00:00:00Z,19,Customer asked about invoice re-issue.
+T-00386,closed,P2,email,latam,2026-10-22T01:00:00Z,71,Customer asked about invoice re-issue.
+T-00387,closed,P3,web form,amer,2026-10-23T02:00:00Z,36,
+T-00388,pending,P2,web form,amer,2026-10-24T03:00:00Z,54,  padded values  
+T-00389,open,P1,chat,latam,2026-10-25T04:00:00Z,68,Escalated: SLA at risk.
+T-00390,open,P3,web form,latam,2026-10-26T05:00:00Z,5,Escalated: SLA at risk.
+T-00391,pending,P2,chat,apac,2026-10-27T06:00:00Z,2,  padded values  
+T-00392,open,P2,web form,amer,2026-10-28T07:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00393,open,P1,chat,amer,2026-10-01T08:00:00Z,53,"Contains ""quoted words"" and, commas"
+T-00394,open,P2,chat,latam,2026-10-02T09:00:00Z,5,Customer asked about invoice re-issue.
+T-00395,open,P3,chat,latam,2026-10-03T10:00:00Z,22,Escalated: SLA at risk.
+T-00396,open,P1,web form,latam,2026-10-04T11:00:00Z,13,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00397,pending,P2,web form,latam,2026-10-05T12:00:00Z,51,Customer asked about invoice re-issue.
+T-00398,pending,P1,email,emea,2026-10-06T13:00:00Z,6,
+T-00399,open,P2,email,latam,2026-10-07T14:00:00Z,4,  padded values  
+T-00400,closed,P2,web form,emea,2026-10-08T15:00:00Z,67,
+T-00401,closed,P1,email,emea,2026-10-09T16:00:00Z,1,"Contains ""quoted words"" and, commas"
+T-00402,open,P1,email,emea,2026-10-10T17:00:00Z,63,  padded values  
+T-00403,open,P2,chat,amer,2026-10-11T18:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-00404,open,P3,web form,apac,2026-10-12T19:00:00Z,2,"Contains ""quoted words"" and, commas"
+T-00405,open,P3,chat,emea,2026-10-13T20:00:00Z,17,
+T-00406,pending,P2,email,amer,2026-10-14T21:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-00407,open,P2,email,apac,2026-10-15T22:00:00Z,15,
+T-00408,open,P1,web form,emea,2026-10-16T23:00:00Z,26,  padded values  
+T-00409,closed,P2,web form,amer,2026-10-17T00:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00410,closed,P3,email,emea,2026-10-18T01:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-00411,closed,P3,email,emea,2026-10-19T02:00:00Z,46,"Contains ""quoted words"" and, commas"
+T-00412,closed,P2,web form,emea,2026-10-20T03:00:00Z,66,
+T-00413,open,P1,email,latam,2026-10-21T04:00:00Z,24,Escalated: SLA at risk.
+T-00414,closed,P2,chat,emea,2026-10-22T05:00:00Z,2,  padded values  
+T-00415,closed,P2,web form,emea,2026-10-23T06:00:00Z,34,Escalated: SLA at risk.
+T-00416,open,P3,chat,emea,2026-10-24T07:00:00Z,51,Escalated: SLA at risk.
+T-00417,pending,P2,email,emea,2026-10-25T08:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00418,pending,P2,email,apac,2026-10-26T09:00:00Z,57,Customer asked about invoice re-issue.
+T-00419,open,P3,email,amer,2026-10-27T10:00:00Z,70,Escalated: SLA at risk.
+T-00420,closed,P1,email,emea,2026-10-28T11:00:00Z,66,  padded values  
+T-00421,pending,P2,chat,apac,2026-10-01T12:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00422,closed,P3,chat,amer,2026-10-02T13:00:00Z,1,Customer asked about invoice re-issue.
+T-00423,closed,P1,chat,latam,2026-10-03T14:00:00Z,59,Escalated: SLA at risk.
+T-00424,open,P2,web form,apac,2026-10-04T15:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00425,pending,P1,chat,latam,2026-10-05T16:00:00Z,25,
+T-00426,pending,P2,chat,amer,2026-10-06T17:00:00Z,4,
+T-00427,pending,P2,email,latam,2026-10-07T18:00:00Z,1,
+T-00428,closed,P1,chat,apac,2026-10-08T19:00:00Z,48,  padded values  
+T-00429,pending,P1,web form,apac,2026-10-09T20:00:00Z,67,Customer asked about invoice re-issue.
+T-00430,pending,P2,email,amer,2026-10-10T21:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00431,pending,P1,web form,latam,2026-10-11T22:00:00Z,3,Escalated: SLA at risk.
+T-00432,pending,P3,chat,amer,2026-10-12T23:00:00Z,62,Escalated: SLA at risk.
+T-00433,open,P2,web form,apac,2026-10-13T00:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-00434,pending,P3,web form,amer,2026-10-14T01:00:00Z,48,Escalated: SLA at risk.
+T-00435,pending,P2,web form,emea,2026-10-15T02:00:00Z,71,
+T-00436,open,P2,chat,apac,2026-10-16T03:00:00Z,31,
+T-00437,open,P3,email,apac,2026-10-17T04:00:00Z,19,Customer asked about invoice re-issue.
+T-00438,open,P3,email,apac,2026-10-18T05:00:00Z,66,Escalated: SLA at risk.
+T-00439,closed,P2,email,latam,2026-10-19T06:00:00Z,20,Escalated: SLA at risk.
+T-00440,open,P1,email,latam,2026-10-20T07:00:00Z,52,  padded values  
+T-00441,closed,P2,web form,latam,2026-10-21T08:00:00Z,40,  padded values  
+T-00442,pending,P2,email,apac,2026-10-22T09:00:00Z,68,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00443,closed,P1,chat,latam,2026-10-23T10:00:00Z,54,Escalated: SLA at risk.
+T-00444,pending,P3,email,latam,2026-10-24T11:00:00Z,22,Customer asked about invoice re-issue.
+T-00445,open,P2,web form,amer,2026-10-25T12:00:00Z,26,Customer asked about invoice re-issue.
+T-00446,closed,P1,email,latam,2026-10-26T13:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-00447,open,P1,email,amer,2026-10-27T14:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00448,closed,P2,web form,latam,2026-10-28T15:00:00Z,59,Customer asked about invoice re-issue.
+T-00449,closed,P3,email,emea,2026-10-01T16:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-00450,open,P2,web form,latam,2026-10-02T17:00:00Z,0,
+T-00451,open,P2,chat,apac,2026-10-03T18:00:00Z,17,Escalated: SLA at risk.
+T-00452,open,P1,email,apac,2026-10-04T19:00:00Z,14,Escalated: SLA at risk.
+T-00453,closed,P1,email,amer,2026-10-05T20:00:00Z,62,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00454,pending,P2,chat,latam,2026-10-06T21:00:00Z,43,  padded values  
+T-00455,open,P2,chat,amer,2026-10-07T22:00:00Z,37,  padded values  
+T-00456,open,P1,email,apac,2026-10-08T23:00:00Z,11,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00457,pending,P2,chat,emea,2026-10-09T00:00:00Z,12,  padded values  
+T-00458,closed,P1,chat,latam,2026-10-10T01:00:00Z,68,
+T-00459,closed,P1,web form,latam,2026-10-11T02:00:00Z,24,"Contains ""quoted words"" and, commas"
+T-00460,closed,P2,chat,emea,2026-10-12T03:00:00Z,28,"Contains ""quoted words"" and, commas"
+T-00461,open,P1,web form,apac,2026-10-13T04:00:00Z,38,"Contains ""quoted words"" and, commas"
+T-00462,pending,P3,email,latam,2026-10-14T05:00:00Z,17,  padded values  
+T-00463,pending,P2,web form,emea,2026-10-15T06:00:00Z,37,  padded values  
+T-00464,closed,P1,chat,apac,2026-10-16T07:00:00Z,16,
+T-00465,closed,P1,email,amer,2026-10-17T08:00:00Z,39,  padded values  
+T-00466,closed,P2,web form,amer,2026-10-18T09:00:00Z,5,Escalated: SLA at risk.
+T-00467,closed,P1,web form,apac,2026-10-19T10:00:00Z,63,  padded values  
+T-00468,open,P3,email,amer,2026-10-20T11:00:00Z,34,Escalated: SLA at risk.
+T-00469,closed,P2,chat,emea,2026-10-21T12:00:00Z,28,Escalated: SLA at risk.
+T-00470,open,P1,web form,apac,2026-10-22T13:00:00Z,6,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00471,pending,P2,email,latam,2026-10-23T14:00:00Z,69,Customer asked about invoice re-issue.
+T-00472,open,P2,chat,amer,2026-10-24T15:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00473,open,P2,email,apac,2026-10-25T16:00:00Z,67,
+T-00474,open,P2,web form,apac,2026-10-26T17:00:00Z,23,"Contains ""quoted words"" and, commas"
+T-00475,closed,P2,chat,emea,2026-10-27T18:00:00Z,7,
+T-00476,closed,P1,chat,amer,2026-10-28T19:00:00Z,66,
+T-00477,pending,P3,email,amer,2026-10-01T20:00:00Z,65,
+T-00478,closed,P2,web form,emea,2026-10-02T21:00:00Z,2,
+T-00479,closed,P3,web form,emea,2026-10-03T22:00:00Z,35,
+T-00480,pending,P2,chat,amer,2026-10-04T23:00:00Z,5,
+T-00481,closed,P2,email,latam,2026-10-05T00:00:00Z,38,  padded values  
+T-00482,open,P3,chat,amer,2026-10-06T01:00:00Z,6,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00483,open,P3,web form,amer,2026-10-07T02:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00484,pending,P2,chat,apac,2026-10-08T03:00:00Z,20,  padded values  
+T-00485,open,P2,email,amer,2026-10-09T04:00:00Z,55,"Contains ""quoted words"" and, commas"
+T-00486,closed,P2,email,amer,2026-10-10T05:00:00Z,57,Customer asked about invoice re-issue.
+T-00487,pending,P2,email,amer,2026-10-11T06:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00488,pending,P2,web form,amer,2026-10-12T07:00:00Z,33,Customer asked about invoice re-issue.
+T-00489,closed,P1,chat,emea,2026-10-13T08:00:00Z,63,Customer asked about invoice re-issue.
+T-00490,pending,P2,chat,amer,2026-10-14T09:00:00Z,22,
+T-00491,closed,P3,web form,latam,2026-10-15T10:00:00Z,19,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00492,pending,P2,chat,apac,2026-10-16T11:00:00Z,39,Escalated: SLA at risk.
+T-00493,closed,P2,chat,apac,2026-10-17T12:00:00Z,53,
+T-00494,open,P2,web form,amer,2026-10-18T13:00:00Z,4,
+T-00495,closed,P1,chat,apac,2026-10-19T14:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00496,closed,P2,chat,latam,2026-10-20T15:00:00Z,48,  padded values  
+T-00497,open,P3,chat,apac,2026-10-21T16:00:00Z,51,"Contains ""quoted words"" and, commas"
+T-00498,open,P3,web form,emea,2026-10-22T17:00:00Z,26,"Contains ""quoted words"" and, commas"
+T-00499,closed,P2,web form,apac,2026-10-23T18:00:00Z,59,Escalated: SLA at risk.
+T-00500,pending,P3,chat,amer,2026-10-24T19:00:00Z,32,Escalated: SLA at risk.
+T-00501,closed,P3,chat,latam,2026-10-25T20:00:00Z,53,"Contains ""quoted words"" and, commas"
+T-00502,closed,P2,web form,latam,2026-10-26T21:00:00Z,40,Escalated: SLA at risk.
+T-00503,closed,P2,web form,apac,2026-10-27T22:00:00Z,71,
+T-00504,open,P1,web form,apac,2026-10-28T23:00:00Z,66,Customer asked about invoice re-issue.
+T-00505,pending,P2,email,emea,2026-10-01T00:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-00506,closed,P2,web form,apac,2026-10-02T01:00:00Z,65,Customer asked about invoice re-issue.
+T-00507,open,P2,web form,apac,2026-10-03T02:00:00Z,62,
+T-00508,open,P2,email,emea,2026-10-04T03:00:00Z,16,Customer asked about invoice re-issue.
+T-00509,closed,P1,web form,latam,2026-10-05T04:00:00Z,14,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00510,closed,P3,chat,emea,2026-10-06T05:00:00Z,52,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00511,closed,P2,web form,amer,2026-10-07T06:00:00Z,59,"Contains ""quoted words"" and, commas"
+T-00512,pending,P3,web form,apac,2026-10-08T07:00:00Z,70,  padded values  
+T-00513,closed,P3,web form,emea,2026-10-09T08:00:00Z,65,
+T-00514,closed,P2,web form,emea,2026-10-10T09:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-00515,closed,P3,chat,amer,2026-10-11T10:00:00Z,24,  padded values  
+T-00516,open,P2,chat,apac,2026-10-12T11:00:00Z,50,
+T-00517,closed,P2,web form,latam,2026-10-13T12:00:00Z,61,Escalated: SLA at risk.
+T-00518,closed,P2,web form,apac,2026-10-14T13:00:00Z,51,"Contains ""quoted words"" and, commas"
+T-00519,pending,P3,email,latam,2026-10-15T14:00:00Z,20,Escalated: SLA at risk.
+T-00520,open,P2,chat,emea,2026-10-16T15:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-00521,open,P1,chat,apac,2026-10-17T16:00:00Z,65,
+T-00522,closed,P3,chat,apac,2026-10-18T17:00:00Z,52,Escalated: SLA at risk.
+T-00523,pending,P2,chat,amer,2026-10-19T18:00:00Z,65,"Contains ""quoted words"" and, commas"
+T-00524,open,P3,chat,latam,2026-10-20T19:00:00Z,13,  padded values  
+T-00525,closed,P3,web form,amer,2026-10-21T20:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00526,open,P2,email,emea,2026-10-22T21:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-00527,pending,P1,web form,apac,2026-10-23T22:00:00Z,70,Escalated: SLA at risk.
+T-00528,open,P3,web form,latam,2026-10-24T23:00:00Z,68,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00529,closed,P2,chat,latam,2026-10-25T00:00:00Z,15,Escalated: SLA at risk.
+T-00530,pending,P1,email,emea,2026-10-26T01:00:00Z,49,Customer asked about invoice re-issue.
+T-00531,pending,P3,web form,apac,2026-10-27T02:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00532,pending,P2,chat,latam,2026-10-28T03:00:00Z,42,"Contains ""quoted words"" and, commas"
+T-00533,pending,P2,email,amer,2026-10-01T04:00:00Z,25,Escalated: SLA at risk.
+T-00534,open,P1,email,amer,2026-10-02T05:00:00Z,57,Escalated: SLA at risk.
+T-00535,closed,P2,email,emea,2026-10-03T06:00:00Z,3,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00536,pending,P2,web form,latam,2026-10-04T07:00:00Z,21,"Contains ""quoted words"" and, commas"
+T-00537,closed,P3,chat,emea,2026-10-05T08:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00538,pending,P2,web form,emea,2026-10-06T09:00:00Z,2,
+T-00539,pending,P1,email,latam,2026-10-07T10:00:00Z,15,Escalated: SLA at risk.
+T-00540,closed,P1,email,emea,2026-10-08T11:00:00Z,52,"Contains ""quoted words"" and, commas"
+T-00541,closed,P2,email,apac,2026-10-09T12:00:00Z,7,Customer asked about invoice re-issue.
+T-00542,open,P2,web form,latam,2026-10-10T13:00:00Z,7,  padded values  
+T-00543,closed,P1,chat,emea,2026-10-11T14:00:00Z,62,Escalated: SLA at risk.
+T-00544,open,P2,web form,amer,2026-10-12T15:00:00Z,12,
+T-00545,open,P3,email,latam,2026-10-13T16:00:00Z,35,"Contains ""quoted words"" and, commas"
+T-00546,pending,P1,chat,latam,2026-10-14T17:00:00Z,63,
+T-00547,pending,P2,web form,latam,2026-10-15T18:00:00Z,62,Customer asked about invoice re-issue.
+T-00548,closed,P3,chat,latam,2026-10-16T19:00:00Z,34,  padded values  
+T-00549,closed,P3,email,apac,2026-10-17T20:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-00550,open,P2,chat,amer,2026-10-18T21:00:00Z,28,  padded values  
+T-00551,pending,P2,chat,amer,2026-10-19T22:00:00Z,30,"Contains ""quoted words"" and, commas"
+T-00552,pending,P2,web form,apac,2026-10-20T23:00:00Z,57,  padded values  
+T-00553,pending,P2,email,latam,2026-10-21T00:00:00Z,14,Customer asked about invoice re-issue.
+T-00554,open,P2,email,latam,2026-10-22T01:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00555,open,P1,web form,apac,2026-10-23T02:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-00556,open,P2,email,amer,2026-10-24T03:00:00Z,68,Escalated: SLA at risk.
+T-00557,open,P1,email,latam,2026-10-25T04:00:00Z,35,Customer asked about invoice re-issue.
+T-00558,open,P3,email,latam,2026-10-26T05:00:00Z,5,Escalated: SLA at risk.
+T-00559,open,P2,email,emea,2026-10-27T06:00:00Z,2,
+T-00560,open,P3,chat,amer,2026-10-28T07:00:00Z,71,
+T-00561,closed,P2,web form,emea,2026-10-01T08:00:00Z,33,Customer asked about invoice re-issue.
+T-00562,open,P2,email,emea,2026-10-02T09:00:00Z,58,Customer asked about invoice re-issue.
+T-00563,pending,P1,email,amer,2026-10-03T10:00:00Z,11,Customer asked about invoice re-issue.
+T-00564,pending,P2,chat,latam,2026-10-04T11:00:00Z,51,
+T-00565,closed,P2,web form,latam,2026-10-05T12:00:00Z,45,Customer asked about invoice re-issue.
+T-00566,closed,P1,web form,apac,2026-10-06T13:00:00Z,66,
+T-00567,pending,P1,email,amer,2026-10-07T14:00:00Z,50,Escalated: SLA at risk.
+T-00568,pending,P2,chat,emea,2026-10-08T15:00:00Z,41,Customer asked about invoice re-issue.
+T-00569,pending,P1,email,amer,2026-10-09T16:00:00Z,50,
+T-00570,closed,P1,web form,emea,2026-10-10T17:00:00Z,18,"Contains ""quoted words"" and, commas"
+T-00571,open,P2,chat,apac,2026-10-11T18:00:00Z,6,Escalated: SLA at risk.
+T-00572,pending,P2,web form,emea,2026-10-12T19:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-00573,closed,P3,web form,latam,2026-10-13T20:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00574,open,P2,web form,apac,2026-10-14T21:00:00Z,43,  padded values  
+T-00575,open,P1,email,emea,2026-10-15T22:00:00Z,49,Customer asked about invoice re-issue.
+T-00576,pending,P2,email,emea,2026-10-16T23:00:00Z,43,
+T-00577,closed,P2,web form,amer,2026-10-17T00:00:00Z,21,  padded values  
+T-00578,open,P2,web form,latam,2026-10-18T01:00:00Z,26,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00579,open,P1,chat,amer,2026-10-19T02:00:00Z,16,Escalated: SLA at risk.
+T-00580,closed,P2,chat,apac,2026-10-20T03:00:00Z,18,Escalated: SLA at risk.
+T-00581,open,P2,email,emea,2026-10-21T04:00:00Z,64,  padded values  
+T-00582,closed,P1,chat,emea,2026-10-22T05:00:00Z,59,"Contains ""quoted words"" and, commas"
+T-00583,closed,P2,web form,emea,2026-10-23T06:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00584,open,P3,email,latam,2026-10-24T07:00:00Z,31,"Contains ""quoted words"" and, commas"
+T-00585,pending,P3,web form,latam,2026-10-25T08:00:00Z,54,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00586,closed,P2,chat,amer,2026-10-26T09:00:00Z,9,
+T-00587,closed,P2,chat,emea,2026-10-27T10:00:00Z,27,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00588,pending,P2,email,apac,2026-10-28T11:00:00Z,16,
+T-00589,pending,P2,web form,apac,2026-10-01T12:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00590,open,P2,email,amer,2026-10-02T13:00:00Z,63,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00591,closed,P1,email,emea,2026-10-03T14:00:00Z,25,  padded values  
+T-00592,open,P2,web form,apac,2026-10-04T15:00:00Z,24,"Contains ""quoted words"" and, commas"
+T-00593,open,P3,web form,latam,2026-10-05T16:00:00Z,71,"Contains ""quoted words"" and, commas"
+T-00594,open,P3,chat,latam,2026-10-06T17:00:00Z,45,Customer asked about invoice re-issue.
+T-00595,open,P2,web form,latam,2026-10-07T18:00:00Z,45,Escalated: SLA at risk.
+T-00596,open,P3,web form,amer,2026-10-08T19:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00597,closed,P2,email,amer,2026-10-09T20:00:00Z,36,Escalated: SLA at risk.
+T-00598,closed,P2,web form,amer,2026-10-10T21:00:00Z,71,"Contains ""quoted words"" and, commas"
+T-00599,closed,P2,web form,emea,2026-10-11T22:00:00Z,15,  padded values  
+T-00600,pending,P3,chat,apac,2026-10-12T23:00:00Z,4,  padded values  
+T-00601,pending,P2,chat,emea,2026-10-13T00:00:00Z,40,
+T-00602,closed,P1,web form,amer,2026-10-14T01:00:00Z,20,
+T-00603,open,P1,email,apac,2026-10-15T02:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-00604,closed,P2,web form,amer,2026-10-16T03:00:00Z,30,Escalated: SLA at risk.
+T-00605,open,P3,email,latam,2026-10-17T04:00:00Z,69,  padded values  
+T-00606,pending,P1,chat,amer,2026-10-18T05:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00607,pending,P2,web form,latam,2026-10-19T06:00:00Z,3,
+T-00608,open,P3,email,apac,2026-10-20T07:00:00Z,2,  padded values  
+T-00609,open,P1,web form,emea,2026-10-21T08:00:00Z,19,  padded values  
+T-00610,closed,P2,email,latam,2026-10-22T09:00:00Z,65,"Contains ""quoted words"" and, commas"
+T-00611,pending,P1,web form,latam,2026-10-23T10:00:00Z,12,Customer asked about invoice re-issue.
+T-00612,pending,P1,email,latam,2026-10-24T11:00:00Z,44,Escalated: SLA at risk.
+T-00613,open,P2,web form,amer,2026-10-25T12:00:00Z,3,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00614,pending,P1,web form,latam,2026-10-26T13:00:00Z,14,"Contains ""quoted words"" and, commas"
+T-00615,open,P2,chat,emea,2026-10-27T14:00:00Z,54,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00616,pending,P2,web form,amer,2026-10-28T15:00:00Z,37,Customer asked about invoice re-issue.
+T-00617,open,P2,chat,apac,2026-10-01T16:00:00Z,55,  padded values  
+T-00618,open,P3,chat,latam,2026-10-02T17:00:00Z,52,"Contains ""quoted words"" and, commas"
+T-00619,open,P2,web form,emea,2026-10-03T18:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-00620,closed,P1,web form,apac,2026-10-04T19:00:00Z,28,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00621,closed,P1,email,emea,2026-10-05T20:00:00Z,28,Escalated: SLA at risk.
+T-00622,pending,P2,chat,apac,2026-10-06T21:00:00Z,28,  padded values  
+T-00623,open,P2,chat,apac,2026-10-07T22:00:00Z,40,  padded values  
+T-00624,open,P1,web form,apac,2026-10-08T23:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-00625,open,P2,email,latam,2026-10-09T00:00:00Z,57,Escalated: SLA at risk.
+T-00626,open,P3,chat,apac,2026-10-10T01:00:00Z,47,  padded values  
+T-00627,closed,P3,email,emea,2026-10-11T02:00:00Z,48,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00628,pending,P2,web form,amer,2026-10-12T03:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-00629,closed,P2,email,latam,2026-10-13T04:00:00Z,9,
+T-00630,pending,P3,web form,amer,2026-10-14T05:00:00Z,56,Escalated: SLA at risk.
+T-00631,closed,P2,web form,apac,2026-10-15T06:00:00Z,55,Escalated: SLA at risk.
+T-00632,closed,P2,chat,emea,2026-10-16T07:00:00Z,5,Escalated: SLA at risk.
+T-00633,closed,P3,web form,emea,2026-10-17T08:00:00Z,16,"Contains ""quoted words"" and, commas"
+T-00634,closed,P2,email,amer,2026-10-18T09:00:00Z,32,
+T-00635,closed,P3,web form,emea,2026-10-19T10:00:00Z,19,"Contains ""quoted words"" and, commas"
+T-00636,closed,P2,web form,apac,2026-10-20T11:00:00Z,59,  padded values  
+T-00637,closed,P2,chat,apac,2026-10-21T12:00:00Z,50,Customer asked about invoice re-issue.
+T-00638,closed,P1,chat,apac,2026-10-22T13:00:00Z,8,Customer asked about invoice re-issue.
+T-00639,closed,P1,chat,amer,2026-10-23T14:00:00Z,65,  padded values  
+T-00640,open,P2,email,latam,2026-10-24T15:00:00Z,61,Customer asked about invoice re-issue.
+T-00641,pending,P3,email,emea,2026-10-25T16:00:00Z,68,Escalated: SLA at risk.
+T-00642,open,P1,email,apac,2026-10-26T17:00:00Z,16,"Contains ""quoted words"" and, commas"
+T-00643,pending,P2,email,amer,2026-10-27T18:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00644,pending,P3,chat,latam,2026-10-28T19:00:00Z,39,Escalated: SLA at risk.
+T-00645,open,P1,web form,amer,2026-10-01T20:00:00Z,21,  padded values  
+T-00646,pending,P2,chat,apac,2026-10-02T21:00:00Z,71,Customer asked about invoice re-issue.
+T-00647,open,P3,email,emea,2026-10-03T22:00:00Z,49,Customer asked about invoice re-issue.
+T-00648,pending,P3,chat,emea,2026-10-04T23:00:00Z,68,
+T-00649,open,P2,web form,amer,2026-10-05T00:00:00Z,13,
+T-00650,closed,P1,chat,apac,2026-10-06T01:00:00Z,35,  padded values  
+T-00651,open,P1,email,apac,2026-10-07T02:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00652,pending,P2,email,emea,2026-10-08T03:00:00Z,4,  padded values  
+T-00653,open,P2,chat,emea,2026-10-09T04:00:00Z,35,  padded values  
+T-00654,pending,P2,email,latam,2026-10-10T05:00:00Z,39,  padded values  
+T-00655,closed,P2,web form,apac,2026-10-11T06:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-00656,open,P3,chat,latam,2026-10-12T07:00:00Z,10,"Contains ""quoted words"" and, commas"
+T-00657,closed,P2,chat,apac,2026-10-13T08:00:00Z,47,
+T-00658,pending,P2,chat,apac,2026-10-14T09:00:00Z,52,
+T-00659,open,P2,email,amer,2026-10-15T10:00:00Z,45,"Contains ""quoted words"" and, commas"
+T-00660,pending,P3,chat,apac,2026-10-16T11:00:00Z,19,"Contains ""quoted words"" and, commas"
+T-00661,closed,P2,chat,emea,2026-10-17T12:00:00Z,57,Customer asked about invoice re-issue.
+T-00662,open,P2,web form,emea,2026-10-18T13:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-00663,pending,P3,chat,emea,2026-10-19T14:00:00Z,8,
+T-00664,closed,P2,email,emea,2026-10-20T15:00:00Z,63,Customer asked about invoice re-issue.
+T-00665,closed,P3,web form,emea,2026-10-21T16:00:00Z,26,Escalated: SLA at risk.
+T-00666,open,P1,chat,latam,2026-10-22T17:00:00Z,7,  padded values  
+T-00667,open,P2,email,latam,2026-10-23T18:00:00Z,68,  padded values  
+T-00668,open,P2,email,emea,2026-10-24T19:00:00Z,22,
+T-00669,closed,P1,chat,apac,2026-10-25T20:00:00Z,19,  padded values  
+T-00670,open,P2,email,amer,2026-10-26T21:00:00Z,50,Customer asked about invoice re-issue.
+T-00671,open,P1,chat,apac,2026-10-27T22:00:00Z,44,"Contains ""quoted words"" and, commas"
+T-00672,pending,P3,web form,latam,2026-10-28T23:00:00Z,51,  padded values  
+T-00673,closed,P2,chat,apac,2026-10-01T00:00:00Z,26,
+T-00674,open,P2,email,latam,2026-10-02T01:00:00Z,48,
+T-00675,closed,P2,chat,latam,2026-10-03T02:00:00Z,38,"Contains ""quoted words"" and, commas"
+T-00676,closed,P2,web form,latam,2026-10-04T03:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-00677,pending,P1,chat,latam,2026-10-05T04:00:00Z,31,Escalated: SLA at risk.
+T-00678,closed,P3,chat,amer,2026-10-06T05:00:00Z,68,Escalated: SLA at risk.
+T-00679,pending,P2,web form,emea,2026-10-07T06:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00680,pending,P1,chat,latam,2026-10-08T07:00:00Z,0,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00681,pending,P3,email,emea,2026-10-09T08:00:00Z,6,Escalated: SLA at risk.
+T-00682,pending,P2,chat,emea,2026-10-10T09:00:00Z,40,  padded values  
+T-00683,open,P3,email,apac,2026-10-11T10:00:00Z,30,Customer asked about invoice re-issue.
+T-00684,open,P1,chat,latam,2026-10-12T11:00:00Z,31,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00685,open,P2,web form,latam,2026-10-13T12:00:00Z,68,  padded values  
+T-00686,open,P3,web form,emea,2026-10-14T13:00:00Z,40,Customer asked about invoice re-issue.
+T-00687,pending,P1,chat,emea,2026-10-15T14:00:00Z,49,Customer asked about invoice re-issue.
+T-00688,closed,P2,chat,amer,2026-10-16T15:00:00Z,23,  padded values  
+T-00689,pending,P3,chat,latam,2026-10-17T16:00:00Z,63,Escalated: SLA at risk.
+T-00690,pending,P3,email,emea,2026-10-18T17:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00691,closed,P2,chat,amer,2026-10-19T18:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-00692,open,P2,chat,emea,2026-10-20T19:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00693,pending,P3,email,amer,2026-10-21T20:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-00694,open,P2,email,latam,2026-10-22T21:00:00Z,38,Customer asked about invoice re-issue.
+T-00695,closed,P3,web form,apac,2026-10-23T22:00:00Z,28,Escalated: SLA at risk.
+T-00696,pending,P3,email,latam,2026-10-24T23:00:00Z,32,  padded values  
+T-00697,closed,P2,web form,latam,2026-10-25T00:00:00Z,11,Customer asked about invoice re-issue.
+T-00698,open,P1,chat,latam,2026-10-26T01:00:00Z,22,Customer asked about invoice re-issue.
+T-00699,pending,P3,web form,emea,2026-10-27T02:00:00Z,38,Escalated: SLA at risk.
+T-00700,pending,P2,email,apac,2026-10-28T03:00:00Z,16,  padded values  
+T-00701,open,P2,chat,emea,2026-10-01T04:00:00Z,68,Customer asked about invoice re-issue.
+T-00702,pending,P1,chat,emea,2026-10-02T05:00:00Z,39,
+T-00703,pending,P2,chat,amer,2026-10-03T06:00:00Z,69,  padded values  
+T-00704,open,P1,email,emea,2026-10-04T07:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-00705,pending,P1,web form,apac,2026-10-05T08:00:00Z,20,Escalated: SLA at risk.
+T-00706,closed,P2,chat,latam,2026-10-06T09:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00707,open,P1,email,apac,2026-10-07T10:00:00Z,31,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00708,closed,P2,chat,apac,2026-10-08T11:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-00709,closed,P2,web form,amer,2026-10-09T12:00:00Z,35,"Contains ""quoted words"" and, commas"
+T-00710,closed,P1,email,emea,2026-10-10T13:00:00Z,31,
+T-00711,pending,P2,email,amer,2026-10-11T14:00:00Z,19,Escalated: SLA at risk.
+T-00712,open,P2,chat,emea,2026-10-12T15:00:00Z,54,  padded values  
+T-00713,pending,P3,chat,amer,2026-10-13T16:00:00Z,30,"Contains ""quoted words"" and, commas"
+T-00714,open,P3,web form,emea,2026-10-14T17:00:00Z,60,Customer asked about invoice re-issue.
+T-00715,open,P2,chat,apac,2026-10-15T18:00:00Z,60,
+T-00716,closed,P3,web form,emea,2026-10-16T19:00:00Z,22,
+T-00717,pending,P2,web form,amer,2026-10-17T20:00:00Z,66,
+T-00718,closed,P2,chat,latam,2026-10-18T21:00:00Z,43,
+T-00719,closed,P1,chat,apac,2026-10-19T22:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00720,closed,P1,chat,amer,2026-10-20T23:00:00Z,61,Customer asked about invoice re-issue.
+T-00721,closed,P2,chat,emea,2026-10-21T00:00:00Z,61,Escalated: SLA at risk.
+T-00722,pending,P3,web form,amer,2026-10-22T01:00:00Z,21,Customer asked about invoice re-issue.
+T-00723,open,P3,web form,emea,2026-10-23T02:00:00Z,48,Customer asked about invoice re-issue.
+T-00724,pending,P2,web form,emea,2026-10-24T03:00:00Z,35,  padded values  
+T-00725,closed,P3,web form,amer,2026-10-25T04:00:00Z,50,  padded values  
+T-00726,closed,P2,web form,amer,2026-10-26T05:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-00727,open,P2,chat,latam,2026-10-27T06:00:00Z,51,
+T-00728,closed,P3,web form,amer,2026-10-28T07:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-00729,closed,P2,web form,amer,2026-10-01T08:00:00Z,4,
+T-00730,pending,P2,web form,amer,2026-10-02T09:00:00Z,39,"Contains ""quoted words"" and, commas"
+T-00731,closed,P3,chat,apac,2026-10-03T10:00:00Z,51,Customer asked about invoice re-issue.
+T-00732,open,P2,email,latam,2026-10-04T11:00:00Z,0,
+T-00733,open,P2,chat,emea,2026-10-05T12:00:00Z,24,
+T-00734,pending,P2,chat,latam,2026-10-06T13:00:00Z,5,Customer asked about invoice re-issue.
+T-00735,pending,P3,web form,latam,2026-10-07T14:00:00Z,58,Escalated: SLA at risk.
+T-00736,pending,P2,web form,amer,2026-10-08T15:00:00Z,47,  padded values  
+T-00737,open,P3,web form,emea,2026-10-09T16:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-00738,closed,P2,web form,amer,2026-10-10T17:00:00Z,60,
+T-00739,pending,P2,web form,apac,2026-10-11T18:00:00Z,26,"Contains ""quoted words"" and, commas"
+T-00740,open,P3,chat,apac,2026-10-12T19:00:00Z,9,Escalated: SLA at risk.
+T-00741,open,P1,web form,apac,2026-10-13T20:00:00Z,14,  padded values  
+T-00742,closed,P2,web form,emea,2026-10-14T21:00:00Z,7,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00743,open,P2,web form,amer,2026-10-15T22:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00744,open,P2,web form,emea,2026-10-16T23:00:00Z,9,Customer asked about invoice re-issue.
+T-00745,pending,P2,email,latam,2026-10-17T00:00:00Z,2,  padded values  
+T-00746,closed,P3,web form,emea,2026-10-18T01:00:00Z,61,Customer asked about invoice re-issue.
+T-00747,open,P1,chat,apac,2026-10-19T02:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-00748,pending,P2,email,emea,2026-10-20T03:00:00Z,36,
+T-00749,pending,P3,chat,emea,2026-10-21T04:00:00Z,6,Customer asked about invoice re-issue.
+T-00750,pending,P1,web form,latam,2026-10-22T05:00:00Z,60,
+T-00751,closed,P2,email,latam,2026-10-23T06:00:00Z,48,Escalated: SLA at risk.
+T-00752,closed,P2,web form,latam,2026-10-24T07:00:00Z,32,
+T-00753,pending,P1,email,latam,2026-10-25T08:00:00Z,13,  padded values  
+T-00754,open,P2,web form,amer,2026-10-26T09:00:00Z,59,  padded values  
+T-00755,open,P3,email,latam,2026-10-27T10:00:00Z,38,Escalated: SLA at risk.
+T-00756,closed,P2,web form,amer,2026-10-28T11:00:00Z,11,  padded values  
+T-00757,closed,P2,web form,amer,2026-10-01T12:00:00Z,20,Customer asked about invoice re-issue.
+T-00758,closed,P2,email,emea,2026-10-02T13:00:00Z,7,Customer asked about invoice re-issue.
+T-00759,open,P2,web form,apac,2026-10-03T14:00:00Z,68,  padded values  
+T-00760,closed,P2,web form,apac,2026-10-04T15:00:00Z,48,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00761,open,P1,email,amer,2026-10-05T16:00:00Z,21,Customer asked about invoice re-issue.
+T-00762,closed,P3,web form,latam,2026-10-06T17:00:00Z,13,
+T-00763,pending,P2,web form,amer,2026-10-07T18:00:00Z,44,Customer asked about invoice re-issue.
+T-00764,pending,P1,email,amer,2026-10-08T19:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00765,closed,P1,web form,latam,2026-10-09T20:00:00Z,69,Escalated: SLA at risk.
+T-00766,closed,P2,chat,apac,2026-10-10T21:00:00Z,69,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00767,closed,P1,web form,latam,2026-10-11T22:00:00Z,53,
+T-00768,closed,P2,web form,latam,2026-10-12T23:00:00Z,55,  padded values  
+T-00769,closed,P2,web form,latam,2026-10-13T00:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-00770,pending,P3,web form,apac,2026-10-14T01:00:00Z,9,
+T-00771,pending,P1,email,emea,2026-10-15T02:00:00Z,18,  padded values  
+T-00772,pending,P2,email,latam,2026-10-16T03:00:00Z,14,  padded values  
+T-00773,pending,P2,web form,latam,2026-10-17T04:00:00Z,0,Escalated: SLA at risk.
+T-00774,closed,P1,chat,latam,2026-10-18T05:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00775,open,P2,email,apac,2026-10-19T06:00:00Z,2,  padded values  
+T-00776,closed,P2,email,amer,2026-10-20T07:00:00Z,60,  padded values  
+T-00777,pending,P2,email,amer,2026-10-21T08:00:00Z,21,
+T-00778,pending,P2,email,latam,2026-10-22T09:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00779,closed,P1,email,emea,2026-10-23T10:00:00Z,50,
+T-00780,open,P1,email,latam,2026-10-24T11:00:00Z,21,  padded values  
+T-00781,pending,P2,web form,latam,2026-10-25T12:00:00Z,71,Customer asked about invoice re-issue.
+T-00782,pending,P1,web form,emea,2026-10-26T13:00:00Z,48,
+T-00783,closed,P3,email,amer,2026-10-27T14:00:00Z,3,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00784,open,P2,email,amer,2026-10-28T15:00:00Z,22,Escalated: SLA at risk.
+T-00785,open,P2,chat,amer,2026-10-01T16:00:00Z,7,"Contains ""quoted words"" and, commas"
+T-00786,pending,P2,web form,latam,2026-10-02T17:00:00Z,28,Escalated: SLA at risk.
+T-00787,open,P2,email,emea,2026-10-03T18:00:00Z,33,
+T-00788,closed,P3,web form,latam,2026-10-04T19:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-00789,closed,P1,chat,latam,2026-10-05T20:00:00Z,38,
+T-00790,open,P2,web form,latam,2026-10-06T21:00:00Z,26,Escalated: SLA at risk.
+T-00791,open,P2,email,latam,2026-10-07T22:00:00Z,64,
+T-00792,open,P1,chat,latam,2026-10-08T23:00:00Z,68,Escalated: SLA at risk.
+T-00793,open,P2,chat,amer,2026-10-09T00:00:00Z,28,Escalated: SLA at risk.
+T-00794,closed,P2,web form,apac,2026-10-10T01:00:00Z,71,  padded values  
+T-00795,closed,P2,chat,amer,2026-10-11T02:00:00Z,21,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00796,pending,P2,web form,emea,2026-10-12T03:00:00Z,71,  padded values  
+T-00797,open,P3,web form,apac,2026-10-13T04:00:00Z,28,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00798,closed,P2,web form,apac,2026-10-14T05:00:00Z,44,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00799,pending,P2,email,latam,2026-10-15T06:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-00800,open,P1,email,apac,2026-10-16T07:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-00801,pending,P3,web form,latam,2026-10-17T08:00:00Z,64,
+T-00802,open,P2,chat,latam,2026-10-18T09:00:00Z,44,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00803,open,P1,email,emea,2026-10-19T10:00:00Z,11,  padded values  
+T-00804,closed,P1,chat,amer,2026-10-20T11:00:00Z,23,"Contains ""quoted words"" and, commas"
+T-00805,open,P2,chat,apac,2026-10-21T12:00:00Z,28,"Contains ""quoted words"" and, commas"
+T-00806,open,P2,email,apac,2026-10-22T13:00:00Z,29,
+T-00807,open,P1,web form,apac,2026-10-23T14:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-00808,open,P2,email,latam,2026-10-24T15:00:00Z,62,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00809,closed,P3,chat,apac,2026-10-25T16:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-00810,open,P1,email,latam,2026-10-26T17:00:00Z,34,  padded values  
+T-00811,open,P2,email,amer,2026-10-27T18:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-00812,closed,P3,web form,latam,2026-10-28T19:00:00Z,41,  padded values  
+T-00813,pending,P3,web form,amer,2026-10-01T20:00:00Z,60,Customer asked about invoice re-issue.
+T-00814,open,P2,chat,amer,2026-10-02T21:00:00Z,11,  padded values  
+T-00815,open,P2,chat,emea,2026-10-03T22:00:00Z,7,Customer asked about invoice re-issue.
+T-00816,pending,P2,web form,amer,2026-10-04T23:00:00Z,65,Escalated: SLA at risk.
+T-00817,closed,P2,email,amer,2026-10-05T00:00:00Z,36,Customer asked about invoice re-issue.
+T-00818,closed,P3,chat,latam,2026-10-06T01:00:00Z,45,Escalated: SLA at risk.
+T-00819,pending,P3,chat,amer,2026-10-07T02:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00820,pending,P2,chat,apac,2026-10-08T03:00:00Z,13,
+T-00821,open,P3,email,apac,2026-10-09T04:00:00Z,44,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00822,closed,P2,email,latam,2026-10-10T05:00:00Z,47,Customer asked about invoice re-issue.
+T-00823,pending,P2,email,apac,2026-10-11T06:00:00Z,11,  padded values  
+T-00824,open,P2,web form,amer,2026-10-12T07:00:00Z,8,
+T-00825,pending,P3,chat,apac,2026-10-13T08:00:00Z,30,Customer asked about invoice re-issue.
+T-00826,open,P2,web form,emea,2026-10-14T09:00:00Z,65,"Contains ""quoted words"" and, commas"
+T-00827,open,P3,web form,latam,2026-10-15T10:00:00Z,64,  padded values  
+T-00828,pending,P3,chat,amer,2026-10-16T11:00:00Z,49,Escalated: SLA at risk.
+T-00829,closed,P2,web form,emea,2026-10-17T12:00:00Z,60,Customer asked about invoice re-issue.
+T-00830,closed,P1,email,latam,2026-10-18T13:00:00Z,39,Customer asked about invoice re-issue.
+T-00831,pending,P1,email,amer,2026-10-19T14:00:00Z,20,
+T-00832,open,P2,email,amer,2026-10-20T15:00:00Z,48,Escalated: SLA at risk.
+T-00833,open,P3,chat,latam,2026-10-21T16:00:00Z,25,
+T-00834,closed,P2,email,apac,2026-10-22T17:00:00Z,38,Escalated: SLA at risk.
+T-00835,open,P2,email,apac,2026-10-23T18:00:00Z,5,Escalated: SLA at risk.
+T-00836,pending,P1,chat,apac,2026-10-24T19:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00837,pending,P3,chat,apac,2026-10-25T20:00:00Z,60,Customer asked about invoice re-issue.
+T-00838,closed,P2,email,latam,2026-10-26T21:00:00Z,67,  padded values  
+T-00839,open,P2,web form,latam,2026-10-27T22:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00840,open,P3,chat,latam,2026-10-28T23:00:00Z,2,  padded values  
+T-00841,closed,P2,email,latam,2026-10-01T00:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-00842,open,P2,email,latam,2026-10-02T01:00:00Z,36,  padded values  
+T-00843,pending,P3,chat,amer,2026-10-03T02:00:00Z,5,"Contains ""quoted words"" and, commas"
+T-00844,closed,P2,email,latam,2026-10-04T03:00:00Z,45,
+T-00845,open,P2,email,apac,2026-10-05T04:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00846,closed,P1,email,apac,2026-10-06T05:00:00Z,38,
+T-00847,closed,P2,web form,apac,2026-10-07T06:00:00Z,71,Escalated: SLA at risk.
+T-00848,pending,P2,web form,emea,2026-10-08T07:00:00Z,4,Escalated: SLA at risk.
+T-00849,pending,P3,web form,emea,2026-10-09T08:00:00Z,29,  padded values  
+T-00850,open,P2,web form,amer,2026-10-10T09:00:00Z,56,
+T-00851,closed,P2,chat,apac,2026-10-11T10:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-00852,closed,P1,web form,apac,2026-10-12T11:00:00Z,56,Escalated: SLA at risk.
+T-00853,closed,P2,chat,apac,2026-10-13T12:00:00Z,46,
+T-00854,closed,P1,web form,amer,2026-10-14T13:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-00855,pending,P2,chat,emea,2026-10-15T14:00:00Z,60,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00856,open,P2,email,amer,2026-10-16T15:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-00857,open,P2,email,emea,2026-10-17T16:00:00Z,3,Customer asked about invoice re-issue.
+T-00858,open,P2,email,apac,2026-10-18T17:00:00Z,32,
+T-00859,open,P2,chat,apac,2026-10-19T18:00:00Z,54,"Contains ""quoted words"" and, commas"
+T-00860,open,P2,web form,latam,2026-10-20T19:00:00Z,10,Customer asked about invoice re-issue.
+T-00861,closed,P1,chat,amer,2026-10-21T20:00:00Z,62,
+T-00862,open,P2,web form,apac,2026-10-22T21:00:00Z,71,  padded values  
+T-00863,pending,P2,web form,apac,2026-10-23T22:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00864,open,P1,chat,emea,2026-10-24T23:00:00Z,59,Customer asked about invoice re-issue.
+T-00865,closed,P2,web form,latam,2026-10-25T00:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-00866,pending,P3,email,latam,2026-10-26T01:00:00Z,9,
+T-00867,open,P1,chat,emea,2026-10-27T02:00:00Z,29,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00868,open,P2,web form,emea,2026-10-28T03:00:00Z,50,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00869,pending,P1,web form,latam,2026-10-01T04:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00870,open,P1,email,apac,2026-10-02T05:00:00Z,56,Escalated: SLA at risk.
+T-00871,open,P2,email,latam,2026-10-03T06:00:00Z,68,
+T-00872,pending,P1,chat,amer,2026-10-04T07:00:00Z,36,Escalated: SLA at risk.
+T-00873,pending,P3,email,emea,2026-10-05T08:00:00Z,44,
+T-00874,closed,P2,chat,apac,2026-10-06T09:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00875,open,P3,chat,apac,2026-10-07T10:00:00Z,8,Customer asked about invoice re-issue.
+T-00876,closed,P2,chat,emea,2026-10-08T11:00:00Z,69,Escalated: SLA at risk.
+T-00877,open,P2,web form,emea,2026-10-09T12:00:00Z,20,Customer asked about invoice re-issue.
+T-00878,open,P1,web form,latam,2026-10-10T13:00:00Z,17,
+T-00879,closed,P2,email,latam,2026-10-11T14:00:00Z,9,  padded values  
+T-00880,open,P2,web form,latam,2026-10-12T15:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00881,open,P3,web form,emea,2026-10-13T16:00:00Z,6,Customer asked about invoice re-issue.
+T-00882,closed,P1,web form,amer,2026-10-14T17:00:00Z,5,
+T-00883,closed,P2,web form,latam,2026-10-15T18:00:00Z,6,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00884,closed,P2,chat,apac,2026-10-16T19:00:00Z,62,Escalated: SLA at risk.
+T-00885,closed,P2,web form,emea,2026-10-17T20:00:00Z,13,Customer asked about invoice re-issue.
+T-00886,closed,P2,web form,latam,2026-10-18T21:00:00Z,12,  padded values  
+T-00887,pending,P1,chat,amer,2026-10-19T22:00:00Z,62,Customer asked about invoice re-issue.
+T-00888,pending,P2,chat,latam,2026-10-20T23:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00889,closed,P2,web form,latam,2026-10-21T00:00:00Z,54,Escalated: SLA at risk.
+T-00890,closed,P1,chat,emea,2026-10-22T01:00:00Z,4,Customer asked about invoice re-issue.
+T-00891,closed,P2,chat,latam,2026-10-23T02:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-00892,closed,P2,chat,apac,2026-10-24T03:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00893,open,P2,email,latam,2026-10-25T04:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00894,pending,P3,chat,emea,2026-10-26T05:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-00895,pending,P2,web form,latam,2026-10-27T06:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-00896,pending,P2,chat,emea,2026-10-28T07:00:00Z,2,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00897,pending,P2,chat,latam,2026-10-01T08:00:00Z,24,
+T-00898,pending,P2,chat,emea,2026-10-02T09:00:00Z,7,
+T-00899,closed,P2,chat,apac,2026-10-03T10:00:00Z,31,
+T-00900,pending,P2,chat,amer,2026-10-04T11:00:00Z,34,Customer asked about invoice re-issue.
+T-00901,open,P2,email,emea,2026-10-05T12:00:00Z,7,  padded values  
+T-00902,closed,P1,email,amer,2026-10-06T13:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00903,closed,P2,email,apac,2026-10-07T14:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00904,open,P2,chat,apac,2026-10-08T15:00:00Z,54,"Contains ""quoted words"" and, commas"
+T-00905,pending,P3,email,amer,2026-10-09T16:00:00Z,14,Escalated: SLA at risk.
+T-00906,closed,P3,chat,amer,2026-10-10T17:00:00Z,41,Escalated: SLA at risk.
+T-00907,closed,P2,chat,latam,2026-10-11T18:00:00Z,49,Customer asked about invoice re-issue.
+T-00908,open,P1,web form,apac,2026-10-12T19:00:00Z,34,  padded values  
+T-00909,pending,P2,web form,amer,2026-10-13T20:00:00Z,28,
+T-00910,pending,P2,chat,amer,2026-10-14T21:00:00Z,28,Escalated: SLA at risk.
+T-00911,open,P2,web form,latam,2026-10-15T22:00:00Z,9,
+T-00912,pending,P2,email,latam,2026-10-16T23:00:00Z,0,Customer asked about invoice re-issue.
+T-00913,closed,P2,chat,amer,2026-10-17T00:00:00Z,19,
+T-00914,closed,P1,web form,amer,2026-10-18T01:00:00Z,65,
+T-00915,pending,P1,chat,latam,2026-10-19T02:00:00Z,71,
+T-00916,pending,P2,email,latam,2026-10-20T03:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00917,closed,P2,email,apac,2026-10-21T04:00:00Z,66,Escalated: SLA at risk.
+T-00918,pending,P3,chat,apac,2026-10-22T05:00:00Z,69,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00919,open,P2,email,emea,2026-10-23T06:00:00Z,29,"Contains ""quoted words"" and, commas"
+T-00920,closed,P2,chat,emea,2026-10-24T07:00:00Z,70,Escalated: SLA at risk.
+T-00921,pending,P3,chat,emea,2026-10-25T08:00:00Z,47,"Contains ""quoted words"" and, commas"
+T-00922,open,P2,web form,apac,2026-10-26T09:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00923,pending,P2,chat,amer,2026-10-27T10:00:00Z,54,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00924,pending,P1,email,apac,2026-10-28T11:00:00Z,13,  padded values  
+T-00925,open,P2,web form,latam,2026-10-01T12:00:00Z,47,Customer asked about invoice re-issue.
+T-00926,pending,P1,email,apac,2026-10-02T13:00:00Z,42,Customer asked about invoice re-issue.
+T-00927,pending,P2,chat,emea,2026-10-03T14:00:00Z,33,Customer asked about invoice re-issue.
+T-00928,closed,P2,chat,emea,2026-10-04T15:00:00Z,24,  padded values  
+T-00929,pending,P1,web form,latam,2026-10-05T16:00:00Z,46,Customer asked about invoice re-issue.
+T-00930,open,P1,chat,apac,2026-10-06T17:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-00931,pending,P2,web form,emea,2026-10-07T18:00:00Z,53,Escalated: SLA at risk.
+T-00932,open,P2,web form,amer,2026-10-08T19:00:00Z,30,Customer asked about invoice re-issue.
+T-00933,closed,P3,chat,latam,2026-10-09T20:00:00Z,10,"Contains ""quoted words"" and, commas"
+T-00934,closed,P2,chat,latam,2026-10-10T21:00:00Z,5,"Contains ""quoted words"" and, commas"
+T-00935,open,P2,web form,apac,2026-10-11T22:00:00Z,38,Customer asked about invoice re-issue.
+T-00936,open,P2,chat,apac,2026-10-12T23:00:00Z,41,Escalated: SLA at risk.
+T-00937,pending,P2,chat,emea,2026-10-13T00:00:00Z,21,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00938,pending,P2,email,latam,2026-10-14T01:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-00939,open,P2,email,latam,2026-10-15T02:00:00Z,10,Escalated: SLA at risk.
+T-00940,pending,P2,email,amer,2026-10-16T03:00:00Z,26,Escalated: SLA at risk.
+T-00941,closed,P3,web form,apac,2026-10-17T04:00:00Z,0,
+T-00942,open,P3,chat,emea,2026-10-18T05:00:00Z,34,Customer asked about invoice re-issue.
+T-00943,closed,P2,chat,latam,2026-10-19T06:00:00Z,68,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00944,open,P1,web form,apac,2026-10-20T07:00:00Z,38,
+T-00945,pending,P1,web form,emea,2026-10-21T08:00:00Z,65,Escalated: SLA at risk.
+T-00946,open,P2,email,amer,2026-10-22T09:00:00Z,71,
+T-00947,pending,P3,email,apac,2026-10-23T10:00:00Z,71,Customer asked about invoice re-issue.
+T-00948,open,P3,chat,latam,2026-10-24T11:00:00Z,2,"Contains ""quoted words"" and, commas"
+T-00949,pending,P2,chat,latam,2026-10-25T12:00:00Z,40,Customer asked about invoice re-issue.
+T-00950,pending,P1,email,amer,2026-10-26T13:00:00Z,19,  padded values  
+T-00951,open,P2,web form,latam,2026-10-27T14:00:00Z,22,
+T-00952,pending,P2,chat,latam,2026-10-28T15:00:00Z,33,  padded values  
+T-00953,closed,P2,email,apac,2026-10-01T16:00:00Z,27,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00954,closed,P3,email,apac,2026-10-02T17:00:00Z,26,
+T-00955,pending,P2,email,amer,2026-10-03T18:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00956,closed,P1,chat,emea,2026-10-04T19:00:00Z,2,Escalated: SLA at risk.
+T-00957,pending,P1,web form,amer,2026-10-05T20:00:00Z,53,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00958,pending,P2,email,emea,2026-10-06T21:00:00Z,24,Customer asked about invoice re-issue.
+T-00959,open,P2,email,emea,2026-10-07T22:00:00Z,2,
+T-00960,open,P3,web form,latam,2026-10-08T23:00:00Z,48,Escalated: SLA at risk.
+T-00961,closed,P2,chat,emea,2026-10-09T00:00:00Z,9,
+T-00962,open,P1,chat,emea,2026-10-10T01:00:00Z,21,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00963,pending,P1,web form,amer,2026-10-11T02:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-00964,pending,P2,email,emea,2026-10-12T03:00:00Z,51,"Contains ""quoted words"" and, commas"
+T-00965,pending,P2,email,amer,2026-10-13T04:00:00Z,60,Escalated: SLA at risk.
+T-00966,closed,P3,email,emea,2026-10-14T05:00:00Z,15,  padded values  
+T-00967,closed,P2,email,amer,2026-10-15T06:00:00Z,58,
+T-00968,closed,P2,chat,amer,2026-10-16T07:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-00969,open,P2,web form,latam,2026-10-17T08:00:00Z,1,
+T-00970,pending,P2,web form,apac,2026-10-18T09:00:00Z,52,Escalated: SLA at risk.
+T-00971,open,P2,email,amer,2026-10-19T10:00:00Z,11,  padded values  
+T-00972,open,P2,email,apac,2026-10-20T11:00:00Z,33,Escalated: SLA at risk.
+T-00973,pending,P2,email,emea,2026-10-21T12:00:00Z,62,
+T-00974,open,P3,email,emea,2026-10-22T13:00:00Z,62,  padded values  
+T-00975,open,P2,email,emea,2026-10-23T14:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-00976,closed,P2,chat,latam,2026-10-24T15:00:00Z,48,  padded values  
+T-00977,open,P3,web form,latam,2026-10-25T16:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-00978,closed,P2,email,amer,2026-10-26T17:00:00Z,62,  padded values  
+T-00979,open,P2,web form,apac,2026-10-27T18:00:00Z,48,  padded values  
+T-00980,pending,P2,email,apac,2026-10-28T19:00:00Z,53,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00981,pending,P3,email,apac,2026-10-01T20:00:00Z,62,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-00982,closed,P2,chat,emea,2026-10-02T21:00:00Z,2,Escalated: SLA at risk.
+T-00983,closed,P1,web form,apac,2026-10-03T22:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-00984,pending,P2,email,latam,2026-10-04T23:00:00Z,45,  padded values  
+T-00985,open,P2,web form,amer,2026-10-05T00:00:00Z,43,
+T-00986,closed,P3,chat,apac,2026-10-06T01:00:00Z,5,Customer asked about invoice re-issue.
+T-00987,pending,P1,web form,latam,2026-10-07T02:00:00Z,17,Escalated: SLA at risk.
+T-00988,pending,P2,web form,apac,2026-10-08T03:00:00Z,30,Escalated: SLA at risk.
+T-00989,closed,P2,email,amer,2026-10-09T04:00:00Z,37,  padded values  
+T-00990,pending,P1,email,apac,2026-10-10T05:00:00Z,66,  padded values  
+T-00991,open,P2,email,apac,2026-10-11T06:00:00Z,64,"Contains ""quoted words"" and, commas"
+T-00992,closed,P3,email,latam,2026-10-12T07:00:00Z,21,Escalated: SLA at risk.
+T-00993,closed,P3,email,latam,2026-10-13T08:00:00Z,6,
+T-00994,closed,P2,email,latam,2026-10-14T09:00:00Z,29,Escalated: SLA at risk.
+T-00995,pending,P1,chat,emea,2026-10-15T10:00:00Z,34,"Contains ""quoted words"" and, commas"
+T-00996,open,P3,web form,emea,2026-10-16T11:00:00Z,37,
+T-00997,open,P2,web form,latam,2026-10-17T12:00:00Z,10,
+T-00998,closed,P3,email,latam,2026-10-18T13:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-00999,open,P2,email,amer,2026-10-19T14:00:00Z,4,
+T-01000,pending,P2,web form,latam,2026-10-20T15:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01001,pending,P2,chat,latam,2026-10-21T16:00:00Z,26,
+T-01002,open,P1,web form,amer,2026-10-22T17:00:00Z,48,Customer asked about invoice re-issue.
+T-01003,closed,P2,email,latam,2026-10-23T18:00:00Z,24,Customer asked about invoice re-issue.
+T-01004,closed,P2,chat,amer,2026-10-24T19:00:00Z,68,Escalated: SLA at risk.
+T-01005,closed,P2,chat,apac,2026-10-25T20:00:00Z,27,"Contains ""quoted words"" and, commas"
+T-01006,pending,P2,email,latam,2026-10-26T21:00:00Z,42,Escalated: SLA at risk.
+T-01007,pending,P2,web form,amer,2026-10-27T22:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-01008,pending,P1,chat,latam,2026-10-28T23:00:00Z,39,
+T-01009,pending,P2,email,amer,2026-10-01T00:00:00Z,4,Escalated: SLA at risk.
+T-01010,open,P3,web form,amer,2026-10-02T01:00:00Z,49,Escalated: SLA at risk.
+T-01011,open,P1,web form,latam,2026-10-03T02:00:00Z,8,Customer asked about invoice re-issue.
+T-01012,open,P2,email,emea,2026-10-04T03:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-01013,pending,P1,web form,amer,2026-10-05T04:00:00Z,6,Customer asked about invoice re-issue.
+T-01014,closed,P3,email,emea,2026-10-06T05:00:00Z,9,Customer asked about invoice re-issue.
+T-01015,closed,P2,email,latam,2026-10-07T06:00:00Z,54,"Contains ""quoted words"" and, commas"
+T-01016,open,P2,chat,amer,2026-10-08T07:00:00Z,22,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01017,pending,P3,email,apac,2026-10-09T08:00:00Z,64,  padded values  
+T-01018,closed,P2,web form,amer,2026-10-10T09:00:00Z,53,  padded values  
+T-01019,open,P2,web form,amer,2026-10-11T10:00:00Z,60,"Contains ""quoted words"" and, commas"
+T-01020,open,P3,web form,emea,2026-10-12T11:00:00Z,57,Escalated: SLA at risk.
+T-01021,closed,P2,email,emea,2026-10-13T12:00:00Z,65,Customer asked about invoice re-issue.
+T-01022,open,P1,web form,apac,2026-10-14T13:00:00Z,57,  padded values  
+T-01023,open,P2,chat,amer,2026-10-15T14:00:00Z,61,
+T-01024,pending,P2,email,amer,2026-10-16T15:00:00Z,29,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01025,closed,P2,web form,latam,2026-10-17T16:00:00Z,30,Escalated: SLA at risk.
+T-01026,pending,P2,email,emea,2026-10-18T17:00:00Z,64,Escalated: SLA at risk.
+T-01027,closed,P2,web form,amer,2026-10-19T18:00:00Z,69,"Contains ""quoted words"" and, commas"
+T-01028,closed,P2,email,latam,2026-10-20T19:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-01029,open,P3,email,emea,2026-10-21T20:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01030,pending,P2,chat,apac,2026-10-22T21:00:00Z,46,
+T-01031,pending,P3,chat,latam,2026-10-23T22:00:00Z,22,
+T-01032,open,P1,chat,latam,2026-10-24T23:00:00Z,61,"Contains ""quoted words"" and, commas"
+T-01033,open,P2,chat,emea,2026-10-25T00:00:00Z,70,Escalated: SLA at risk.
+T-01034,closed,P1,email,emea,2026-10-26T01:00:00Z,5,
+T-01035,pending,P1,web form,latam,2026-10-27T02:00:00Z,4,  padded values  
+T-01036,open,P2,email,latam,2026-10-28T03:00:00Z,15,
+T-01037,pending,P1,email,latam,2026-10-01T04:00:00Z,11,Escalated: SLA at risk.
+T-01038,closed,P3,email,apac,2026-10-02T05:00:00Z,65,
+T-01039,closed,P2,email,emea,2026-10-03T06:00:00Z,66,  padded values  
+T-01040,open,P1,chat,latam,2026-10-04T07:00:00Z,56,  padded values  
+T-01041,open,P1,email,apac,2026-10-05T08:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01042,open,P2,email,apac,2026-10-06T09:00:00Z,39,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01043,pending,P3,email,amer,2026-10-07T10:00:00Z,30,"Contains ""quoted words"" and, commas"
+T-01044,pending,P3,email,latam,2026-10-08T11:00:00Z,19,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01045,pending,P2,email,emea,2026-10-09T12:00:00Z,60,  padded values  
+T-01046,open,P2,web form,amer,2026-10-10T13:00:00Z,27,
+T-01047,pending,P3,web form,latam,2026-10-11T14:00:00Z,57,Customer asked about invoice re-issue.
+T-01048,closed,P2,chat,latam,2026-10-12T15:00:00Z,32,Customer asked about invoice re-issue.
+T-01049,closed,P3,chat,apac,2026-10-13T16:00:00Z,20,  padded values  
+T-01050,closed,P3,web form,emea,2026-10-14T17:00:00Z,1,
+T-01051,closed,P2,chat,latam,2026-10-15T18:00:00Z,70,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01052,closed,P1,web form,amer,2026-10-16T19:00:00Z,50,
+T-01053,closed,P2,chat,amer,2026-10-17T20:00:00Z,63,  padded values  
+T-01054,pending,P2,email,emea,2026-10-18T21:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01055,open,P3,web form,latam,2026-10-19T22:00:00Z,54,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01056,open,P3,chat,latam,2026-10-20T23:00:00Z,54,
+T-01057,open,P2,chat,latam,2026-10-21T00:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01058,open,P3,chat,apac,2026-10-22T01:00:00Z,41,Customer asked about invoice re-issue.
+T-01059,open,P3,web form,apac,2026-10-23T02:00:00Z,56,  padded values  
+T-01060,closed,P2,web form,emea,2026-10-24T03:00:00Z,13,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01061,closed,P1,web form,latam,2026-10-25T04:00:00Z,38,Customer asked about invoice re-issue.
+T-01062,closed,P2,chat,emea,2026-10-26T05:00:00Z,11,Customer asked about invoice re-issue.
+T-01063,pending,P2,email,amer,2026-10-27T06:00:00Z,14,
+T-01064,pending,P3,chat,amer,2026-10-28T07:00:00Z,1,"Contains ""quoted words"" and, commas"
+T-01065,closed,P1,chat,amer,2026-10-01T08:00:00Z,19,
+T-01066,closed,P2,web form,amer,2026-10-02T09:00:00Z,59,
+T-01067,pending,P3,web form,latam,2026-10-03T10:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-01068,closed,P3,email,apac,2026-10-04T11:00:00Z,59,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01069,open,P2,web form,amer,2026-10-05T12:00:00Z,30,Customer asked about invoice re-issue.
+T-01070,pending,P3,web form,apac,2026-10-06T13:00:00Z,45,  padded values  
+T-01071,pending,P3,web form,apac,2026-10-07T14:00:00Z,7,
+T-01072,open,P2,chat,apac,2026-10-08T15:00:00Z,5,  padded values  
+T-01073,closed,P3,web form,latam,2026-10-09T16:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01074,open,P2,web form,amer,2026-10-10T17:00:00Z,39,
+T-01075,closed,P2,chat,latam,2026-10-11T18:00:00Z,14,Escalated: SLA at risk.
+T-01076,pending,P3,chat,emea,2026-10-12T19:00:00Z,48,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01077,closed,P1,email,latam,2026-10-13T20:00:00Z,24,Customer asked about invoice re-issue.
+T-01078,pending,P2,web form,amer,2026-10-14T21:00:00Z,37,  padded values  
+T-01079,closed,P1,web form,amer,2026-10-15T22:00:00Z,11,Escalated: SLA at risk.
+T-01080,open,P1,web form,latam,2026-10-16T23:00:00Z,40,
+T-01081,pending,P2,email,latam,2026-10-17T00:00:00Z,14,Customer asked about invoice re-issue.
+T-01082,closed,P2,chat,emea,2026-10-18T01:00:00Z,23,
+T-01083,open,P1,web form,latam,2026-10-19T02:00:00Z,41,
+T-01084,open,P2,chat,amer,2026-10-20T03:00:00Z,44,Escalated: SLA at risk.
+T-01085,pending,P1,web form,apac,2026-10-21T04:00:00Z,36,
+T-01086,closed,P3,web form,latam,2026-10-22T05:00:00Z,4,  padded values  
+T-01087,closed,P2,web form,latam,2026-10-23T06:00:00Z,12,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01088,pending,P1,email,apac,2026-10-24T07:00:00Z,59,Escalated: SLA at risk.
+T-01089,open,P1,web form,latam,2026-10-25T08:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01090,pending,P2,web form,apac,2026-10-26T09:00:00Z,53,
+T-01091,closed,P1,web form,apac,2026-10-27T10:00:00Z,39,  padded values  
+T-01092,closed,P3,email,amer,2026-10-28T11:00:00Z,52,  padded values  
+T-01093,pending,P2,email,apac,2026-10-01T12:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01094,open,P1,web form,amer,2026-10-02T13:00:00Z,63,
+T-01095,open,P2,web form,apac,2026-10-03T14:00:00Z,11,
+T-01096,pending,P2,web form,amer,2026-10-04T15:00:00Z,45,  padded values  
+T-01097,open,P3,web form,emea,2026-10-05T16:00:00Z,28,Customer asked about invoice re-issue.
+T-01098,pending,P3,chat,emea,2026-10-06T17:00:00Z,64,  padded values  
+T-01099,open,P2,web form,emea,2026-10-07T18:00:00Z,0,  padded values  
+T-01100,open,P2,chat,latam,2026-10-08T19:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01101,open,P2,web form,latam,2026-10-09T20:00:00Z,6,  padded values  
+T-01102,open,P2,chat,amer,2026-10-10T21:00:00Z,69,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01103,pending,P3,email,amer,2026-10-11T22:00:00Z,25,Customer asked about invoice re-issue.
+T-01104,open,P1,chat,apac,2026-10-12T23:00:00Z,42,Escalated: SLA at risk.
+T-01105,closed,P2,web form,amer,2026-10-13T00:00:00Z,11,  padded values  
+T-01106,open,P2,chat,emea,2026-10-14T01:00:00Z,52,  padded values  
+T-01107,pending,P2,email,latam,2026-10-15T02:00:00Z,23,
+T-01108,closed,P2,email,amer,2026-10-16T03:00:00Z,45,Customer asked about invoice re-issue.
+T-01109,pending,P2,web form,apac,2026-10-17T04:00:00Z,1,
+T-01110,closed,P3,email,apac,2026-10-18T05:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-01111,pending,P2,email,latam,2026-10-19T06:00:00Z,40,Customer asked about invoice re-issue.
+T-01112,open,P1,web form,amer,2026-10-20T07:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01113,closed,P3,chat,amer,2026-10-21T08:00:00Z,71,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01114,open,P2,email,amer,2026-10-22T09:00:00Z,27,Customer asked about invoice re-issue.
+T-01115,pending,P2,email,apac,2026-10-23T10:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-01116,open,P1,web form,emea,2026-10-24T11:00:00Z,54,  padded values  
+T-01117,pending,P2,email,amer,2026-10-25T12:00:00Z,22,Customer asked about invoice re-issue.
+T-01118,closed,P1,email,emea,2026-10-26T13:00:00Z,17,
+T-01119,closed,P3,web form,amer,2026-10-27T14:00:00Z,25,  padded values  
+T-01120,open,P2,web form,emea,2026-10-28T15:00:00Z,71,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01121,open,P2,email,amer,2026-10-01T16:00:00Z,6,"Contains ""quoted words"" and, commas"
+T-01122,pending,P3,web form,emea,2026-10-02T17:00:00Z,46,"Contains ""quoted words"" and, commas"
+T-01123,pending,P2,web form,amer,2026-10-03T18:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01124,pending,P1,email,emea,2026-10-04T19:00:00Z,1,
+T-01125,open,P2,web form,emea,2026-10-05T20:00:00Z,53,  padded values  
+T-01126,pending,P2,email,amer,2026-10-06T21:00:00Z,10,  padded values  
+T-01127,open,P2,web form,amer,2026-10-07T22:00:00Z,47,"Contains ""quoted words"" and, commas"
+T-01128,closed,P3,email,emea,2026-10-08T23:00:00Z,12,
+T-01129,open,P2,chat,latam,2026-10-09T00:00:00Z,1,Customer asked about invoice re-issue.
+T-01130,open,P1,email,latam,2026-10-10T01:00:00Z,5,Customer asked about invoice re-issue.
+T-01131,open,P1,chat,latam,2026-10-11T02:00:00Z,57,
+T-01132,closed,P2,email,emea,2026-10-12T03:00:00Z,18,Escalated: SLA at risk.
+T-01133,pending,P1,email,apac,2026-10-13T04:00:00Z,42,
+T-01134,closed,P2,chat,emea,2026-10-14T05:00:00Z,24,"Contains ""quoted words"" and, commas"
+T-01135,open,P2,email,amer,2026-10-15T06:00:00Z,58,Escalated: SLA at risk.
+T-01136,pending,P2,email,apac,2026-10-16T07:00:00Z,10,
+T-01137,closed,P3,chat,amer,2026-10-17T08:00:00Z,37,  padded values  
+T-01138,closed,P2,web form,apac,2026-10-18T09:00:00Z,16,Escalated: SLA at risk.
+T-01139,pending,P1,web form,amer,2026-10-19T10:00:00Z,3,  padded values  
+T-01140,pending,P2,chat,apac,2026-10-20T11:00:00Z,18,Escalated: SLA at risk.
+T-01141,pending,P2,chat,apac,2026-10-21T12:00:00Z,33,"Contains ""quoted words"" and, commas"
+T-01142,open,P2,email,emea,2026-10-22T13:00:00Z,38,
+T-01143,pending,P3,email,latam,2026-10-23T14:00:00Z,42,  padded values  
+T-01144,closed,P2,chat,apac,2026-10-24T15:00:00Z,63,Customer asked about invoice re-issue.
+T-01145,closed,P2,web form,emea,2026-10-25T16:00:00Z,66,Escalated: SLA at risk.
+T-01146,pending,P3,email,emea,2026-10-26T17:00:00Z,5,Escalated: SLA at risk.
+T-01147,closed,P2,email,apac,2026-10-27T18:00:00Z,18,"Contains ""quoted words"" and, commas"
+T-01148,closed,P3,email,latam,2026-10-28T19:00:00Z,19,
+T-01149,open,P2,chat,emea,2026-10-01T20:00:00Z,7,  padded values  
+T-01150,open,P2,web form,amer,2026-10-02T21:00:00Z,71,  padded values  
+T-01151,closed,P1,chat,amer,2026-10-03T22:00:00Z,55,"Contains ""quoted words"" and, commas"
+T-01152,closed,P3,chat,amer,2026-10-04T23:00:00Z,20,  padded values  
+T-01153,closed,P2,chat,latam,2026-10-05T00:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01154,pending,P1,email,apac,2026-10-06T01:00:00Z,10,  padded values  
+T-01155,closed,P3,chat,emea,2026-10-07T02:00:00Z,52,Customer asked about invoice re-issue.
+T-01156,closed,P2,chat,amer,2026-10-08T03:00:00Z,13,  padded values  
+T-01157,closed,P2,web form,emea,2026-10-09T04:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01158,pending,P3,web form,amer,2026-10-10T05:00:00Z,40,Escalated: SLA at risk.
+T-01159,closed,P2,web form,emea,2026-10-11T06:00:00Z,51,
+T-01160,closed,P2,web form,latam,2026-10-12T07:00:00Z,32,
+T-01161,pending,P2,email,latam,2026-10-13T08:00:00Z,61,
+T-01162,pending,P2,web form,emea,2026-10-14T09:00:00Z,47,Customer asked about invoice re-issue.
+T-01163,open,P3,chat,latam,2026-10-15T10:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-01164,pending,P3,web form,latam,2026-10-16T11:00:00Z,1,Customer asked about invoice re-issue.
+T-01165,open,P2,email,apac,2026-10-17T12:00:00Z,17,Customer asked about invoice re-issue.
+T-01166,open,P3,chat,amer,2026-10-18T13:00:00Z,10,
+T-01167,closed,P1,web form,latam,2026-10-19T14:00:00Z,20,
+T-01168,open,P2,web form,latam,2026-10-20T15:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-01169,pending,P2,web form,apac,2026-10-21T16:00:00Z,32,Escalated: SLA at risk.
+T-01170,pending,P3,email,amer,2026-10-22T17:00:00Z,71,Escalated: SLA at risk.
+T-01171,pending,P2,email,emea,2026-10-23T18:00:00Z,64,
+T-01172,open,P1,email,latam,2026-10-24T19:00:00Z,53,Escalated: SLA at risk.
+T-01173,open,P3,web form,amer,2026-10-25T20:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01174,open,P2,web form,emea,2026-10-26T21:00:00Z,46,  padded values  
+T-01175,closed,P1,chat,apac,2026-10-27T22:00:00Z,68,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01176,open,P3,web form,amer,2026-10-28T23:00:00Z,1,"Contains ""quoted words"" and, commas"
+T-01177,pending,P2,web form,emea,2026-10-01T00:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01178,pending,P2,chat,latam,2026-10-02T01:00:00Z,62,"Contains ""quoted words"" and, commas"
+T-01179,closed,P1,chat,emea,2026-10-03T02:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01180,open,P2,chat,apac,2026-10-04T03:00:00Z,55,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01181,pending,P1,web form,latam,2026-10-05T04:00:00Z,40,  padded values  
+T-01182,closed,P1,chat,apac,2026-10-06T05:00:00Z,25,  padded values  
+T-01183,closed,P2,email,amer,2026-10-07T06:00:00Z,0,
+T-01184,open,P2,web form,amer,2026-10-08T07:00:00Z,65,
+T-01185,closed,P2,chat,apac,2026-10-09T08:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-01186,closed,P2,chat,amer,2026-10-10T09:00:00Z,0,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01187,closed,P3,web form,latam,2026-10-11T10:00:00Z,70,Customer asked about invoice re-issue.
+T-01188,open,P2,email,latam,2026-10-12T11:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01189,pending,P2,web form,amer,2026-10-13T12:00:00Z,62,  padded values  
+T-01190,pending,P1,email,apac,2026-10-14T13:00:00Z,70,
+T-01191,pending,P1,chat,latam,2026-10-15T14:00:00Z,67,Escalated: SLA at risk.
+T-01192,closed,P2,email,latam,2026-10-16T15:00:00Z,43,
+T-01193,closed,P3,email,apac,2026-10-17T16:00:00Z,59,
+T-01194,open,P1,chat,latam,2026-10-18T17:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-01195,closed,P2,email,emea,2026-10-19T18:00:00Z,21,
+T-01196,open,P3,web form,amer,2026-10-20T19:00:00Z,36,Escalated: SLA at risk.
+T-01197,closed,P1,email,amer,2026-10-21T20:00:00Z,25,
+T-01198,closed,P2,email,latam,2026-10-22T21:00:00Z,52,  padded values  
+T-01199,pending,P1,email,apac,2026-10-23T22:00:00Z,41,
+T-01200,closed,P1,chat,emea,2026-10-24T23:00:00Z,65,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01201,pending,P2,chat,apac,2026-10-25T00:00:00Z,20,Customer asked about invoice re-issue.
+T-01202,open,P3,email,apac,2026-10-26T01:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-01203,open,P2,email,emea,2026-10-27T02:00:00Z,27,  padded values  
+T-01204,pending,P2,email,apac,2026-10-28T03:00:00Z,28,"Contains ""quoted words"" and, commas"
+T-01205,pending,P3,web form,amer,2026-10-01T04:00:00Z,7,  padded values  
+T-01206,closed,P3,chat,latam,2026-10-02T05:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-01207,closed,P2,email,amer,2026-10-03T06:00:00Z,9,Escalated: SLA at risk.
+T-01208,pending,P2,email,apac,2026-10-04T07:00:00Z,30,"Contains ""quoted words"" and, commas"
+T-01209,open,P1,web form,amer,2026-10-05T08:00:00Z,44,  padded values  
+T-01210,pending,P2,email,amer,2026-10-06T09:00:00Z,42,  padded values  
+T-01211,pending,P2,web form,amer,2026-10-07T10:00:00Z,40,"Contains ""quoted words"" and, commas"
+T-01212,pending,P1,email,apac,2026-10-08T11:00:00Z,18,
+T-01213,open,P2,email,latam,2026-10-09T12:00:00Z,17,Customer asked about invoice re-issue.
+T-01214,pending,P2,email,apac,2026-10-10T13:00:00Z,40,Escalated: SLA at risk.
+T-01215,closed,P1,email,apac,2026-10-11T14:00:00Z,18,"Contains ""quoted words"" and, commas"
+T-01216,closed,P2,email,amer,2026-10-12T15:00:00Z,34,
+T-01217,closed,P3,web form,latam,2026-10-13T16:00:00Z,58,  padded values  
+T-01218,open,P2,web form,latam,2026-10-14T17:00:00Z,43,
+T-01219,closed,P2,chat,amer,2026-10-15T18:00:00Z,50,  padded values  
+T-01220,pending,P3,email,apac,2026-10-16T19:00:00Z,71,
+T-01221,open,P3,web form,amer,2026-10-17T20:00:00Z,2,Customer asked about invoice re-issue.
+T-01222,open,P2,web form,emea,2026-10-18T21:00:00Z,42,Escalated: SLA at risk.
+T-01223,open,P1,email,apac,2026-10-19T22:00:00Z,63,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01224,pending,P3,web form,amer,2026-10-20T23:00:00Z,6,  padded values  
+T-01225,closed,P2,web form,amer,2026-10-21T00:00:00Z,53,Escalated: SLA at risk.
+T-01226,closed,P1,chat,latam,2026-10-22T01:00:00Z,41,"Contains ""quoted words"" and, commas"
+T-01227,closed,P2,web form,latam,2026-10-23T02:00:00Z,68,  padded values  
+T-01228,open,P2,email,amer,2026-10-24T03:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01229,open,P1,web form,apac,2026-10-25T04:00:00Z,43,Escalated: SLA at risk.
+T-01230,closed,P3,web form,emea,2026-10-26T05:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01231,pending,P2,chat,apac,2026-10-27T06:00:00Z,1,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01232,closed,P3,email,emea,2026-10-28T07:00:00Z,23,Customer asked about invoice re-issue.
+T-01233,closed,P3,email,apac,2026-10-01T08:00:00Z,11,Escalated: SLA at risk.
+T-01234,pending,P2,chat,latam,2026-10-02T09:00:00Z,40,Escalated: SLA at risk.
+T-01235,open,P3,web form,apac,2026-10-03T10:00:00Z,35,
+T-01236,pending,P1,email,emea,2026-10-04T11:00:00Z,18,
+T-01237,pending,P2,chat,apac,2026-10-05T12:00:00Z,37,Customer asked about invoice re-issue.
+T-01238,pending,P1,web form,latam,2026-10-06T13:00:00Z,4,
+T-01239,open,P1,web form,emea,2026-10-07T14:00:00Z,65,Escalated: SLA at risk.
+T-01240,open,P2,chat,amer,2026-10-08T15:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01241,closed,P2,email,amer,2026-10-09T16:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-01242,pending,P1,web form,amer,2026-10-10T17:00:00Z,53,Customer asked about invoice re-issue.
+T-01243,pending,P2,chat,amer,2026-10-11T18:00:00Z,27,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01244,closed,P3,email,latam,2026-10-12T19:00:00Z,37,  padded values  
+T-01245,closed,P2,web form,emea,2026-10-13T20:00:00Z,51,Escalated: SLA at risk.
+T-01246,closed,P2,chat,apac,2026-10-14T21:00:00Z,12,Escalated: SLA at risk.
+T-01247,closed,P1,email,emea,2026-10-15T22:00:00Z,12,  padded values  
+T-01248,pending,P2,chat,apac,2026-10-16T23:00:00Z,9,  padded values  
+T-01249,open,P2,chat,amer,2026-10-17T00:00:00Z,43,Escalated: SLA at risk.
+T-01250,closed,P2,web form,latam,2026-10-18T01:00:00Z,31,  padded values  
+T-01251,closed,P3,email,emea,2026-10-19T02:00:00Z,42,  padded values  
+T-01252,closed,P2,email,latam,2026-10-20T03:00:00Z,57,Customer asked about invoice re-issue.
+T-01253,open,P3,chat,emea,2026-10-21T04:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-01254,closed,P1,web form,apac,2026-10-22T05:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-01255,pending,P2,chat,amer,2026-10-23T06:00:00Z,66,Customer asked about invoice re-issue.
+T-01256,open,P3,chat,emea,2026-10-24T07:00:00Z,62,Escalated: SLA at risk.
+T-01257,open,P2,web form,emea,2026-10-25T08:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01258,closed,P2,chat,emea,2026-10-26T09:00:00Z,34,  padded values  
+T-01259,pending,P2,email,amer,2026-10-27T10:00:00Z,35,"Contains ""quoted words"" and, commas"
+T-01260,pending,P1,chat,amer,2026-10-28T11:00:00Z,70,Escalated: SLA at risk.
+T-01261,pending,P2,email,emea,2026-10-01T12:00:00Z,19,Escalated: SLA at risk.
+T-01262,closed,P3,email,amer,2026-10-02T13:00:00Z,37,Customer asked about invoice re-issue.
+T-01263,open,P2,web form,apac,2026-10-03T14:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-01264,closed,P2,web form,latam,2026-10-04T15:00:00Z,24,Customer asked about invoice re-issue.
+T-01265,open,P3,web form,amer,2026-10-05T16:00:00Z,59,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01266,closed,P2,email,apac,2026-10-06T17:00:00Z,8,"Contains ""quoted words"" and, commas"
+T-01267,closed,P2,chat,amer,2026-10-07T18:00:00Z,18,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01268,open,P3,chat,emea,2026-10-08T19:00:00Z,16,  padded values  
+T-01269,pending,P1,chat,latam,2026-10-09T20:00:00Z,45,
+T-01270,closed,P2,web form,latam,2026-10-10T21:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01271,pending,P3,email,apac,2026-10-11T22:00:00Z,17,Customer asked about invoice re-issue.
+T-01272,closed,P1,web form,emea,2026-10-12T23:00:00Z,64,  padded values  
+T-01273,open,P2,email,latam,2026-10-13T00:00:00Z,13,  padded values  
+T-01274,closed,P1,web form,latam,2026-10-14T01:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-01275,open,P3,email,amer,2026-10-15T02:00:00Z,11,  padded values  
+T-01276,closed,P2,chat,latam,2026-10-16T03:00:00Z,4,
+T-01277,open,P1,email,emea,2026-10-17T04:00:00Z,51,Customer asked about invoice re-issue.
+T-01278,pending,P1,chat,latam,2026-10-18T05:00:00Z,4,Customer asked about invoice re-issue.
+T-01279,pending,P2,email,latam,2026-10-19T06:00:00Z,21,  padded values  
+T-01280,open,P2,web form,latam,2026-10-20T07:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-01281,open,P2,chat,apac,2026-10-21T08:00:00Z,5,"Contains ""quoted words"" and, commas"
+T-01282,closed,P2,chat,emea,2026-10-22T09:00:00Z,56,
+T-01283,open,P3,web form,amer,2026-10-23T10:00:00Z,13,Escalated: SLA at risk.
+T-01284,open,P1,email,amer,2026-10-24T11:00:00Z,18,Customer asked about invoice re-issue.
+T-01285,pending,P2,chat,apac,2026-10-25T12:00:00Z,19,Escalated: SLA at risk.
+T-01286,closed,P1,web form,latam,2026-10-26T13:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-01287,open,P2,email,apac,2026-10-27T14:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-01288,open,P2,web form,amer,2026-10-28T15:00:00Z,20,  padded values  
+T-01289,open,P2,web form,latam,2026-10-01T16:00:00Z,27,Escalated: SLA at risk.
+T-01290,pending,P3,email,emea,2026-10-02T17:00:00Z,2,Escalated: SLA at risk.
+T-01291,closed,P2,web form,emea,2026-10-03T18:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01292,open,P3,chat,apac,2026-10-04T19:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01293,closed,P2,email,latam,2026-10-05T20:00:00Z,35,Escalated: SLA at risk.
+T-01294,open,P2,chat,amer,2026-10-06T21:00:00Z,0,Escalated: SLA at risk.
+T-01295,closed,P3,web form,emea,2026-10-07T22:00:00Z,8,  padded values  
+T-01296,pending,P1,web form,emea,2026-10-08T23:00:00Z,0,  padded values  
+T-01297,open,P2,web form,amer,2026-10-09T00:00:00Z,35,
+T-01298,open,P1,chat,apac,2026-10-10T01:00:00Z,15,
+T-01299,open,P2,web form,emea,2026-10-11T02:00:00Z,13,Customer asked about invoice re-issue.
+T-01300,open,P2,email,amer,2026-10-12T03:00:00Z,18,Customer asked about invoice re-issue.
+T-01301,closed,P3,web form,latam,2026-10-13T04:00:00Z,13,
+T-01302,open,P3,web form,emea,2026-10-14T05:00:00Z,47,Escalated: SLA at risk.
+T-01303,closed,P2,email,apac,2026-10-15T06:00:00Z,61,"Contains ""quoted words"" and, commas"
+T-01304,pending,P1,chat,amer,2026-10-16T07:00:00Z,68,
+T-01305,open,P1,web form,apac,2026-10-17T08:00:00Z,12,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01306,open,P2,email,emea,2026-10-18T09:00:00Z,69,
+T-01307,pending,P3,web form,apac,2026-10-19T10:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-01308,closed,P2,email,latam,2026-10-20T11:00:00Z,32,Escalated: SLA at risk.
+T-01309,pending,P2,email,amer,2026-10-21T12:00:00Z,53,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01310,pending,P1,email,latam,2026-10-22T13:00:00Z,62,Customer asked about invoice re-issue.
+T-01311,closed,P1,web form,apac,2026-10-23T14:00:00Z,17,Customer asked about invoice re-issue.
+T-01312,closed,P2,chat,apac,2026-10-24T15:00:00Z,45,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01313,closed,P1,email,emea,2026-10-25T16:00:00Z,30,  padded values  
+T-01314,pending,P1,web form,apac,2026-10-26T17:00:00Z,0,  padded values  
+T-01315,closed,P2,chat,apac,2026-10-27T18:00:00Z,50,  padded values  
+T-01316,closed,P3,email,apac,2026-10-28T19:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01317,closed,P1,web form,apac,2026-10-01T20:00:00Z,71,Customer asked about invoice re-issue.
+T-01318,open,P2,web form,apac,2026-10-02T21:00:00Z,29,"Contains ""quoted words"" and, commas"
+T-01319,closed,P1,email,amer,2026-10-03T22:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01320,open,P1,email,emea,2026-10-04T23:00:00Z,20,  padded values  
+T-01321,closed,P2,chat,emea,2026-10-05T00:00:00Z,29,  padded values  
+T-01322,open,P1,web form,latam,2026-10-06T01:00:00Z,36,  padded values  
+T-01323,closed,P2,chat,amer,2026-10-07T02:00:00Z,55,
+T-01324,closed,P2,web form,emea,2026-10-08T03:00:00Z,10,
+T-01325,pending,P1,chat,emea,2026-10-09T04:00:00Z,34,
+T-01326,closed,P2,web form,latam,2026-10-10T05:00:00Z,0,Customer asked about invoice re-issue.
+T-01327,closed,P2,web form,apac,2026-10-11T06:00:00Z,35,Escalated: SLA at risk.
+T-01328,pending,P1,email,apac,2026-10-12T07:00:00Z,31,Escalated: SLA at risk.
+T-01329,closed,P3,email,apac,2026-10-13T08:00:00Z,11,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01330,closed,P2,email,amer,2026-10-14T09:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01331,closed,P3,email,emea,2026-10-15T10:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-01332,pending,P1,web form,emea,2026-10-16T11:00:00Z,69,"Contains ""quoted words"" and, commas"
+T-01333,closed,P2,email,latam,2026-10-17T12:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01334,open,P1,email,emea,2026-10-18T13:00:00Z,20,Escalated: SLA at risk.
+T-01335,open,P2,email,amer,2026-10-19T14:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01336,closed,P2,web form,emea,2026-10-20T15:00:00Z,6,Escalated: SLA at risk.
+T-01337,pending,P3,email,apac,2026-10-21T16:00:00Z,7,"Contains ""quoted words"" and, commas"
+T-01338,open,P3,web form,amer,2026-10-22T17:00:00Z,60,  padded values  
+T-01339,pending,P2,email,latam,2026-10-23T18:00:00Z,60,
+T-01340,closed,P3,chat,apac,2026-10-24T19:00:00Z,63,
+T-01341,pending,P2,email,latam,2026-10-25T20:00:00Z,40,Customer asked about invoice re-issue.
+T-01342,closed,P2,email,latam,2026-10-26T21:00:00Z,30,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01343,open,P2,web form,amer,2026-10-27T22:00:00Z,28,  padded values  
+T-01344,pending,P3,web form,amer,2026-10-28T23:00:00Z,62,  padded values  
+T-01345,pending,P2,web form,latam,2026-10-01T00:00:00Z,53,Escalated: SLA at risk.
+T-01346,open,P1,chat,latam,2026-10-02T01:00:00Z,11,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01347,pending,P2,chat,amer,2026-10-03T02:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01348,closed,P2,web form,latam,2026-10-04T03:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01349,pending,P3,email,latam,2026-10-05T04:00:00Z,69,
+T-01350,closed,P3,chat,amer,2026-10-06T05:00:00Z,43,  padded values  
+T-01351,closed,P2,web form,apac,2026-10-07T06:00:00Z,33,"Contains ""quoted words"" and, commas"
+T-01352,closed,P1,chat,apac,2026-10-08T07:00:00Z,19,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01353,pending,P2,email,latam,2026-10-09T08:00:00Z,70,  padded values  
+T-01354,closed,P2,web form,latam,2026-10-10T09:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01355,closed,P3,email,emea,2026-10-11T10:00:00Z,29,  padded values  
+T-01356,closed,P2,email,apac,2026-10-12T11:00:00Z,39,
+T-01357,closed,P2,email,apac,2026-10-13T12:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01358,open,P3,chat,amer,2026-10-14T13:00:00Z,28,
+T-01359,open,P2,web form,emea,2026-10-15T14:00:00Z,17,Escalated: SLA at risk.
+T-01360,closed,P2,email,apac,2026-10-16T15:00:00Z,13,Escalated: SLA at risk.
+T-01361,pending,P2,chat,emea,2026-10-17T16:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01362,open,P2,web form,latam,2026-10-18T17:00:00Z,68,Customer asked about invoice re-issue.
+T-01363,pending,P2,email,emea,2026-10-19T18:00:00Z,2,Escalated: SLA at risk.
+T-01364,closed,P2,chat,apac,2026-10-20T19:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01365,closed,P1,web form,amer,2026-10-21T20:00:00Z,0,
+T-01366,open,P2,chat,amer,2026-10-22T21:00:00Z,6,  padded values  
+T-01367,pending,P1,web form,latam,2026-10-23T22:00:00Z,23,
+T-01368,closed,P1,web form,apac,2026-10-24T23:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01369,open,P2,email,latam,2026-10-25T00:00:00Z,40,"Contains ""quoted words"" and, commas"
+T-01370,open,P3,chat,emea,2026-10-26T01:00:00Z,63,Customer asked about invoice re-issue.
+T-01371,open,P2,chat,apac,2026-10-27T02:00:00Z,29,Escalated: SLA at risk.
+T-01372,open,P2,web form,latam,2026-10-28T03:00:00Z,21,Customer asked about invoice re-issue.
+T-01373,closed,P3,chat,latam,2026-10-01T04:00:00Z,67,Customer asked about invoice re-issue.
+T-01374,pending,P3,chat,emea,2026-10-02T05:00:00Z,56,  padded values  
+T-01375,open,P2,email,emea,2026-10-03T06:00:00Z,36,Customer asked about invoice re-issue.
+T-01376,open,P3,email,emea,2026-10-04T07:00:00Z,51,Escalated: SLA at risk.
+T-01377,closed,P3,web form,apac,2026-10-05T08:00:00Z,18,  padded values  
+T-01378,closed,P2,email,latam,2026-10-06T09:00:00Z,27,
+T-01379,open,P2,web form,amer,2026-10-07T10:00:00Z,50,Escalated: SLA at risk.
+T-01380,pending,P2,web form,amer,2026-10-08T11:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-01381,open,P2,chat,latam,2026-10-09T12:00:00Z,28,"Contains ""quoted words"" and, commas"
+T-01382,pending,P3,web form,apac,2026-10-10T13:00:00Z,68,"Contains ""quoted words"" and, commas"
+T-01383,closed,P3,chat,apac,2026-10-11T14:00:00Z,1,
+T-01384,open,P2,web form,emea,2026-10-12T15:00:00Z,51,Customer asked about invoice re-issue.
+T-01385,pending,P3,email,emea,2026-10-13T16:00:00Z,71,  padded values  
+T-01386,pending,P3,web form,latam,2026-10-14T17:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-01387,open,P2,web form,apac,2026-10-15T18:00:00Z,0,Customer asked about invoice re-issue.
+T-01388,pending,P3,web form,amer,2026-10-16T19:00:00Z,33,Customer asked about invoice re-issue.
+T-01389,closed,P2,email,emea,2026-10-17T20:00:00Z,25,Customer asked about invoice re-issue.
+T-01390,closed,P2,email,latam,2026-10-18T21:00:00Z,64,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01391,closed,P1,chat,latam,2026-10-19T22:00:00Z,58,Customer asked about invoice re-issue.
+T-01392,closed,P1,web form,amer,2026-10-20T23:00:00Z,3,Escalated: SLA at risk.
+T-01393,closed,P2,web form,apac,2026-10-21T00:00:00Z,19,Customer asked about invoice re-issue.
+T-01394,closed,P3,chat,emea,2026-10-22T01:00:00Z,40,Customer asked about invoice re-issue.
+T-01395,closed,P3,email,latam,2026-10-23T02:00:00Z,56,Escalated: SLA at risk.
+T-01396,pending,P2,web form,apac,2026-10-24T03:00:00Z,13,  padded values  
+T-01397,pending,P3,web form,apac,2026-10-25T04:00:00Z,38,  padded values  
+T-01398,open,P3,chat,latam,2026-10-26T05:00:00Z,18,Customer asked about invoice re-issue.
+T-01399,open,P2,email,apac,2026-10-27T06:00:00Z,6,Customer asked about invoice re-issue.
+T-01400,open,P1,email,apac,2026-10-28T07:00:00Z,31,  padded values  
+T-01401,pending,P3,chat,emea,2026-10-01T08:00:00Z,59,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01402,open,P2,chat,latam,2026-10-02T09:00:00Z,22,Escalated: SLA at risk.
+T-01403,pending,P1,email,emea,2026-10-03T10:00:00Z,58,Escalated: SLA at risk.
+T-01404,open,P2,email,apac,2026-10-04T11:00:00Z,32,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01405,closed,P2,email,latam,2026-10-05T12:00:00Z,32,Escalated: SLA at risk.
+T-01406,pending,P1,chat,amer,2026-10-06T13:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01407,pending,P1,email,apac,2026-10-07T14:00:00Z,27,  padded values  
+T-01408,pending,P2,web form,latam,2026-10-08T15:00:00Z,36,Escalated: SLA at risk.
+T-01409,open,P3,email,amer,2026-10-09T16:00:00Z,32,  padded values  
+T-01410,closed,P3,chat,latam,2026-10-10T17:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01411,open,P2,email,latam,2026-10-11T18:00:00Z,15,Escalated: SLA at risk.
+T-01412,pending,P1,chat,amer,2026-10-12T19:00:00Z,10,  padded values  
+T-01413,pending,P1,email,apac,2026-10-13T20:00:00Z,49,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01414,open,P2,email,emea,2026-10-14T21:00:00Z,35,Escalated: SLA at risk.
+T-01415,open,P2,chat,latam,2026-10-15T22:00:00Z,31,Escalated: SLA at risk.
+T-01416,pending,P2,web form,amer,2026-10-16T23:00:00Z,50,Escalated: SLA at risk.
+T-01417,pending,P2,web form,latam,2026-10-17T00:00:00Z,11,  padded values  
+T-01418,open,P3,chat,amer,2026-10-18T01:00:00Z,44,  padded values  
+T-01419,open,P2,chat,apac,2026-10-19T02:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01420,pending,P2,chat,emea,2026-10-20T03:00:00Z,3,Customer asked about invoice re-issue.
+T-01421,open,P2,chat,emea,2026-10-21T04:00:00Z,28,Customer asked about invoice re-issue.
+T-01422,pending,P1,chat,latam,2026-10-22T05:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-01423,pending,P2,email,emea,2026-10-23T06:00:00Z,46,
+T-01424,closed,P1,email,apac,2026-10-24T07:00:00Z,68,
+T-01425,closed,P3,email,apac,2026-10-25T08:00:00Z,31,"Contains ""quoted words"" and, commas"
+T-01426,open,P2,web form,apac,2026-10-26T09:00:00Z,43,Customer asked about invoice re-issue.
+T-01427,pending,P1,email,emea,2026-10-27T10:00:00Z,53,Escalated: SLA at risk.
+T-01428,open,P2,web form,latam,2026-10-28T11:00:00Z,38,
+T-01429,open,P2,email,apac,2026-10-01T12:00:00Z,3,Customer asked about invoice re-issue.
+T-01430,pending,P1,chat,amer,2026-10-02T13:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-01431,open,P3,chat,emea,2026-10-03T14:00:00Z,28,Customer asked about invoice re-issue.
+T-01432,closed,P2,email,amer,2026-10-04T15:00:00Z,34,Customer asked about invoice re-issue.
+T-01433,open,P1,chat,latam,2026-10-05T16:00:00Z,1,"Contains ""quoted words"" and, commas"
+T-01434,pending,P2,chat,apac,2026-10-06T17:00:00Z,54,Escalated: SLA at risk.
+T-01435,pending,P2,web form,amer,2026-10-07T18:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-01436,closed,P3,web form,amer,2026-10-08T19:00:00Z,29,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01437,closed,P2,email,latam,2026-10-09T20:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-01438,pending,P2,email,apac,2026-10-10T21:00:00Z,4,Customer asked about invoice re-issue.
+T-01439,pending,P1,web form,apac,2026-10-11T22:00:00Z,14,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01440,pending,P3,web form,amer,2026-10-12T23:00:00Z,56,Escalated: SLA at risk.
+T-01441,pending,P2,email,amer,2026-10-13T00:00:00Z,42,Escalated: SLA at risk.
+T-01442,open,P2,chat,apac,2026-10-14T01:00:00Z,23,
+T-01443,pending,P1,chat,latam,2026-10-15T02:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-01444,open,P2,chat,apac,2026-10-16T03:00:00Z,55,
+T-01445,pending,P3,web form,apac,2026-10-17T04:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01446,open,P1,web form,latam,2026-10-18T05:00:00Z,16,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01447,open,P2,email,amer,2026-10-19T06:00:00Z,69,"Contains ""quoted words"" and, commas"
+T-01448,pending,P1,chat,amer,2026-10-20T07:00:00Z,41,
+T-01449,closed,P2,email,latam,2026-10-21T08:00:00Z,25,Escalated: SLA at risk.
+T-01450,closed,P2,email,amer,2026-10-22T09:00:00Z,0,  padded values  
+T-01451,open,P2,chat,amer,2026-10-23T10:00:00Z,0,Escalated: SLA at risk.
+T-01452,open,P3,web form,apac,2026-10-24T11:00:00Z,41,Escalated: SLA at risk.
+T-01453,closed,P2,email,latam,2026-10-25T12:00:00Z,71,Customer asked about invoice re-issue.
+T-01454,open,P1,web form,apac,2026-10-26T13:00:00Z,66,Escalated: SLA at risk.
+T-01455,closed,P3,web form,latam,2026-10-27T14:00:00Z,48,Customer asked about invoice re-issue.
+T-01456,closed,P2,web form,emea,2026-10-28T15:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-01457,pending,P1,chat,amer,2026-10-01T16:00:00Z,39,Customer asked about invoice re-issue.
+T-01458,pending,P1,email,emea,2026-10-02T17:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01459,pending,P2,email,emea,2026-10-03T18:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01460,closed,P2,email,amer,2026-10-04T19:00:00Z,6,  padded values  
+T-01461,open,P3,chat,apac,2026-10-05T20:00:00Z,17,  padded values  
+T-01462,open,P2,email,latam,2026-10-06T21:00:00Z,50,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01463,open,P3,chat,latam,2026-10-07T22:00:00Z,26,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01464,open,P1,email,emea,2026-10-08T23:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-01465,open,P2,email,amer,2026-10-09T00:00:00Z,47,Customer asked about invoice re-issue.
+T-01466,pending,P3,email,apac,2026-10-10T01:00:00Z,22,Customer asked about invoice re-issue.
+T-01467,open,P2,chat,emea,2026-10-11T02:00:00Z,0,Escalated: SLA at risk.
+T-01468,pending,P2,email,emea,2026-10-12T03:00:00Z,58,
+T-01469,pending,P1,web form,emea,2026-10-13T04:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-01470,open,P2,email,amer,2026-10-14T05:00:00Z,34,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01471,pending,P2,email,emea,2026-10-15T06:00:00Z,41,Customer asked about invoice re-issue.
+T-01472,closed,P3,email,apac,2026-10-16T07:00:00Z,66,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01473,open,P1,email,emea,2026-10-17T08:00:00Z,11,Escalated: SLA at risk.
+T-01474,open,P2,email,emea,2026-10-18T09:00:00Z,58,Customer asked about invoice re-issue.
+T-01475,pending,P1,email,emea,2026-10-19T10:00:00Z,5,
+T-01476,pending,P3,web form,emea,2026-10-20T11:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01477,closed,P2,web form,latam,2026-10-21T12:00:00Z,32,  padded values  
+T-01478,pending,P1,web form,emea,2026-10-22T13:00:00Z,0,  padded values  
+T-01479,pending,P1,web form,latam,2026-10-23T14:00:00Z,57,
+T-01480,pending,P2,web form,emea,2026-10-24T15:00:00Z,57,Escalated: SLA at risk.
+T-01481,open,P3,web form,latam,2026-10-25T16:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01482,pending,P3,chat,apac,2026-10-26T17:00:00Z,32,Escalated: SLA at risk.
+T-01483,open,P2,email,amer,2026-10-27T18:00:00Z,33,
+T-01484,closed,P2,chat,apac,2026-10-28T19:00:00Z,6,  padded values  
+T-01485,closed,P2,web form,emea,2026-10-01T20:00:00Z,22,Escalated: SLA at risk.
+T-01486,open,P2,web form,apac,2026-10-02T21:00:00Z,32,Customer asked about invoice re-issue.
+T-01487,closed,P3,web form,apac,2026-10-03T22:00:00Z,58,"Contains ""quoted words"" and, commas"
+T-01488,pending,P3,web form,apac,2026-10-04T23:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-01489,closed,P2,chat,amer,2026-10-05T00:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01490,pending,P2,email,emea,2026-10-06T01:00:00Z,3,Escalated: SLA at risk.
+T-01491,closed,P3,web form,emea,2026-10-07T02:00:00Z,24,Customer asked about invoice re-issue.
+T-01492,pending,P2,email,amer,2026-10-08T03:00:00Z,18,Escalated: SLA at risk.
+T-01493,open,P1,chat,emea,2026-10-09T04:00:00Z,63,Escalated: SLA at risk.
+T-01494,open,P1,email,amer,2026-10-10T05:00:00Z,58,
+T-01495,open,P2,web form,latam,2026-10-11T06:00:00Z,17,Escalated: SLA at risk.
+T-01496,closed,P1,web form,amer,2026-10-12T07:00:00Z,71,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01497,pending,P1,email,latam,2026-10-13T08:00:00Z,39,Escalated: SLA at risk.
+T-01498,open,P2,web form,apac,2026-10-14T09:00:00Z,43,Escalated: SLA at risk.
+T-01499,open,P3,email,emea,2026-10-15T10:00:00Z,68,"Contains ""quoted words"" and, commas"
+T-01500,pending,P2,chat,apac,2026-10-16T11:00:00Z,21,
+T-01501,closed,P2,email,emea,2026-10-17T12:00:00Z,49,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01502,pending,P3,chat,emea,2026-10-18T13:00:00Z,40,"Contains ""quoted words"" and, commas"
+T-01503,open,P1,email,latam,2026-10-19T14:00:00Z,11,  padded values  
+T-01504,closed,P2,chat,apac,2026-10-20T15:00:00Z,37,Escalated: SLA at risk.
+T-01505,pending,P3,email,latam,2026-10-21T16:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-01506,pending,P2,chat,amer,2026-10-22T17:00:00Z,30,"Contains ""quoted words"" and, commas"
+T-01507,pending,P2,chat,emea,2026-10-23T18:00:00Z,12,Escalated: SLA at risk.
+T-01508,pending,P2,email,amer,2026-10-24T19:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-01509,closed,P2,web form,latam,2026-10-25T20:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-01510,pending,P2,email,emea,2026-10-26T21:00:00Z,13,Customer asked about invoice re-issue.
+T-01511,pending,P3,email,amer,2026-10-27T22:00:00Z,40,  padded values  
+T-01512,closed,P3,chat,apac,2026-10-28T23:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01513,pending,P2,email,emea,2026-10-01T00:00:00Z,71,"Contains ""quoted words"" and, commas"
+T-01514,pending,P1,email,emea,2026-10-02T01:00:00Z,26,  padded values  
+T-01515,closed,P2,web form,emea,2026-10-03T02:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01516,open,P2,chat,amer,2026-10-04T03:00:00Z,17,
+T-01517,closed,P2,chat,apac,2026-10-05T04:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01518,open,P3,web form,apac,2026-10-06T05:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-01519,pending,P2,web form,apac,2026-10-07T06:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-01520,open,P1,email,latam,2026-10-08T07:00:00Z,56,
+T-01521,open,P1,chat,amer,2026-10-09T08:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-01522,closed,P2,email,amer,2026-10-10T09:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01523,pending,P3,chat,emea,2026-10-11T10:00:00Z,15,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01524,pending,P2,email,emea,2026-10-12T11:00:00Z,41,
+T-01525,closed,P2,web form,emea,2026-10-13T12:00:00Z,30,  padded values  
+T-01526,closed,P3,chat,apac,2026-10-14T13:00:00Z,8,Escalated: SLA at risk.
+T-01527,closed,P3,chat,apac,2026-10-15T14:00:00Z,28,  padded values  
+T-01528,pending,P2,chat,amer,2026-10-16T15:00:00Z,37,"Contains ""quoted words"" and, commas"
+T-01529,closed,P1,web form,amer,2026-10-17T16:00:00Z,28,Customer asked about invoice re-issue.
+T-01530,open,P3,chat,latam,2026-10-18T17:00:00Z,32,Customer asked about invoice re-issue.
+T-01531,closed,P2,chat,latam,2026-10-19T18:00:00Z,46,"Contains ""quoted words"" and, commas"
+T-01532,open,P1,web form,emea,2026-10-20T19:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01533,closed,P3,chat,latam,2026-10-21T20:00:00Z,65,"Contains ""quoted words"" and, commas"
+T-01534,pending,P2,web form,latam,2026-10-22T21:00:00Z,26,
+T-01535,open,P2,chat,latam,2026-10-23T22:00:00Z,46,
+T-01536,open,P1,email,amer,2026-10-24T23:00:00Z,63,Customer asked about invoice re-issue.
+T-01537,closed,P2,web form,apac,2026-10-25T00:00:00Z,31,
+T-01538,closed,P3,email,latam,2026-10-26T01:00:00Z,10,"Contains ""quoted words"" and, commas"
+T-01539,pending,P1,chat,emea,2026-10-27T02:00:00Z,35,Escalated: SLA at risk.
+T-01540,open,P2,chat,amer,2026-10-28T03:00:00Z,54,Escalated: SLA at risk.
+T-01541,open,P3,chat,amer,2026-10-01T04:00:00Z,40,"Contains ""quoted words"" and, commas"
+T-01542,closed,P3,chat,emea,2026-10-02T05:00:00Z,21,Customer asked about invoice re-issue.
+T-01543,open,P2,email,emea,2026-10-03T06:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01544,closed,P1,email,amer,2026-10-04T07:00:00Z,42,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01545,open,P1,chat,apac,2026-10-05T08:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-01546,closed,P2,chat,apac,2026-10-06T09:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-01547,closed,P1,chat,amer,2026-10-07T10:00:00Z,19,Escalated: SLA at risk.
+T-01548,closed,P1,web form,apac,2026-10-08T11:00:00Z,59,
+T-01549,open,P2,email,latam,2026-10-09T12:00:00Z,56,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01550,open,P2,web form,emea,2026-10-10T13:00:00Z,55,Customer asked about invoice re-issue.
+T-01551,closed,P2,web form,amer,2026-10-11T14:00:00Z,34,Escalated: SLA at risk.
+T-01552,open,P2,email,emea,2026-10-12T15:00:00Z,17,Customer asked about invoice re-issue.
+T-01553,pending,P2,chat,emea,2026-10-13T16:00:00Z,65,
+T-01554,open,P2,chat,apac,2026-10-14T17:00:00Z,14,Customer asked about invoice re-issue.
+T-01555,open,P2,email,apac,2026-10-15T18:00:00Z,14,Customer asked about invoice re-issue.
+T-01556,open,P3,email,latam,2026-10-16T19:00:00Z,49,"Contains ""quoted words"" and, commas"
+T-01557,open,P2,chat,emea,2026-10-17T20:00:00Z,12,Escalated: SLA at risk.
+T-01558,open,P2,web form,amer,2026-10-18T21:00:00Z,38,
+T-01559,pending,P3,email,emea,2026-10-19T22:00:00Z,23,
+T-01560,closed,P2,web form,emea,2026-10-20T23:00:00Z,49,"Contains ""quoted words"" and, commas"
+T-01561,closed,P2,chat,emea,2026-10-21T00:00:00Z,13,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01562,closed,P1,email,latam,2026-10-22T01:00:00Z,67,Customer asked about invoice re-issue.
+T-01563,pending,P3,chat,amer,2026-10-23T02:00:00Z,41,Customer asked about invoice re-issue.
+T-01564,closed,P2,web form,latam,2026-10-24T03:00:00Z,39,Escalated: SLA at risk.
+T-01565,open,P2,chat,apac,2026-10-25T04:00:00Z,24,Customer asked about invoice re-issue.
+T-01566,closed,P2,email,apac,2026-10-26T05:00:00Z,27,Customer asked about invoice re-issue.
+T-01567,open,P2,web form,emea,2026-10-27T06:00:00Z,69,Customer asked about invoice re-issue.
+T-01568,pending,P3,chat,amer,2026-10-28T07:00:00Z,47,Customer asked about invoice re-issue.
+T-01569,closed,P2,web form,emea,2026-10-01T08:00:00Z,63,Escalated: SLA at risk.
+T-01570,pending,P2,web form,apac,2026-10-02T09:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-01571,closed,P3,chat,emea,2026-10-03T10:00:00Z,70,"Contains ""quoted words"" and, commas"
+T-01572,closed,P1,email,emea,2026-10-04T11:00:00Z,27,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01573,open,P2,email,emea,2026-10-05T12:00:00Z,57,Escalated: SLA at risk.
+T-01574,closed,P2,email,apac,2026-10-06T13:00:00Z,16,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01575,open,P2,email,apac,2026-10-07T14:00:00Z,14,  padded values  
+T-01576,closed,P2,chat,amer,2026-10-08T15:00:00Z,16,"Contains ""quoted words"" and, commas"
+T-01577,pending,P3,chat,latam,2026-10-09T16:00:00Z,9,"Contains ""quoted words"" and, commas"
+T-01578,closed,P1,web form,latam,2026-10-10T17:00:00Z,13,
+T-01579,open,P2,email,amer,2026-10-11T18:00:00Z,46,"Contains ""quoted words"" and, commas"
+T-01580,open,P3,chat,latam,2026-10-12T19:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-01581,closed,P3,web form,amer,2026-10-13T20:00:00Z,17,Escalated: SLA at risk.
+T-01582,closed,P2,web form,amer,2026-10-14T21:00:00Z,47,  padded values  
+T-01583,closed,P1,web form,amer,2026-10-15T22:00:00Z,46,  padded values  
+T-01584,closed,P2,web form,amer,2026-10-16T23:00:00Z,18,Escalated: SLA at risk.
+T-01585,pending,P2,email,amer,2026-10-17T00:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-01586,closed,P3,web form,apac,2026-10-18T01:00:00Z,58,Escalated: SLA at risk.
+T-01587,open,P3,email,amer,2026-10-19T02:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-01588,open,P2,chat,apac,2026-10-20T03:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-01589,closed,P3,email,emea,2026-10-21T04:00:00Z,32,Customer asked about invoice re-issue.
+T-01590,pending,P1,email,latam,2026-10-22T05:00:00Z,19,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01591,open,P2,chat,amer,2026-10-23T06:00:00Z,50,Escalated: SLA at risk.
+T-01592,closed,P1,chat,latam,2026-10-24T07:00:00Z,42,Escalated: SLA at risk.
+T-01593,pending,P3,chat,apac,2026-10-25T08:00:00Z,1,Customer asked about invoice re-issue.
+T-01594,closed,P2,email,latam,2026-10-26T09:00:00Z,4,  padded values  
+T-01595,pending,P1,chat,apac,2026-10-27T10:00:00Z,40,"Contains ""quoted words"" and, commas"
+T-01596,open,P1,web form,latam,2026-10-28T11:00:00Z,0,  padded values  
+T-01597,closed,P2,web form,apac,2026-10-01T12:00:00Z,28,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01598,pending,P3,email,emea,2026-10-02T13:00:00Z,56,Customer asked about invoice re-issue.
+T-01599,pending,P2,email,amer,2026-10-03T14:00:00Z,29,Escalated: SLA at risk.
+T-01600,closed,P2,web form,latam,2026-10-04T15:00:00Z,28,  padded values  
+T-01601,open,P1,email,amer,2026-10-05T16:00:00Z,37,  padded values  
+T-01602,open,P1,email,emea,2026-10-06T17:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-01603,pending,P2,chat,amer,2026-10-07T18:00:00Z,53,Escalated: SLA at risk.
+T-01604,closed,P1,web form,latam,2026-10-08T19:00:00Z,0,Customer asked about invoice re-issue.
+T-01605,closed,P2,email,latam,2026-10-09T20:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01606,pending,P2,chat,emea,2026-10-10T21:00:00Z,21,"Contains ""quoted words"" and, commas"
+T-01607,pending,P3,email,apac,2026-10-11T22:00:00Z,11,"Contains ""quoted words"" and, commas"
+T-01608,open,P2,web form,emea,2026-10-12T23:00:00Z,64,Escalated: SLA at risk.
+T-01609,closed,P2,email,apac,2026-10-13T00:00:00Z,60,"Contains ""quoted words"" and, commas"
+T-01610,pending,P3,web form,amer,2026-10-14T01:00:00Z,3,"Contains ""quoted words"" and, commas"
+T-01611,closed,P2,email,emea,2026-10-15T02:00:00Z,21,"Contains ""quoted words"" and, commas"
+T-01612,closed,P2,web form,latam,2026-10-16T03:00:00Z,53,Escalated: SLA at risk.
+T-01613,pending,P3,email,apac,2026-10-17T04:00:00Z,0,
+T-01614,closed,P2,email,amer,2026-10-18T05:00:00Z,17,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01615,closed,P2,web form,amer,2026-10-19T06:00:00Z,27,
+T-01616,pending,P2,email,amer,2026-10-20T07:00:00Z,14,  padded values  
+T-01617,open,P1,chat,apac,2026-10-21T08:00:00Z,67,  padded values  
+T-01618,pending,P2,chat,amer,2026-10-22T09:00:00Z,53,Customer asked about invoice re-issue.
+T-01619,open,P2,chat,emea,2026-10-23T10:00:00Z,59,
+T-01620,closed,P2,email,emea,2026-10-24T11:00:00Z,9,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01621,pending,P2,email,apac,2026-10-25T12:00:00Z,4,  padded values  
+T-01622,pending,P1,email,amer,2026-10-26T13:00:00Z,33,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01623,closed,P1,email,amer,2026-10-27T14:00:00Z,46,Escalated: SLA at risk.
+T-01624,pending,P2,web form,apac,2026-10-28T15:00:00Z,41,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01625,pending,P3,email,emea,2026-10-01T16:00:00Z,29,Escalated: SLA at risk.
+T-01626,open,P2,email,latam,2026-10-02T17:00:00Z,34,Customer asked about invoice re-issue.
+T-01627,open,P2,email,emea,2026-10-03T18:00:00Z,60,  padded values  
+T-01628,open,P1,web form,emea,2026-10-04T19:00:00Z,27,Customer asked about invoice re-issue.
+T-01629,open,P1,email,amer,2026-10-05T20:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-01630,pending,P2,email,emea,2026-10-06T21:00:00Z,40,Escalated: SLA at risk.
+T-01631,open,P2,email,emea,2026-10-07T22:00:00Z,10,
+T-01632,open,P1,email,apac,2026-10-08T23:00:00Z,60,Customer asked about invoice re-issue.
+T-01633,closed,P2,chat,amer,2026-10-09T00:00:00Z,70,
+T-01634,pending,P1,chat,amer,2026-10-10T01:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01635,open,P3,chat,latam,2026-10-11T02:00:00Z,41,"Contains ""quoted words"" and, commas"
+T-01636,closed,P2,email,emea,2026-10-12T03:00:00Z,44,Customer asked about invoice re-issue.
+T-01637,open,P3,chat,latam,2026-10-13T04:00:00Z,43,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01638,pending,P3,email,latam,2026-10-14T05:00:00Z,64,Escalated: SLA at risk.
+T-01639,pending,P2,web form,apac,2026-10-15T06:00:00Z,33,
+T-01640,closed,P3,email,latam,2026-10-16T07:00:00Z,71,Customer asked about invoice re-issue.
+T-01641,closed,P1,chat,apac,2026-10-17T08:00:00Z,46,Escalated: SLA at risk.
+T-01642,closed,P2,email,latam,2026-10-18T09:00:00Z,26,
+T-01643,pending,P2,chat,apac,2026-10-19T10:00:00Z,51,Escalated: SLA at risk.
+T-01644,open,P1,email,latam,2026-10-20T11:00:00Z,4,  padded values  
+T-01645,open,P2,chat,latam,2026-10-21T12:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-01646,pending,P1,web form,latam,2026-10-22T13:00:00Z,9,Customer asked about invoice re-issue.
+T-01647,pending,P1,email,emea,2026-10-23T14:00:00Z,32,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01648,closed,P2,email,latam,2026-10-24T15:00:00Z,29,Customer asked about invoice re-issue.
+T-01649,closed,P3,web form,apac,2026-10-25T16:00:00Z,53,Escalated: SLA at risk.
+T-01650,pending,P1,email,emea,2026-10-26T17:00:00Z,3,  padded values  
+T-01651,closed,P2,web form,apac,2026-10-27T18:00:00Z,32,  padded values  
+T-01652,closed,P1,chat,apac,2026-10-28T19:00:00Z,7,
+T-01653,closed,P1,web form,amer,2026-10-01T20:00:00Z,44,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01654,open,P2,chat,amer,2026-10-02T21:00:00Z,60,Customer asked about invoice re-issue.
+T-01655,open,P2,chat,amer,2026-10-03T22:00:00Z,1,Escalated: SLA at risk.
+T-01656,closed,P1,chat,latam,2026-10-04T23:00:00Z,67,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01657,open,P2,chat,apac,2026-10-05T00:00:00Z,54,  padded values  
+T-01658,open,P2,email,emea,2026-10-06T01:00:00Z,46,Customer asked about invoice re-issue.
+T-01659,pending,P1,web form,amer,2026-10-07T02:00:00Z,24,  padded values  
+T-01660,open,P2,email,amer,2026-10-08T03:00:00Z,1,
+T-01661,pending,P2,web form,emea,2026-10-09T04:00:00Z,17,"Contains ""quoted words"" and, commas"
+T-01662,open,P3,web form,emea,2026-10-10T05:00:00Z,7,
+T-01663,open,P2,web form,latam,2026-10-11T06:00:00Z,46,Escalated: SLA at risk.
+T-01664,open,P1,chat,emea,2026-10-12T07:00:00Z,10,Escalated: SLA at risk.
+T-01665,closed,P1,web form,latam,2026-10-13T08:00:00Z,54,"Contains ""quoted words"" and, commas"
+T-01666,pending,P2,web form,amer,2026-10-14T09:00:00Z,50,"Contains ""quoted words"" and, commas"
+T-01667,pending,P1,email,latam,2026-10-15T10:00:00Z,10,"Contains ""quoted words"" and, commas"
+T-01668,pending,P3,chat,amer,2026-10-16T11:00:00Z,52,"Contains ""quoted words"" and, commas"
+T-01669,pending,P2,chat,emea,2026-10-17T12:00:00Z,64,
+T-01670,open,P3,chat,latam,2026-10-18T13:00:00Z,54,Customer asked about invoice re-issue.
+T-01671,open,P2,email,latam,2026-10-19T14:00:00Z,12,
+T-01672,open,P2,web form,amer,2026-10-20T15:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01673,pending,P2,web form,emea,2026-10-21T16:00:00Z,38,Customer asked about invoice re-issue.
+T-01674,pending,P1,chat,apac,2026-10-22T17:00:00Z,63,  padded values  
+T-01675,pending,P2,email,emea,2026-10-23T18:00:00Z,69,Customer asked about invoice re-issue.
+T-01676,closed,P1,email,latam,2026-10-24T19:00:00Z,35,Escalated: SLA at risk.
+T-01677,pending,P2,web form,emea,2026-10-25T20:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01678,open,P2,chat,amer,2026-10-26T21:00:00Z,34,  padded values  
+T-01679,open,P1,email,apac,2026-10-27T22:00:00Z,7,Customer asked about invoice re-issue.
+T-01680,closed,P1,email,emea,2026-10-28T23:00:00Z,21,Customer asked about invoice re-issue.
+T-01681,open,P2,email,amer,2026-10-01T00:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01682,pending,P2,chat,amer,2026-10-02T01:00:00Z,15,"Contains ""quoted words"" and, commas"
+T-01683,pending,P3,email,amer,2026-10-03T02:00:00Z,57,Escalated: SLA at risk.
+T-01684,closed,P2,chat,emea,2026-10-04T03:00:00Z,32,
+T-01685,pending,P2,chat,amer,2026-10-05T04:00:00Z,61,Escalated: SLA at risk.
+T-01686,closed,P1,email,amer,2026-10-06T05:00:00Z,23,"Contains ""quoted words"" and, commas"
+T-01687,open,P2,chat,emea,2026-10-07T06:00:00Z,64,Escalated: SLA at risk.
+T-01688,open,P1,email,emea,2026-10-08T07:00:00Z,10,  padded values  
+T-01689,pending,P3,chat,emea,2026-10-09T08:00:00Z,52,"Contains ""quoted words"" and, commas"
+T-01690,closed,P2,web form,emea,2026-10-10T09:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-01691,closed,P3,email,amer,2026-10-11T10:00:00Z,14,  padded values  
+T-01692,pending,P2,email,latam,2026-10-12T11:00:00Z,37,Customer asked about invoice re-issue.
+T-01693,open,P2,web form,apac,2026-10-13T12:00:00Z,10,Escalated: SLA at risk.
+T-01694,closed,P1,chat,latam,2026-10-14T13:00:00Z,49,  padded values  
+T-01695,open,P3,email,emea,2026-10-15T14:00:00Z,27,
+T-01696,open,P2,web form,latam,2026-10-16T15:00:00Z,14,"Contains ""quoted words"" and, commas"
+T-01697,open,P1,web form,latam,2026-10-17T16:00:00Z,10,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01698,open,P3,email,amer,2026-10-18T17:00:00Z,19,Escalated: SLA at risk.
+T-01699,pending,P2,web form,amer,2026-10-19T18:00:00Z,25,
+T-01700,pending,P1,web form,apac,2026-10-20T19:00:00Z,47,
+T-01701,closed,P1,web form,amer,2026-10-21T20:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01702,closed,P2,web form,emea,2026-10-22T21:00:00Z,6,Customer asked about invoice re-issue.
+T-01703,open,P2,chat,emea,2026-10-23T22:00:00Z,49,"Contains ""quoted words"" and, commas"
+T-01704,closed,P1,web form,amer,2026-10-24T23:00:00Z,38,  padded values  
+T-01705,closed,P2,chat,emea,2026-10-25T00:00:00Z,35,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01706,closed,P3,chat,emea,2026-10-26T01:00:00Z,47,Customer asked about invoice re-issue.
+T-01707,pending,P2,email,apac,2026-10-27T02:00:00Z,4,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01708,open,P2,email,emea,2026-10-28T03:00:00Z,3,
+T-01709,open,P2,email,latam,2026-10-01T04:00:00Z,63,
+T-01710,closed,P1,email,latam,2026-10-02T05:00:00Z,21,Customer asked about invoice re-issue.
+T-01711,open,P2,email,apac,2026-10-03T06:00:00Z,30,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01712,open,P3,chat,latam,2026-10-04T07:00:00Z,62,  padded values  
+T-01713,open,P2,chat,amer,2026-10-05T08:00:00Z,24,
+T-01714,pending,P2,web form,amer,2026-10-06T09:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-01715,open,P3,chat,amer,2026-10-07T10:00:00Z,42,Escalated: SLA at risk.
+T-01716,closed,P2,chat,amer,2026-10-08T11:00:00Z,52,  padded values  
+T-01717,open,P2,chat,latam,2026-10-09T12:00:00Z,54,Customer asked about invoice re-issue.
+T-01718,closed,P3,email,apac,2026-10-10T13:00:00Z,67,  padded values  
+T-01719,open,P2,web form,emea,2026-10-11T14:00:00Z,56,
+T-01720,closed,P2,email,emea,2026-10-12T15:00:00Z,61,  padded values  
+T-01721,open,P1,web form,emea,2026-10-13T16:00:00Z,34,Escalated: SLA at risk.
+T-01722,open,P3,email,latam,2026-10-14T17:00:00Z,69,
+T-01723,closed,P2,chat,latam,2026-10-15T18:00:00Z,4,
+T-01724,open,P1,chat,amer,2026-10-16T19:00:00Z,12,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01725,closed,P3,web form,amer,2026-10-17T20:00:00Z,13,"Contains ""quoted words"" and, commas"
+T-01726,closed,P2,chat,emea,2026-10-18T21:00:00Z,59,Customer asked about invoice re-issue.
+T-01727,closed,P1,email,amer,2026-10-19T22:00:00Z,32,"Contains ""quoted words"" and, commas"
+T-01728,open,P2,email,amer,2026-10-20T23:00:00Z,3,  padded values  
+T-01729,closed,P2,email,apac,2026-10-21T00:00:00Z,23,Escalated: SLA at risk.
+T-01730,open,P1,chat,apac,2026-10-22T01:00:00Z,6,
+T-01731,pending,P1,email,apac,2026-10-23T02:00:00Z,41,Escalated: SLA at risk.
+T-01732,open,P2,web form,latam,2026-10-24T03:00:00Z,62,  padded values  
+T-01733,pending,P3,email,amer,2026-10-25T04:00:00Z,35,Escalated: SLA at risk.
+T-01734,pending,P3,web form,emea,2026-10-26T05:00:00Z,65,Escalated: SLA at risk.
+T-01735,pending,P2,email,latam,2026-10-27T06:00:00Z,57,"Contains ""quoted words"" and, commas"
+T-01736,pending,P1,web form,apac,2026-10-28T07:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01737,pending,P1,email,amer,2026-10-01T08:00:00Z,0,Escalated: SLA at risk.
+T-01738,pending,P2,chat,apac,2026-10-02T09:00:00Z,51,  padded values  
+T-01739,closed,P1,chat,emea,2026-10-03T10:00:00Z,31,  padded values  
+T-01740,pending,P3,chat,amer,2026-10-04T11:00:00Z,68,Customer asked about invoice re-issue.
+T-01741,pending,P2,web form,amer,2026-10-05T12:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01742,open,P3,chat,emea,2026-10-06T13:00:00Z,50,"Contains ""quoted words"" and, commas"
+T-01743,pending,P2,email,emea,2026-10-07T14:00:00Z,57,Escalated: SLA at risk.
+T-01744,closed,P2,chat,amer,2026-10-08T15:00:00Z,37,Escalated: SLA at risk.
+T-01745,pending,P1,chat,emea,2026-10-09T16:00:00Z,60,Escalated: SLA at risk.
+T-01746,closed,P1,web form,amer,2026-10-10T17:00:00Z,31,
+T-01747,closed,P2,web form,latam,2026-10-11T18:00:00Z,59,Escalated: SLA at risk.
+T-01748,open,P2,chat,latam,2026-10-12T19:00:00Z,20,Escalated: SLA at risk.
+T-01749,pending,P3,email,latam,2026-10-13T20:00:00Z,29,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01750,pending,P2,email,emea,2026-10-14T21:00:00Z,26,
+T-01751,pending,P1,email,amer,2026-10-15T22:00:00Z,5,  padded values  
+T-01752,open,P2,email,latam,2026-10-16T23:00:00Z,71,Customer asked about invoice re-issue.
+T-01753,open,P2,chat,emea,2026-10-17T00:00:00Z,64,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01754,pending,P3,chat,emea,2026-10-18T01:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01755,closed,P1,web form,apac,2026-10-19T02:00:00Z,13,Customer asked about invoice re-issue.
+T-01756,open,P2,web form,latam,2026-10-20T03:00:00Z,22,  padded values  
+T-01757,closed,P1,email,apac,2026-10-21T04:00:00Z,49,Escalated: SLA at risk.
+T-01758,closed,P1,chat,latam,2026-10-22T05:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01759,open,P2,web form,emea,2026-10-23T06:00:00Z,9,
+T-01760,pending,P1,email,emea,2026-10-24T07:00:00Z,70,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01761,closed,P1,email,latam,2026-10-25T08:00:00Z,28,  padded values  
+T-01762,open,P2,web form,emea,2026-10-26T09:00:00Z,49,Customer asked about invoice re-issue.
+T-01763,open,P2,email,latam,2026-10-27T10:00:00Z,27,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01764,closed,P1,web form,emea,2026-10-28T11:00:00Z,11,  padded values  
+T-01765,open,P2,email,emea,2026-10-01T12:00:00Z,28,  padded values  
+T-01766,pending,P1,email,amer,2026-10-02T13:00:00Z,53,Customer asked about invoice re-issue.
+T-01767,open,P3,web form,apac,2026-10-03T14:00:00Z,41,
+T-01768,pending,P2,chat,latam,2026-10-04T15:00:00Z,9,Escalated: SLA at risk.
+T-01769,closed,P3,chat,latam,2026-10-05T16:00:00Z,53,Escalated: SLA at risk.
+T-01770,pending,P3,web form,amer,2026-10-06T17:00:00Z,47,
+T-01771,closed,P2,chat,emea,2026-10-07T18:00:00Z,45,
+T-01772,open,P2,email,apac,2026-10-08T19:00:00Z,52,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01773,closed,P2,chat,amer,2026-10-09T20:00:00Z,6,Escalated: SLA at risk.
+T-01774,open,P2,web form,emea,2026-10-10T21:00:00Z,58,Customer asked about invoice re-issue.
+T-01775,closed,P2,email,apac,2026-10-11T22:00:00Z,25,
+T-01776,open,P3,chat,latam,2026-10-12T23:00:00Z,4,Customer asked about invoice re-issue.
+T-01777,pending,P2,web form,emea,2026-10-13T00:00:00Z,9,Customer asked about invoice re-issue.
+T-01778,pending,P2,chat,apac,2026-10-14T01:00:00Z,67,"Contains ""quoted words"" and, commas"
+T-01779,pending,P1,web form,apac,2026-10-15T02:00:00Z,54,  padded values  
+T-01780,pending,P2,email,apac,2026-10-16T03:00:00Z,6,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01781,pending,P3,email,emea,2026-10-17T04:00:00Z,14,"Contains ""quoted words"" and, commas"
+T-01782,pending,P3,chat,emea,2026-10-18T05:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01783,closed,P2,chat,amer,2026-10-19T06:00:00Z,19,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01784,open,P3,email,latam,2026-10-20T07:00:00Z,28,
+T-01785,closed,P1,chat,latam,2026-10-21T08:00:00Z,66,"Contains ""quoted words"" and, commas"
+T-01786,open,P2,chat,amer,2026-10-22T09:00:00Z,16,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01787,closed,P3,email,emea,2026-10-23T10:00:00Z,1,Escalated: SLA at risk.
+T-01788,open,P2,email,apac,2026-10-24T11:00:00Z,55,Escalated: SLA at risk.
+T-01789,open,P2,web form,apac,2026-10-25T12:00:00Z,11,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01790,pending,P1,web form,amer,2026-10-26T13:00:00Z,68,"Contains ""quoted words"" and, commas"
+T-01791,open,P3,email,emea,2026-10-27T14:00:00Z,50,  padded values  
+T-01792,pending,P2,email,emea,2026-10-28T15:00:00Z,21,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01793,pending,P1,email,apac,2026-10-01T16:00:00Z,29,Customer asked about invoice re-issue.
+T-01794,open,P1,email,apac,2026-10-02T17:00:00Z,0,
+T-01795,closed,P2,web form,amer,2026-10-03T18:00:00Z,51,  padded values  
+T-01796,pending,P1,chat,emea,2026-10-04T19:00:00Z,7,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01797,pending,P1,chat,latam,2026-10-05T20:00:00Z,71,  padded values  
+T-01798,closed,P2,email,emea,2026-10-06T21:00:00Z,18,  padded values  
+T-01799,pending,P2,chat,latam,2026-10-07T22:00:00Z,33,"Contains ""quoted words"" and, commas"
+T-01800,open,P3,chat,latam,2026-10-08T23:00:00Z,8,Customer asked about invoice re-issue.
+T-01801,pending,P2,email,amer,2026-10-09T00:00:00Z,47,  padded values  
+T-01802,pending,P1,web form,latam,2026-10-10T01:00:00Z,71,"Contains ""quoted words"" and, commas"
+T-01803,closed,P2,web form,apac,2026-10-11T02:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01804,pending,P2,email,latam,2026-10-12T03:00:00Z,24,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01805,closed,P3,web form,emea,2026-10-13T04:00:00Z,13,
+T-01806,pending,P2,web form,emea,2026-10-14T05:00:00Z,19,
+T-01807,pending,P2,chat,emea,2026-10-15T06:00:00Z,5,Customer asked about invoice re-issue.
+T-01808,open,P3,email,latam,2026-10-16T07:00:00Z,60,Escalated: SLA at risk.
+T-01809,closed,P1,chat,apac,2026-10-17T08:00:00Z,29,"Contains ""quoted words"" and, commas"
+T-01810,closed,P2,web form,amer,2026-10-18T09:00:00Z,18,"Contains ""quoted words"" and, commas"
+T-01811,open,P1,email,amer,2026-10-19T10:00:00Z,44,Customer asked about invoice re-issue.
+T-01812,pending,P2,chat,emea,2026-10-20T11:00:00Z,23,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01813,open,P2,chat,emea,2026-10-21T12:00:00Z,32,  padded values  
+T-01814,open,P3,email,latam,2026-10-22T13:00:00Z,66,Customer asked about invoice re-issue.
+T-01815,pending,P1,web form,emea,2026-10-23T14:00:00Z,25,"Contains ""quoted words"" and, commas"
+T-01816,open,P2,web form,latam,2026-10-24T15:00:00Z,27,  padded values  
+T-01817,pending,P3,chat,amer,2026-10-25T16:00:00Z,12,"Contains ""quoted words"" and, commas"
+T-01818,open,P1,chat,latam,2026-10-26T17:00:00Z,42,  padded values  
+T-01819,closed,P2,web form,latam,2026-10-27T18:00:00Z,46,"Contains ""quoted words"" and, commas"
+T-01820,open,P2,web form,emea,2026-10-28T19:00:00Z,54,
+T-01821,open,P1,chat,emea,2026-10-01T20:00:00Z,63,
+T-01822,closed,P2,web form,amer,2026-10-02T21:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-01823,closed,P1,chat,amer,2026-10-03T22:00:00Z,43,Customer asked about invoice re-issue.
+T-01824,closed,P1,email,emea,2026-10-04T23:00:00Z,45,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01825,open,P2,chat,emea,2026-10-05T00:00:00Z,67,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01826,pending,P2,email,latam,2026-10-06T01:00:00Z,2,Escalated: SLA at risk.
+T-01827,pending,P3,chat,latam,2026-10-07T02:00:00Z,64,
+T-01828,closed,P2,email,emea,2026-10-08T03:00:00Z,6,
+T-01829,closed,P3,email,amer,2026-10-09T04:00:00Z,56,"Contains ""quoted words"" and, commas"
+T-01830,pending,P2,email,amer,2026-10-10T05:00:00Z,4,
+T-01831,pending,P2,web form,latam,2026-10-11T06:00:00Z,56,Escalated: SLA at risk.
+T-01832,pending,P3,chat,latam,2026-10-12T07:00:00Z,9,Customer asked about invoice re-issue.
+T-01833,pending,P3,email,apac,2026-10-13T08:00:00Z,53,  padded values  
+T-01834,pending,P2,chat,latam,2026-10-14T09:00:00Z,52,Escalated: SLA at risk.
+T-01835,closed,P1,email,apac,2026-10-15T10:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01836,open,P3,email,emea,2026-10-16T11:00:00Z,9,
+T-01837,pending,P2,chat,latam,2026-10-17T12:00:00Z,70,  padded values  
+T-01838,pending,P2,web form,latam,2026-10-18T13:00:00Z,49,Escalated: SLA at risk.
+T-01839,open,P2,web form,apac,2026-10-19T14:00:00Z,6,  padded values  
+T-01840,pending,P2,web form,amer,2026-10-20T15:00:00Z,63,"Contains ""quoted words"" and, commas"
+T-01841,open,P3,email,emea,2026-10-21T16:00:00Z,46,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01842,open,P3,chat,emea,2026-10-22T17:00:00Z,57,  padded values  
+T-01843,open,P2,chat,latam,2026-10-23T18:00:00Z,28,  padded values  
+T-01844,open,P2,email,amer,2026-10-24T19:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-01845,closed,P2,email,emea,2026-10-25T20:00:00Z,31,
+T-01846,open,P2,email,latam,2026-10-26T21:00:00Z,21,Escalated: SLA at risk.
+T-01847,open,P3,chat,apac,2026-10-27T22:00:00Z,67,Escalated: SLA at risk.
+T-01848,open,P1,email,apac,2026-10-28T23:00:00Z,67,Escalated: SLA at risk.
+T-01849,open,P2,email,latam,2026-10-01T00:00:00Z,68,  padded values  
+T-01850,closed,P2,chat,apac,2026-10-02T01:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-01851,open,P3,email,emea,2026-10-03T02:00:00Z,45,
+T-01852,closed,P2,email,emea,2026-10-04T03:00:00Z,6,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01853,closed,P3,chat,apac,2026-10-05T04:00:00Z,31,
+T-01854,pending,P1,email,emea,2026-10-06T05:00:00Z,68,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01855,pending,P2,web form,latam,2026-10-07T06:00:00Z,31,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01856,closed,P1,email,apac,2026-10-08T07:00:00Z,12,Escalated: SLA at risk.
+T-01857,open,P2,web form,emea,2026-10-09T08:00:00Z,49,
+T-01858,pending,P2,chat,amer,2026-10-10T09:00:00Z,40,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01859,open,P3,web form,latam,2026-10-11T10:00:00Z,41,Customer asked about invoice re-issue.
+T-01860,pending,P3,web form,latam,2026-10-12T11:00:00Z,44,"Contains ""quoted words"" and, commas"
+T-01861,pending,P2,email,apac,2026-10-13T12:00:00Z,3,Escalated: SLA at risk.
+T-01862,pending,P3,email,apac,2026-10-14T13:00:00Z,23,
+T-01863,open,P2,web form,latam,2026-10-15T14:00:00Z,11,Customer asked about invoice re-issue.
+T-01864,pending,P2,email,apac,2026-10-16T15:00:00Z,12,Customer asked about invoice re-issue.
+T-01865,open,P2,chat,apac,2026-10-17T16:00:00Z,52,Customer asked about invoice re-issue.
+T-01866,open,P3,web form,latam,2026-10-18T17:00:00Z,20,  padded values  
+T-01867,closed,P2,chat,apac,2026-10-19T18:00:00Z,44,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01868,pending,P2,web form,apac,2026-10-20T19:00:00Z,50,
+T-01869,open,P2,web form,emea,2026-10-21T20:00:00Z,25,
+T-01870,pending,P2,email,emea,2026-10-22T21:00:00Z,37,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01871,closed,P3,web form,latam,2026-10-23T22:00:00Z,62,  padded values  
+T-01872,open,P3,email,apac,2026-10-24T23:00:00Z,18,Customer asked about invoice re-issue.
+T-01873,open,P2,web form,apac,2026-10-25T00:00:00Z,34,Escalated: SLA at risk.
+T-01874,open,P2,web form,amer,2026-10-26T01:00:00Z,64,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01875,pending,P3,chat,latam,2026-10-27T02:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01876,pending,P2,web form,latam,2026-10-28T03:00:00Z,64,Escalated: SLA at risk.
+T-01877,pending,P2,chat,latam,2026-10-01T04:00:00Z,2,Customer asked about invoice re-issue.
+T-01878,pending,P2,chat,latam,2026-10-02T05:00:00Z,26,Escalated: SLA at risk.
+T-01879,closed,P2,email,amer,2026-10-03T06:00:00Z,19,  padded values  
+T-01880,open,P3,chat,latam,2026-10-04T07:00:00Z,1,
+T-01881,open,P2,chat,amer,2026-10-05T08:00:00Z,42,"Contains ""quoted words"" and, commas"
+T-01882,closed,P2,chat,emea,2026-10-06T09:00:00Z,25,Customer asked about invoice re-issue.
+T-01883,pending,P2,email,emea,2026-10-07T10:00:00Z,53,Customer asked about invoice re-issue.
+T-01884,closed,P3,email,amer,2026-10-08T11:00:00Z,45,
+T-01885,pending,P2,web form,amer,2026-10-09T12:00:00Z,22,Customer asked about invoice re-issue.
+T-01886,pending,P1,chat,emea,2026-10-10T13:00:00Z,58,"Contains ""quoted words"" and, commas"
+T-01887,pending,P1,email,latam,2026-10-11T14:00:00Z,30,  padded values  
+T-01888,open,P2,chat,emea,2026-10-12T15:00:00Z,30,Customer asked about invoice re-issue.
+T-01889,pending,P3,chat,emea,2026-10-13T16:00:00Z,27,Escalated: SLA at risk.
+T-01890,pending,P1,email,apac,2026-10-14T17:00:00Z,14,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01891,pending,P2,email,latam,2026-10-15T18:00:00Z,57,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01892,open,P3,web form,amer,2026-10-16T19:00:00Z,54,
+T-01893,pending,P1,web form,emea,2026-10-17T20:00:00Z,31,  padded values  
+T-01894,pending,P2,chat,apac,2026-10-18T21:00:00Z,68,  padded values  
+T-01895,closed,P1,chat,amer,2026-10-19T22:00:00Z,43,
+T-01896,pending,P1,web form,apac,2026-10-20T23:00:00Z,41,  padded values  
+T-01897,open,P2,web form,emea,2026-10-21T00:00:00Z,65,"Contains ""quoted words"" and, commas"
+T-01898,pending,P3,email,latam,2026-10-22T01:00:00Z,43,  padded values  
+T-01899,pending,P3,email,emea,2026-10-23T02:00:00Z,15,Escalated: SLA at risk.
+T-01900,closed,P2,chat,emea,2026-10-24T03:00:00Z,20,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01901,closed,P1,chat,emea,2026-10-25T04:00:00Z,64,"Contains ""quoted words"" and, commas"
+T-01902,closed,P1,web form,apac,2026-10-26T05:00:00Z,24,  padded values  
+T-01903,closed,P2,email,latam,2026-10-27T06:00:00Z,26,  padded values  
+T-01904,closed,P2,email,amer,2026-10-28T07:00:00Z,41,
+T-01905,open,P3,chat,emea,2026-10-01T08:00:00Z,29,"Contains ""quoted words"" and, commas"
+T-01906,open,P2,web form,amer,2026-10-02T09:00:00Z,1,
+T-01907,open,P3,email,emea,2026-10-03T10:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01908,open,P2,email,amer,2026-10-04T11:00:00Z,24,Customer asked about invoice re-issue.
+T-01909,closed,P2,chat,apac,2026-10-05T12:00:00Z,17,
+T-01910,open,P3,chat,amer,2026-10-06T13:00:00Z,61,Customer asked about invoice re-issue.
+T-01911,closed,P3,web form,emea,2026-10-07T14:00:00Z,58,Escalated: SLA at risk.
+T-01912,closed,P2,chat,emea,2026-10-08T15:00:00Z,1,  padded values  
+T-01913,closed,P2,chat,amer,2026-10-09T16:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-01914,pending,P1,email,emea,2026-10-10T17:00:00Z,45,  padded values  
+T-01915,closed,P2,web form,apac,2026-10-11T18:00:00Z,49,
+T-01916,closed,P3,email,amer,2026-10-12T19:00:00Z,30,
+T-01917,open,P1,email,latam,2026-10-13T20:00:00Z,48,"Contains ""quoted words"" and, commas"
+T-01918,pending,P2,web form,apac,2026-10-14T21:00:00Z,3,
+T-01919,open,P1,email,emea,2026-10-15T22:00:00Z,1,
+T-01920,pending,P1,web form,apac,2026-10-16T23:00:00Z,27,  padded values  
+T-01921,closed,P2,email,emea,2026-10-17T00:00:00Z,50,Customer asked about invoice re-issue.
+T-01922,open,P2,web form,emea,2026-10-18T01:00:00Z,20,"Contains ""quoted words"" and, commas"
+T-01923,closed,P2,chat,emea,2026-10-19T02:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01924,open,P2,email,apac,2026-10-20T03:00:00Z,68,Customer asked about invoice re-issue.
+T-01925,closed,P2,email,emea,2026-10-21T04:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-01926,pending,P2,chat,amer,2026-10-22T05:00:00Z,65,
+T-01927,open,P2,web form,amer,2026-10-23T06:00:00Z,10,  padded values  
+T-01928,open,P2,web form,amer,2026-10-24T07:00:00Z,50,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01929,closed,P1,email,amer,2026-10-25T08:00:00Z,36,"Contains ""quoted words"" and, commas"
+T-01930,pending,P2,chat,latam,2026-10-26T09:00:00Z,4,"Contains ""quoted words"" and, commas"
+T-01931,pending,P2,web form,latam,2026-10-27T10:00:00Z,3,Escalated: SLA at risk.
+T-01932,open,P2,chat,apac,2026-10-28T11:00:00Z,14,Escalated: SLA at risk.
+T-01933,open,P2,email,apac,2026-10-01T12:00:00Z,69,"Contains ""quoted words"" and, commas"
+T-01934,open,P3,email,emea,2026-10-02T13:00:00Z,59,
+T-01935,open,P3,email,latam,2026-10-03T14:00:00Z,21,Escalated: SLA at risk.
+T-01936,pending,P2,email,amer,2026-10-04T15:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01937,open,P3,chat,amer,2026-10-05T16:00:00Z,22,"Contains ""quoted words"" and, commas"
+T-01938,open,P2,web form,emea,2026-10-06T17:00:00Z,42,"Contains ""quoted words"" and, commas"
+T-01939,closed,P2,chat,latam,2026-10-07T18:00:00Z,37,Escalated: SLA at risk.
+T-01940,open,P3,chat,latam,2026-10-08T19:00:00Z,32,Escalated: SLA at risk.
+T-01941,closed,P3,chat,apac,2026-10-09T20:00:00Z,38,
+T-01942,pending,P2,email,apac,2026-10-10T21:00:00Z,19,  padded values  
+T-01943,open,P1,email,emea,2026-10-11T22:00:00Z,66,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01944,pending,P1,email,emea,2026-10-12T23:00:00Z,3,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01945,pending,P2,email,latam,2026-10-13T00:00:00Z,16,
+T-01946,closed,P2,web form,latam,2026-10-14T01:00:00Z,43,
+T-01947,closed,P2,email,apac,2026-10-15T02:00:00Z,60,  padded values  
+T-01948,pending,P2,web form,amer,2026-10-16T03:00:00Z,44,"Contains ""quoted words"" and, commas"
+T-01949,pending,P2,web form,amer,2026-10-17T04:00:00Z,13,  padded values  
+T-01950,open,P2,chat,latam,2026-10-18T05:00:00Z,64,Customer asked about invoice re-issue.
+T-01951,open,P2,chat,latam,2026-10-19T06:00:00Z,4,Escalated: SLA at risk.
+T-01952,closed,P3,web form,amer,2026-10-20T07:00:00Z,8,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01953,open,P3,email,emea,2026-10-21T08:00:00Z,54,
+T-01954,open,P2,chat,latam,2026-10-22T09:00:00Z,59,
+T-01955,open,P2,email,latam,2026-10-23T10:00:00Z,51,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01956,closed,P2,web form,amer,2026-10-24T11:00:00Z,36,  padded values  
+T-01957,pending,P2,email,latam,2026-10-25T12:00:00Z,54,Customer asked about invoice re-issue.
+T-01958,open,P2,web form,latam,2026-10-26T13:00:00Z,48,
+T-01959,pending,P1,chat,amer,2026-10-27T14:00:00Z,38,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01960,pending,P2,email,apac,2026-10-28T15:00:00Z,48,Customer asked about invoice re-issue.
+T-01961,open,P3,email,latam,2026-10-01T16:00:00Z,43,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01962,open,P2,chat,apac,2026-10-02T17:00:00Z,5,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01963,open,P2,email,amer,2026-10-03T18:00:00Z,46,
+T-01964,closed,P2,web form,amer,2026-10-04T19:00:00Z,53,"Contains ""quoted words"" and, commas"
+T-01965,pending,P3,email,emea,2026-10-05T20:00:00Z,19,
+T-01966,open,P2,chat,amer,2026-10-06T21:00:00Z,30,Customer asked about invoice re-issue.
+T-01967,closed,P2,web form,emea,2026-10-07T22:00:00Z,33,  padded values  
+T-01968,closed,P2,chat,emea,2026-10-08T23:00:00Z,19,  padded values  
+T-01969,pending,P2,email,apac,2026-10-09T00:00:00Z,30,Escalated: SLA at risk.
+T-01970,open,P1,email,apac,2026-10-10T01:00:00Z,20,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01971,open,P1,email,emea,2026-10-11T02:00:00Z,60,  padded values  
+T-01972,open,P2,web form,amer,2026-10-12T03:00:00Z,24,  padded values  
+T-01973,closed,P3,chat,apac,2026-10-13T04:00:00Z,26,
+T-01974,closed,P2,email,apac,2026-10-14T05:00:00Z,68,Customer asked about invoice re-issue.
+T-01975,closed,P2,chat,latam,2026-10-15T06:00:00Z,26,  padded values  
+T-01976,pending,P3,email,latam,2026-10-16T07:00:00Z,41,
+T-01977,pending,P1,email,emea,2026-10-17T08:00:00Z,37,  padded values  
+T-01978,open,P2,email,latam,2026-10-18T09:00:00Z,32,  padded values  
+T-01979,closed,P3,web form,latam,2026-10-19T10:00:00Z,48,Escalated: SLA at risk.
+T-01980,open,P3,chat,emea,2026-10-20T11:00:00Z,64,Escalated: SLA at risk.
+T-01981,pending,P2,web form,emea,2026-10-21T12:00:00Z,8,Escalated: SLA at risk.
+T-01982,pending,P1,email,amer,2026-10-22T13:00:00Z,0,"Contains ""quoted words"" and, commas"
+T-01983,open,P3,chat,latam,2026-10-23T14:00:00Z,68,Customer asked about invoice re-issue.
+T-01984,open,P2,email,amer,2026-10-24T15:00:00Z,43,"Contains ""quoted words"" and, commas"
+T-01985,pending,P1,email,latam,2026-10-25T16:00:00Z,58,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01986,pending,P2,chat,latam,2026-10-26T17:00:00Z,43,Customer asked about invoice re-issue.
+T-01987,open,P2,web form,apac,2026-10-27T18:00:00Z,61,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01988,open,P3,email,emea,2026-10-28T19:00:00Z,13,
+T-01989,pending,P2,web form,amer,2026-10-01T20:00:00Z,11,  padded values  
+T-01990,closed,P2,web form,apac,2026-10-02T21:00:00Z,57,  padded values  
+T-01991,open,P3,web form,amer,2026-10-03T22:00:00Z,3,Escalated: SLA at risk.
+T-01992,pending,P3,web form,latam,2026-10-04T23:00:00Z,4,Escalated: SLA at risk.
+T-01993,closed,P2,web form,amer,2026-10-05T00:00:00Z,52,Customer asked about invoice re-issue.
+T-01994,open,P3,web form,emea,2026-10-06T01:00:00Z,58,Customer asked about invoice re-issue.
+T-01995,closed,P3,web form,emea,2026-10-07T02:00:00Z,30,  padded values  
+T-01996,open,P2,chat,latam,2026-10-08T03:00:00Z,13,Escalated: SLA at risk.
+T-01997,closed,P2,web form,latam,2026-10-09T04:00:00Z,67,Multibyte: 追跡番号 12345 / благодарим / 🚚
+T-01998,pending,P2,web form,latam,2026-10-10T05:00:00Z,71,Escalated: SLA at risk.
+T-01999,open,P2,web form,emea,2026-10-11T06:00:00Z,59,Customer asked about invoice re-issue.
+T-02000,open,P3,chat,apac,2026-10-12T07:00:00Z,64,Escalated: SLA at risk.
