@@ -2,71 +2,34 @@
 
 **A local-only CSV/TSV/JSONL viewer and cleaning workbench. Drag a file in, preview, search, clean and export — your data never leaves your device.**
 
+![RowLens data grid with the cleaning pipeline and toolbar](docs/screenshots/grid.png)
+
 - No account, no upload endpoint, no telemetry, no remote fonts or CDN runtime scripts.
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
 - Source files are read-only: RowLens only ever writes a **new** exported file.
 
-> **Status:** The core workflow is live end to end — import CSV/TSV/JSONL,
-> query with search, filters, sorting and cleaning steps in one worker pass,
-> then export CSV as the filtered view or the cleaned dataset, streamed to a
-> File System Access save picker when available (capped in-memory download
-> otherwise). This README only documents capabilities that are actually built
-> and verified.
+## What it does
 
-## What works today (verified by tests)
+|                                                           |                                                                                   |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| ![Empty state](docs/screenshots/empty.png)                | ![Export dialog with safety modes](docs/screenshots/export-dialog.png)            |
+| Choose a file, drop one, or explore the synthetic sample. | Filtered-vs-all scope, spreadsheet-safe vs raw export with distinct explanations. |
 
-- **Import**: choose or drop a supported file (≤ 100 MiB). Parsing runs off
-  the main thread in bounded batches with explicit backpressure; every batch
-  is persisted before parsing continues; cancellation removes all partial
-  data. Unsupported formats and oversized files are rejected up front with
-  actionable messages.
-- **Parsing fidelity**: quoted fields with embedded commas/quotes/newlines,
-  BOM + CRLF, duplicate/empty headers (kept as separate positional columns),
-  leading zeros and date-like text preserved as strings, mid-file blank lines
-  kept for the (future) cleaning pipeline, JSONL schema growth, invalid JSONL
-  lines recorded with line numbers while parsing continues, oversized JSONL
-  lines dropped safely.
-- **View**: virtualized grid (viewport-sized DOM, asserted in tests), live
-  literal case-insensitive search with announced counts, per-column literal
-  filters with active-filter counts, column show/hide (presentation only —
-  counts unchanged), stable string sort with aria-sort semantics, Esc clears
-  search in place, light/dark themes, responsive layout from 360px. Queries
-  run off the main thread; a slow query can never overwrite a newer one, and
-  results over the verified match limit are reported, never truncated.
-- **Cleaning pipeline**: add, edit, enable/disable, remove and reset steps
-  (trim whitespace, remove empty rows, remove duplicates with exact or
-  whitespace-trimmed comparison over whole rows or key columns, select
-  columns). Steps run in the same worker pass as the query; each step
-  reports its impact (cells trimmed, rows removed, columns kept) while the
-  stored dataset is never modified, and step configurations round-trip
-  through JSON with identical results (asserted by tests).
-- **CSV export**: CRLF output with minimal quoting, verified by re-parsing
-  every test document with an independent parser. Spreadsheet-safe mode
-  prefixes formula-looking cells (=, +, -, @, tab, CR — including
-  whitespace-obscured ones) with a visible character and reports how many;
-  Raw mode exports original values behind an explicit warning; no universal
-  safety claim is made. Filtered or all-rows-cleaned scope, sanitised file
-  names, cancellation and typed failures that never claim a save.
-- **CSV/TSV import options**: before importing, choose whether the first row
-  is a header and pick a delimiter (or let it be detected).
-- **Try sample data** seeds a deterministic synthetic table (5,000 × 8,
-  generated locally — no real data) into the same IndexedDB pipeline.
-- Data never leaves the browser: parsing happens in a Worker, records are
-  cached in this origin's IndexedDB, and removing the dataset (or the 24h
-  startup cleanup) deletes them.
+**Import** CSV, TSV and JSONL/NDJSON (≤ 100 MiB) through a Web Worker in
+bounded batches with explicit backpressure; cancellation removes all partial
+data. **Query** with literal case-insensitive search, per-column filters,
+stable string sort and column show/hide — run in a second worker over windowed
+dataset scans, where the newest query always wins. **Clean** with serializable
+steps (trim whitespace, remove empty rows, remove duplicates, select columns),
+each showing its impact, never touching the stored file. **Export** CSV as the
+filtered view or the cleaned dataset, streamed to a File System Access save
+picker when available (capped in-browser download otherwise), with
+spreadsheet-safe formula protection by default and an explicit raw mode.
 
-## Supported formats (planned for v0.1)
+All cell values stay strings — no implicit numeric or date conversion, so
+leading zeros and date-like text are preserved exactly.
 
-| Format         | Extensions          | Notes                                                                                           |
-| -------------- | ------------------- | ----------------------------------------------------------------------------------------------- |
-| CSV            | `.csv`              | Parsed with [Papa Parse](https://www.papaparse.com/); quoted fields, embedded newlines, CRLF/LF |
-| TSV            | `.tsv`              | Tab-delimited variant of the CSV pipeline                                                       |
-| JSONL / NDJSON | `.jsonl`, `.ndjson` | One JSON object per line; nested values shown as JSON text                                      |
-
-All cell values are kept as strings by default — no implicit numeric or date
-conversion, so leading zeros and date-like text are preserved exactly.
-
-## Development
+## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
 
@@ -75,43 +38,49 @@ npm ci        # reproducible install from package-lock.json
 npm run dev   # start the Vite dev server
 ```
 
+Then open the printed local URL, drop in a file — or try the bundled
+synthetic demo (`public/demo-support-tickets.csv`, 2,000 rows) and the
+built-in **Try sample data** table.
+
 ### Verification commands
 
 ```bash
 npm run typecheck    # tsc --noEmit (strict mode)
 npm run test:unit    # Vitest unit & component tests
-npm run build        # typecheck + production build
+npm run build        # typecheck + production build + network audit
 npm run format:check # Prettier check
-npm run format       # Prettier write
 npm run test:e2e     # Playwright E2E (production preview server)
 ```
 
 If the Playwright browser bundle cannot be downloaded, the suite can run on
 an installed browser: `PLAYWRIGHT_CHANNEL=msedge npm run test:e2e` (or
-`chrome`). CI uses the bundled Chromium.
+`chrome`). The accessibility scans and the `PERF=1`-gated performance
+benchmarks live in the same suite.
 
 ### CI
 
-GitHub Actions runs `npm ci`, `typecheck`, `test:unit` and `build` on every
-push/PR (`.github/workflows/ci.yml`). Browser end-to-end tests will run as a
-separate job once implemented (see `docs/07-implementation-roadmap.md`).
+GitHub Actions runs `npm ci`, `typecheck`, `test:unit`, `build` (including
+the network audit) and `format:check` on Node 22 and 24, plus a separate
+Playwright browser job (`.github/workflows/ci.yml`).
 
 ## Known limitations
 
-- Search scans every cell of the current dataset on each query (see
+- Search scans every cell of the current dataset on each query (measured in
   [docs/performance-results.md](docs/performance-results.md)): ~2.7 s at
-  20k rows, ~65 s at 250k rows. Sorting and exports measured there too.
-- Memory holds a write-through mirror of the dataset (~6.5x file size at the
-  95 MiB benchmark); bounded by the 100 MiB import cap but heavy on
-  low-RAM devices.
+  20k rows, ~65 s at 250k rows. Sorting and export are measured there too.
+- Memory holds a write-through mirror of the dataset (~6.5× file size at the
+  95 MiB benchmark); bounded by the 100 MiB import cap but heavy on low-RAM
+  devices.
 - Long-running queries show a busy marker but have no explicit cancel button;
   starting a new query supersedes the old one.
 - Copying a full cell value relies on the hover tooltip (title attribute);
   there is no dedicated copy action yet.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
-  reduced-motion/200% zoom checks are still manual and unrecorded.
-- The File System Access export path is preferred but only exercised via the
-  capped download fallback under test (headless has no save picker).
+  reduced-motion/200 % zoom checks are still manual and unrecorded.
+- The File System Access export path is preferred but is only exercised via
+  the capped download fallback under test (headless has no save picker).
+- No XLSX/Parquet/databases/SQL/charts — see the product brief's explicit
+  non-goals (`docs/00-product-brief.md`).
 
 ## Privacy boundary
 
@@ -120,21 +89,39 @@ locally in your browser and are not uploaded to any RowLens server; the app
 contains no telemetry or third-party analytics. Loading the app itself fetches
 static assets from its host, and browsers may cache those assets. Parsed
 records are temporarily stored in the browser's IndexedDB until you remove
-them, the tab's datasets expire, or you clear site data — see
-`docs/05-security-privacy.md` for the full threat model.
+them, the datasets expire (24 h), or you clear site data — see
+`docs/05-security-privacy.md` for the full threat model and
+`SECURITY.md` for reporting a vulnerability.
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The
+local-only boundary and data-correctness contracts are non-negotiable;
+`docs/decisions.md` records every architecture decision. This project follows
+the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## Project layout
 
 ```
-docs/            specification documents and decision records (ADR)
+docs/              specification documents, ADRs, performance results
+e2e/               Playwright browser tests, benchmarks, screenshot capture
+public/            synthetic demo data
+scripts/           demo generator, network audit
 src/
-  app/           app shell, error-code catalogue
+  app/             app shell, error-code catalogue
+  components/      grid, toolbar, panels, dialogs
   features/
-    dataset/     data model, schema derivation, limits, IndexedDB constants
-    import/      import job protocol (worker message contracts)
-    query/       search/filter/sort query contracts
-    export/      CSV export option contracts
+    cleaning/      serializable cleaning steps and pure transforms
+    dataset/       data model, schema, IndexedDB repository, sample data
+    export/        CSV encoding, serializer, saver abstraction
+    import/        validation, CSV/TSV & JSONL sessions, coordinator, worker
+    query/         query engine, worker client, protocols
+    settings/      theme preference
+  workers/         import & query workers
 ```
 
 Full specification lives in `docs/` (start with `docs/00-product-brief.md`).
-Key decisions are recorded in `docs/decisions.md`.
+
+## License
+
+[MIT](LICENSE)
