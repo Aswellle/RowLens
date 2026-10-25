@@ -1,11 +1,13 @@
 /**
- * Application shell: empty state → import (progress + cancel) → ready view.
- * Imports run through the coordinator (worker + IndexedDB + ACK backpressure);
- * the grid reads cells from the write-through in-memory store, never from
- * React state. The synthetic sample bypasses the pipeline and feeds the same
- * store shape.
+ * Application shell: empty → (import options for CSV/TSV) → import (progress
+ * + cancel) → ready. Imports run through the coordinator (worker + IndexedDB
+ * + ACK backpressure); search, filters and sorting run through the query
+ * worker over stored rows (windowed scans), with the newest query winning.
+ * The grid reads cells from the write-through in-memory store, never from
+ * React state. The synthetic sample seeds the same IndexedDB pipeline so
+ * every dataset is queried the same way.
  */
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppError } from './app/app-error';
 import { AppHeader } from './components/AppHeader';
 import { CleaningPanel } from './components/CleaningPanel';
@@ -13,7 +15,8 @@ import { DataGrid, type GridSort } from './components/DataGrid';
 import { DropZone } from './components/DropZone';
 import { EmptyState } from './components/EmptyState';
 import { FileInfoBar } from './components/FileInfoBar';
-import { NoResultsState } from './components/GridStates';
+import { LoadingState, NoResultsState } from './components/GridStates';
+import { ImportOptions, type DelimiterChoice } from './components/ImportOptions';
 import { ImportProgress } from './components/ImportProgress';
 import { NoticeBar, type NoticeVariant } from './components/NoticeBar';
 import { StatusLine } from './components/StatusLine';
@@ -24,33 +27,59 @@ import {
   type ImportProgress as ImportProgressInfo,
 } from './features/import/coordinator';
 import { createImportWorkerTransport } from './features/import/worker-transport';
-import { rowMatchesSearch, sortIndicesStable } from './features/query/literal';
 import { validateForImport } from './features/import/validate';
 import { DatasetRepository } from './features/dataset/repository';
 import { InMemoryDataset } from './features/dataset/store';
-import type { ColumnDefinition, DatasetFormat, DatasetMetadata } from './features/dataset/types';
+import type {
+  ColumnDefinition,
+  ColumnId,
+  DatasetFormat,
+  DatasetMetadata,
+} from './features/dataset/types';
+import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
 import {
-  SAMPLE_METADATA,
-  getRowCount,
-  rowValues,
-  sampleColumnIds,
-  sampleLabels,
-} from './features/dataset/sample';
+  QueryClient,
+  createQueryWorkerTransport,
+  runLocalQuery,
+  type QueryOutcome,
+  type QueryRequestSpec,
+  type QueryRun,
+} from './features/query/client';
 
 type ReadyData = {
   meta: DatasetMetadata;
   store: InMemoryDataset;
 };
 
+type AppQueryRunner = {
+  run(spec: QueryRequestSpec): QueryRun;
+  dispose(): void;
+};
+
 type View =
   | { kind: 'empty' }
+  | {
+      kind: 'options';
+      file: File;
+      format: DatasetFormat;
+      hasHeader: boolean;
+      delimiter: DelimiterChoice;
+    }
   | { kind: 'importing'; fileName: string; rowsParsed: number }
+  | { kind: 'working'; label: string }
   | {
       kind: 'ready';
       data: ReadyData;
+      searchInput: string;
       search: string;
-      sort: GridSort | null;
+      columnFilters: Record<ColumnId, string>;
+      sort: { datasetIndex: number; direction: 'asc' | 'desc' } | null;
+      hiddenColumns: ColumnId[];
+      rowIndices: number[];
+      queryBusy: boolean;
     };
+
+const SEARCH_DEBOUNCE_MS = 250;
 
 function friendlyImportError(error: AppError): string {
   switch (error.code) {
@@ -60,8 +89,6 @@ function friendlyImportError(error: AppError): string {
       return 'Browser storage is unavailable (for example in some private-browsing modes). Importing needs IndexedDB.';
     case 'PARSE_FAILED':
       return 'The file could not be parsed. Check that it is valid CSV, TSV or JSONL and try again.';
-    case 'IMPORT_CANCELLED':
-      return 'Import cancelled.';
     default:
       return error.message;
   }
@@ -71,31 +98,68 @@ function gridColumns(columns: ColumnDefinition[]): { id: string; label: string; 
   return columns.map((column) => ({ id: column.id, label: column.label, width: 140 }));
 }
 
-function loadSampleData(): ReadyData {
-  const store = new InMemoryDataset();
-  const ids = sampleColumnIds();
-  const columns: ColumnDefinition[] = ids.map((id, index) => ({
-    id,
-    label: sampleLabels()[id] ?? id,
-    sourceIndex: index,
+function sampleWireRows(sample: SampleDataset, offset: number, count: number) {
+  const ids = sample.columnIds;
+  return sample.getRows(offset, count).map((values, i) => ({
+    rowIndex: offset + i,
+    values: Object.fromEntries(ids.map((id, c) => [id, values[c] ?? null])) as Record<
+      ColumnId,
+      string | null
+    >,
   }));
-  const rows = Array.from({ length: getRowCount() }, (_, rowIndex) => {
-    const values: Record<string, string | null> = {};
-    rowValues(rowIndex).forEach((value, columnIndex) => {
-      values[ids[columnIndex] ?? ''] = value;
-    });
-    return { rowIndex, values };
-  });
-  store.appendBatch(columns, rows);
-  return { meta: SAMPLE_METADATA, store };
 }
 
-export default function App() {
+function buildSampleStore(sample: SampleDataset): InMemoryDataset {
+  const store = new InMemoryDataset();
+  const columns: ColumnDefinition[] = sample.columnIds.map((id, index) => ({
+    id,
+    label: sample.labels[id] ?? id,
+    sourceIndex: index,
+  }));
+  for (let offset = 0; offset < sample.getRowCount(); offset += 500) {
+    store.appendBatch(columns, sampleWireRows(sample, offset, 500));
+  }
+  return store;
+}
+
+async function seedSampleDataset(
+  repository: DatasetRepository,
+  sample: SampleDataset,
+): Promise<void> {
+  const id = sample.metadata.id;
+  await repository.deleteDataset(id);
+  const now = Date.now();
+  await repository.insertDataset({
+    ...sample.metadata,
+    status: 'importing',
+    createdAt: now,
+    lastTouchedAt: now,
+  });
+  for (let offset = 0; offset < sample.getRowCount(); offset += 500) {
+    await repository.putRows(
+      id,
+      sampleWireRows(sample, offset, 500).map((row) => ({
+        datasetId: id,
+        rowIndex: row.rowIndex,
+        values: row.values,
+      })),
+    );
+  }
+  await repository.finalizeDataset({
+    ...sample.metadata,
+    status: 'ready',
+    lastTouchedAt: Date.now(),
+  });
+}
+
+export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const [view, setView] = useState<View>({ kind: 'empty' });
   const [notice, setNotice] = useState<{ variant: NoticeVariant; message: string } | null>(null);
+  const sampleRef = useRef<SampleDataset | null>(null);
 
   const repositoryRef = useRef<DatasetRepository | null>(null);
   const coordinatorRef = useRef<ImportCoordinator | null>(null);
+  const queryRunnerRef = useRef<AppQueryRunner | null>(null);
   const activeImportRef = useRef<ActiveImport | null>(null);
   const storeRef = useRef<InMemoryDataset>(new InMemoryDataset());
 
@@ -105,21 +169,42 @@ export default function App() {
     );
   }, []);
 
-  const importFile = useCallback(
-    async (file: File) => {
-      let format: DatasetFormat;
-      try {
-        format = validateForImport(file);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'The file could not be opened.';
-        setNotice({ variant: 'error', message });
-        return;
-      }
+  const ensureRepository = useCallback(async (): Promise<DatasetRepository> => {
+    repositoryRef.current ??= await DatasetRepository.open();
+    return repositoryRef.current;
+  }, []);
 
+  const ensureQueryRunner = useCallback(async (): Promise<AppQueryRunner> => {
+    if (queryRunnerRef.current) return queryRunnerRef.current;
+    const repository = await ensureRepository();
+    if (typeof Worker === 'undefined') {
+      // Same engine, same windowed reads — just on this thread.
+      queryRunnerRef.current = {
+        run: (spec) => ({
+          cancel: () => undefined,
+          done: runLocalQuery(spec, repository),
+        }),
+        dispose: () => undefined,
+      };
+    } else {
+      const client = new QueryClient({ createTransport: createQueryWorkerTransport });
+      queryRunnerRef.current = {
+        run: (spec) => client.run(spec),
+        dispose: () => client.dispose(),
+      };
+    }
+    return queryRunnerRef.current;
+  }, [ensureRepository]);
+
+  const startImport = useCallback(
+    async (
+      file: File,
+      options: { format: DatasetFormat; hasHeader: boolean; delimiter?: string },
+    ) => {
       try {
-        repositoryRef.current ??= await DatasetRepository.open();
+        const repository = await ensureRepository();
         coordinatorRef.current ??= new ImportCoordinator({
-          repository: repositoryRef.current,
+          repository,
           createTransport: createImportWorkerTransport,
           onProgress: handleProgress,
           onBatch: (batch) => storeRef.current.appendBatch(batch.schemaAppend, batch.rows),
@@ -127,8 +212,9 @@ export default function App() {
 
         storeRef.current.reset();
         const active = await coordinatorRef.current.start(file, {
-          format,
-          hasHeader: true,
+          format: options.format,
+          hasHeader: options.hasHeader,
+          ...(options.delimiter ? { delimiter: options.delimiter } : {}),
         });
         activeImportRef.current = active;
         setNotice(null);
@@ -141,8 +227,13 @@ export default function App() {
           setView({
             kind: 'ready',
             data: { meta: outcome.metadata, store: storeRef.current },
+            searchInput: '',
             search: '',
+            columnFilters: {},
             sort: null,
+            hiddenColumns: [],
+            rowIndices: [],
+            queryBusy: true,
           });
           if (outcome.metadata.parseErrorCount > 0) {
             setNotice({
@@ -168,15 +259,53 @@ export default function App() {
         });
       }
     },
-    [handleProgress],
+    [ensureRepository, handleProgress],
   );
 
-  const loadSample = useCallback(() => {
+  const chooseFile = useCallback(
+    (file: File) => {
+      let format: DatasetFormat;
+      try {
+        format = validateForImport(file);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'The file could not be opened.';
+        setNotice({ variant: 'error', message });
+        return;
+      }
+      setNotice(null);
+      if (format === 'csv' || format === 'tsv') {
+        setView({ kind: 'options', file, format, hasHeader: true, delimiter: 'auto' });
+        return;
+      }
+      void startImport(file, { format, hasHeader: true });
+    },
+    [startImport],
+  );
+
+  const loadSample = useCallback(async () => {
     setNotice(null);
-    const data = loadSampleData();
-    storeRef.current = data.store;
-    setView({ kind: 'ready', data, search: '', sort: null });
-  }, []);
+    setView({ kind: 'working', label: 'Preparing sample data…' });
+    try {
+      const repository = await ensureRepository();
+      const sample = (sampleRef.current ??= createSampleDataset(sampleSize));
+      await seedSampleDataset(repository, sample);
+      storeRef.current = buildSampleStore(sample);
+      setView({
+        kind: 'ready',
+        data: { meta: { ...sample.metadata, status: 'ready' }, store: storeRef.current },
+        searchInput: '',
+        search: '',
+        columnFilters: {},
+        sort: null,
+        hiddenColumns: [],
+        rowIndices: [],
+        queryBusy: true,
+      });
+    } catch {
+      setView({ kind: 'empty' });
+      setNotice({ variant: 'error', message: 'Sample data could not be prepared.' });
+    }
+  }, [ensureRepository, sampleSize]);
 
   const removeDataset = useCallback(async () => {
     if (view.kind !== 'ready') return;
@@ -190,31 +319,101 @@ export default function App() {
     }
   }, [view]);
 
-  const visibleIndices = useMemo(() => {
-    if (view.kind !== 'ready') return [];
-    const { store } = view.data;
-    let indices = Array.from({ length: store.rowCount }, (_, i) => i);
-    if (view.search !== '') {
-      indices = indices.filter((rowIndex) =>
-        rowMatchesSearch(store.getRowValues(rowIndex), view.search),
+  // Debounce the committed search term behind the input value.
+  useEffect(() => {
+    if (view.kind !== 'ready') return;
+    const timer = window.setTimeout(() => {
+      setView((current) =>
+        current.kind === 'ready' && current.search !== current.searchInput
+          ? { ...current, search: current.searchInput }
+          : current,
       );
-    }
-    if (view.sort !== null) {
-      const column = view.sort.columnIndex;
-      indices = sortIndicesStable(
-        indices,
-        (rowIndex) => store.getCell(rowIndex, column),
-        view.sort.direction,
-      );
-    }
-    return indices;
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
   }, [view]);
+
+  // Run the query whenever the committed inputs change. Deps are leaf keys
+  // (not the view object) so result updates never re-trigger the query.
+  const queryDeps = view.kind === 'ready' ? view : null;
+  const datasetIdKey = queryDeps?.data.meta.id ?? '';
+  const searchKey = queryDeps?.search ?? '';
+  const filtersKey = queryDeps ? JSON.stringify(queryDeps.columnFilters) : '';
+  const sortKey = queryDeps?.sort
+    ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}`
+    : '';
+
+  useEffect(() => {
+    if (view.kind !== 'ready') return;
+    let live = true;
+    const current = view;
+    void (async () => {
+      const runner = await ensureQueryRunner();
+      if (!live) return;
+      const spec: QueryRequestSpec = {
+        datasetId: current.data.meta.id,
+        columns: current.data.meta.columns.map((column) => column.id),
+        search: current.search,
+        columnFilters: current.columnFilters,
+      };
+      if (current.sort) {
+        spec.sort = {
+          columnIndex: current.sort.datasetIndex,
+          direction: current.sort.direction,
+        };
+      }
+      const run = runner.run(spec);
+      const outcome: QueryOutcome = await run.done;
+      if (!live) return;
+      setView((state) => {
+        if (state.kind !== 'ready') return state;
+        if (outcome.kind === 'superseded' || outcome.kind === 'cancelled') return state;
+        if (outcome.kind === 'limit') {
+          setNotice({
+            variant: 'warning',
+            message: `The query matched more than ${outcome.limit.toLocaleString('en-US')} rows. Narrow the search or filters to see results.`,
+          });
+          return { ...state, queryBusy: false };
+        }
+        if (outcome.kind === 'failed') {
+          setNotice({ variant: 'error', message: friendlyImportError(outcome.error) });
+          return { ...state, queryBusy: false };
+        }
+        return { ...state, rowIndices: outcome.rowIndices, queryBusy: false };
+      });
+    })();
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
+  }, [datasetIdKey, searchKey, filtersKey, sortKey, ensureQueryRunner]);
+
+  const readyGridSort: GridSort | null = useMemo(() => {
+    if (view.kind !== 'ready' || view.sort === null) return null;
+    const visible = view.data.meta.columns
+      .map((column, index) => ({ column, index }))
+      .filter(({ column }) => !view.hiddenColumns.includes(column.id));
+    const gridIndex = visible.findIndex(({ index }) => index === view.sort?.datasetIndex);
+    if (gridIndex === -1 || view.sort === null) return null;
+    return { columnIndex: gridIndex, direction: view.sort.direction };
+  }, [view]);
+
+  const visibleDatasetIndexes = useMemo(() => {
+    if (view.kind !== 'ready') return [] as number[];
+    return view.data.meta.columns
+      .map((_, index) => index)
+      .filter((index) => !view.hiddenColumns.includes(view.data.meta.columns[index]?.id ?? ''));
+  }, [view]);
+
+  const activeFilterCount =
+    view.kind === 'ready'
+      ? Object.values(view.columnFilters).filter((value) => value !== '').length
+      : 0;
 
   return (
     <DropZone
       onFilesDropped={(fileList) => {
         const file = fileList[0];
-        if (file) void importFile(file);
+        if (file) chooseFile(file);
       }}
     >
       <AppHeader />
@@ -226,7 +425,25 @@ export default function App() {
       )}
 
       {view.kind === 'empty' && (
-        <EmptyState onChooseFile={(file) => void importFile(file)} onLoadSample={loadSample} />
+        <EmptyState onChooseFile={chooseFile} onLoadSample={() => void loadSample()} />
+      )}
+
+      {view.kind === 'options' && (
+        <ImportOptions
+          fileName={view.file.name}
+          hasHeader={view.hasHeader}
+          delimiter={view.delimiter}
+          onHasHeaderChange={(hasHeader) => setView({ ...view, hasHeader })}
+          onDelimiterChange={(delimiter) => setView({ ...view, delimiter })}
+          onStart={() =>
+            void startImport(view.file, {
+              format: view.format,
+              hasHeader: view.hasHeader,
+              ...(view.delimiter !== 'auto' ? { delimiter: view.delimiter } : {}),
+            })
+          }
+          onCancel={() => setView({ kind: 'empty' })}
+        />
       )}
 
       {view.kind === 'importing' && (
@@ -236,6 +453,8 @@ export default function App() {
           onCancel={() => activeImportRef.current?.cancel()}
         />
       )}
+
+      {view.kind === 'working' && <LoadingState label={view.label} />}
 
       {view.kind === 'ready' && (
         <>
@@ -248,34 +467,69 @@ export default function App() {
             onRemove={() => void removeDataset()}
           />
           <Toolbar
-            searchTerm={view.search}
-            onSearchChange={(search) => setView({ ...view, search })}
+            searchTerm={view.searchInput}
+            onSearchChange={(searchInput) => setView({ ...view, searchInput })}
+            columns={view.data.meta.columns.map((column) => ({
+              id: column.id,
+              label: column.label,
+            }))}
+            columnFilters={view.columnFilters}
+            onColumnFilterChange={(columnId, value) =>
+              setView({ ...view, columnFilters: { ...view.columnFilters, [columnId]: value } })
+            }
+            onClearFilters={() => setView({ ...view, columnFilters: {} })}
+            hiddenColumns={new Set(view.hiddenColumns)}
+            onToggleColumn={(columnId, visible) =>
+              setView({
+                ...view,
+                hiddenColumns: visible
+                  ? view.hiddenColumns.filter((id) => id !== columnId)
+                  : [...view.hiddenColumns, columnId],
+              })
+            }
           />
           <StatusLine
-            matchCount={visibleIndices.length}
+            matchCount={view.rowIndices.length}
             totalRows={view.data.meta.rowCount}
-            hasActiveQuery={view.search !== '' || view.sort !== null}
-            onReset={() => setView({ ...view, search: '', sort: null })}
+            hasActiveQuery={view.search !== '' || activeFilterCount > 0 || view.sort !== null}
+            onReset={() =>
+              setView({ ...view, searchInput: '', search: '', columnFilters: {}, sort: null })
+            }
+            filterCount={activeFilterCount}
+            busy={view.queryBusy}
           />
           <div className="workspace">
             <CleaningPanel />
             <div className="grid-region">
-              {visibleIndices.length === 0 && view.search !== '' ? (
+              {view.rowIndices.length === 0 && !view.queryBusy && view.search !== '' ? (
                 <NoResultsState
                   searchTerm={view.search}
-                  onClear={() => setView({ ...view, search: '' })}
+                  onClear={() => setView({ ...view, searchInput: '', search: '' })}
                 />
               ) : (
                 <DataGrid
-                  columns={gridColumns(view.data.meta.columns)}
+                  columns={gridColumns(
+                    visibleDatasetIndexes.map((index) => view.data.meta.columns[index]!),
+                  )}
                   totalRowCount={view.data.meta.rowCount}
-                  visibleIndices={visibleIndices}
-                  valueAt={(rowIndex, columnIndex) =>
-                    view.data.store.getCell(rowIndex, columnIndex)
+                  visibleIndices={view.rowIndices}
+                  valueAt={(rowIndex, gridColumnIndex) =>
+                    view.data.store.getCell(rowIndex, visibleDatasetIndexes[gridColumnIndex] ?? -1)
                   }
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
-                  sort={view.sort}
-                  onSortChange={(sort) => setView({ ...view, sort })}
+                  sort={readyGridSort}
+                  onSortChange={(gridSort) =>
+                    setView({
+                      ...view,
+                      sort:
+                        gridSort === null
+                          ? null
+                          : {
+                              datasetIndex: visibleDatasetIndexes[gridSort.columnIndex] ?? 0,
+                              direction: gridSort.direction,
+                            },
+                    })
+                  }
                 />
               )}
             </div>

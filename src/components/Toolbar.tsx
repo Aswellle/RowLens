@@ -1,53 +1,56 @@
 /**
- * Toolbar: global search plus feature entry points. Search is live in the
- * Phase 1 demo (synthetic data); Filter / Columns / Clean steps / Export are
- * visibly disabled until their phases land — the UI never pretends they work.
- *
- * Narrow viewports (<700px) collapse the feature buttons behind a "More"
- * menu (UI spec §7) with Escape-to-close and focus return.
+ * Toolbar: global search, column-filter and column-visibility popovers, and
+ * a narrow-viewport "More" menu holding the still-upcoming features (which
+ * stay visibly disabled rather than pretending to work).
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { Popover } from './Popover';
+
+export type ToolbarColumn = { id: string; label: string };
 
 type ToolbarProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  columns: ToolbarColumn[];
+  columnFilters: Readonly<Record<string, string>>;
+  onColumnFilterChange: (columnId: string, value: string) => void;
+  onClearFilters: () => void;
+  hiddenColumns: ReadonlySet<string>;
+  onToggleColumn: (columnId: string, visible: boolean) => void;
 };
 
-type DisabledAction = {
-  key: string;
-  label: string;
-  note: string;
-};
-
-/** Feature buttons stay visible-but-disabled so the main path is learnable. */
-const DISABLED_ACTIONS: DisabledAction[] = [
-  { key: 'filter', label: 'Filter', note: 'Column filters arrive in Phase 3.' },
-  { key: 'columns', label: 'Columns', note: 'Column visibility arrives in Phase 3.' },
-  { key: 'clean', label: 'Clean steps', note: 'Cleaning steps arrive in Phase 4.' },
-  { key: 'export', label: 'Export', note: 'Export arrives after a real file can be imported.' },
+const PENDING_FEATURES = [
+  { key: 'clean', label: 'Clean steps', note: 'Cleaning steps arrive in a later update.' },
+  { key: 'export', label: 'Export', note: 'Export arrives after cleaning steps.' },
 ];
 
-export function Toolbar({ searchTerm, onSearchChange }: ToolbarProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
+export function Toolbar({
+  searchTerm,
+  onSearchChange,
+  columns,
+  columnFilters,
+  onColumnFilterChange,
+  onClearFilters,
+  hiddenColumns,
+  onToggleColumn,
+}: ToolbarProps) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [columnsOpen, setColumnsOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!moreOpen) return;
     const onPointerDown = (event: PointerEvent) => {
       if (event.target instanceof Element && !event.target.closest('.toolbar__more')) {
-        setMenuOpen(false);
+        setMoreOpen(false);
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [menuOpen]);
+  }, [moreOpen]);
 
-  const onMenuKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Escape') {
-      setMenuOpen(false);
-      moreButtonRef.current?.focus();
-    }
-  };
+  const activeFilterCount = Object.values(columnFilters).filter((value) => value !== '').length;
 
   return (
     <div className="toolbar" role="toolbar" aria-label="Data tools">
@@ -85,28 +88,87 @@ export function Toolbar({ searchTerm, onSearchChange }: ToolbarProps) {
         )}
       </div>
 
+      <div className="toolbar__panels">
+        <Popover
+          id="column-filters-panel"
+          label="Column filters"
+          triggerLabel={activeFilterCount > 0 ? `Filter · ${activeFilterCount}` : 'Filter'}
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+        >
+          {columns.map((column) => (
+            <div className="toolbar__panel-row" key={column.id}>
+              <label htmlFor={`filter-${column.id}`} className="truncate">
+                {column.label}
+              </label>
+              <input
+                id={`filter-${column.id}`}
+                className="text-input"
+                type="text"
+                value={columnFilters[column.id] ?? ''}
+                onChange={(event) => onColumnFilterChange(column.id, event.target.value)}
+                placeholder="contains…"
+              />
+            </div>
+          ))}
+          <button type="button" className="btn" onClick={onClearFilters}>
+            Clear all filters
+          </button>
+        </Popover>
+
+        <Popover
+          id="column-visibility-panel"
+          label="Visible columns"
+          triggerLabel="Columns"
+          open={columnsOpen}
+          onOpenChange={setColumnsOpen}
+        >
+          {columns.map((column) => (
+            <div className="toolbar__panel-row" key={column.id}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={!hiddenColumns.has(column.id)}
+                  onChange={(event) => onToggleColumn(column.id, event.target.checked)}
+                />
+                <span className="truncate">{column.label}</span>
+              </label>
+            </div>
+          ))}
+        </Popover>
+      </div>
+
       <div className="toolbar__more">
         <button
           ref={moreButtonRef}
           type="button"
           className="btn"
           aria-haspopup="true"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen((open) => !open)}
         >
           More ▾
         </button>
-        <div className="toolbar__actions" data-open={menuOpen} onKeyDown={onMenuKeyDown}>
-          {DISABLED_ACTIONS.map((action) => (
+        <div
+          className="toolbar__actions"
+          data-open={moreOpen}
+          onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
+            if (event.key === 'Escape') {
+              setMoreOpen(false);
+              moreButtonRef.current?.focus();
+            }
+          }}
+        >
+          {PENDING_FEATURES.map((feature) => (
             <button
-              key={action.key}
+              key={feature.key}
               type="button"
               className="btn"
               disabled
               aria-disabled="true"
-              title={action.note}
+              title={feature.note}
             >
-              {action.label}
+              {feature.label}
             </button>
           ))}
         </div>

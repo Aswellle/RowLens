@@ -169,9 +169,18 @@ export async function runLocalQuery(
       error: new AppError('DATASET_NOT_FOUND', 'The dataset is no longer stored.'),
     };
   }
+  const hasActiveFilter = Object.values(spec.columnFilters).some((value) => value !== '');
+  if (spec.search === '' && !hasActiveFilter && !spec.sort) {
+    // Every row matches by definition; the finalized row count already knows
+    // it — skip the scan entirely (the worker keeps its scan-based path).
+    const rowIndices = Array.from({ length: dataset.rowCount }, (_, i) => i);
+    return { kind: 'done', rowIndices, matched: rowIndices.length, totalRows: rowIndices.length };
+  }
   try {
+    // Larger windows than the import batch size: fewer transactions on the
+    // fallback path, same engine semantics.
     const result = await runQueryEngine(
-      scanDatasetRows(repository, spec.datasetId),
+      scanDatasetRows(repository, spec.datasetId, 2000),
       requestToEngineSpec(spec),
       { matchLimit: QUERY_MATCH_LIMIT },
     );

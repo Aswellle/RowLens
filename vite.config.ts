@@ -10,5 +10,7 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     setupFiles: ['src/test/setup.ts'],
+    // fake-indexeddb makes 5k-row App tests multi-second; keep headroom.
+    testTimeout: 20_000,
   },
 });
