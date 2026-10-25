@@ -6,12 +6,12 @@
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
 - Source files are read-only: RowLens only ever writes a **new** exported file.
 
-> **Status:** Local imports are live — CSV, TSV and JSONL/NDJSON files import
-> through a Web Worker into IndexedDB with progress and cancellation; the UI
-> skeleton from the previous milestone renders them in a virtualized grid.
-> Cleaning steps and export are **not implemented yet**; the UI says so in
-> place instead of faking them. This README only documents capabilities that
-> are actually built and verified.
+> **Status:** Imports and queries are live — CSV/TSV/JSONL import through a
+> Web Worker into IndexedDB (with a header/delimiter options step), and
+> search, per-column filters, column visibility and sorting run in a second
+> worker over windowed dataset scans. Cleaning steps and export are **not
+> implemented yet**; the UI says so in place instead of faking them. This
+> README only documents capabilities that are actually built and verified.
 
 ## What works today (verified by tests)
 
@@ -27,11 +27,16 @@
   lines recorded with line numbers while parsing continues, oversized JSONL
   lines dropped safely.
 - **View**: virtualized grid (viewport-sized DOM, asserted in tests), live
-  literal case-insensitive search with announced counts, stable string sort
-  with aria-sort semantics, Esc clears search in place, light/dark themes,
-  responsive layout from 360px.
-- **Try sample data** loads a deterministic synthetic table (5,000 × 8,
-  generated locally — no real data).
+  literal case-insensitive search with announced counts, per-column literal
+  filters with active-filter counts, column show/hide (presentation only —
+  counts unchanged), stable string sort with aria-sort semantics, Esc clears
+  search in place, light/dark themes, responsive layout from 360px. Queries
+  run off the main thread; a slow query can never overwrite a newer one, and
+  results over the verified match limit are reported, never truncated.
+- **CSV/TSV import options**: before importing, choose whether the first row
+  is a header and pick a delimiter (or let it be detected).
+- **Try sample data** seeds a deterministic synthetic table (5,000 × 8,
+  generated locally — no real data) into the same IndexedDB pipeline.
 - Data never leaves the browser: parsing happens in a Worker, records are
   cached in this origin's IndexedDB, and removing the dataset (or the 24h
   startup cleanup) deletes them.

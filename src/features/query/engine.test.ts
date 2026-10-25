@@ -7,9 +7,10 @@ const COLUMNS: ColumnId[] = ['c0', 'c1', 'c2'];
 function rows(table: (string | null)[][]): EngineRow[] {
   return table.map((values, rowIndex) => ({
     rowIndex,
-    values: Object.fromEntries(
-      COLUMNS.map((id, i) => [id, values[i] ?? null]),
-    ) as Record<ColumnId, string | null>,
+    values: Object.fromEntries(COLUMNS.map((id, i) => [id, values[i] ?? null])) as Record<
+      ColumnId,
+      string | null
+    >,
   }));
 }
 

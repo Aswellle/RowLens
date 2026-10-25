@@ -113,3 +113,21 @@ workspace grid 隐式 `auto` 行高导致容器被内容撑开、5001 行全部�
 `[""]` 幻影空记录（非 chunk 模式不会）——session 扣留末尾空记录并在完成时按
 文件末字节判定真伪；(2) `parser.abort()` 后不保证回调 complete——session 在
 abort 时主动进入终态。两者均有测试锁定。
+
+## ADR-016：查询在 worker 中按窗口扫描执行；无 Worker 环境降级到同引擎主线程
+
+（2026-10-26）查询协议每条消息带 `queryId`；query worker 用共享 repository 的
+`getAll` 窗口读取（而非保持游标跨 await——挂起的游标会让事务自动提交）喂数据
+给与降级路径完全相同的引擎。客户端新查询自动取代旧查询（对旧 id 发 CANCEL、
+旧结果按 superseded 结算、晚到消息按 queryId 忽略）。匹配索引受
+`QUERY_MATCH_LIMIT`（200k）约束，超限显式提示、绝不静默截断。无模块 Worker 的
+环境走 `runLocalQuery`（同窗口读取 + 快路径：无谓词无排序时直接用 finalize 的
+行数生成全量索引）。样本数据集也写入 IndexedDB 走同一条查询路径。
+
+## ADR-017：deleteDataset 按 finalize 行数直删；事务内禁止 await
+
+（2026-10-26）实测发现两处违反 IndexedDB 事务规则/性能雷区并修复：(1) 在事务
+回调之间 `await` 会让事务自动提交，后续请求落在死事务上——删除改为单事务内
+同步发起全部请求；(2) 索引游标逐键删除在 fake-indexeddb 下是平方级（5000 行
+41 秒）。由于行的复合键是 `[datasetId, rowIndex]` 且 `ready` 数据集的 rowCount
+精确描述键范围，改为直接按键删除；未 finalize 的数据集仍走游标兜底。
