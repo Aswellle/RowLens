@@ -37,6 +37,7 @@ import type {
   DatasetMetadata,
 } from './features/dataset/types';
 import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
+import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
 import {
   QueryClient,
   createQueryWorkerTransport,
@@ -75,6 +76,8 @@ type View =
       columnFilters: Record<ColumnId, string>;
       sort: { datasetIndex: number; direction: 'asc' | 'desc' } | null;
       hiddenColumns: ColumnId[];
+      cleaningSteps: CleaningStep[];
+      stepSummaries: StepSummary[];
       rowIndices: number[];
       queryBusy: boolean;
     };
@@ -232,6 +235,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             columnFilters: {},
             sort: null,
             hiddenColumns: [],
+            cleaningSteps: [],
+            stepSummaries: [],
             rowIndices: [],
             queryBusy: true,
           });
@@ -298,6 +303,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         columnFilters: {},
         sort: null,
         hiddenColumns: [],
+        cleaningSteps: [],
+        stepSummaries: [],
         rowIndices: [],
         queryBusy: true,
       });
@@ -341,6 +348,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const sortKey = queryDeps?.sort
     ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}`
     : '';
+  const cleaningKey = queryDeps ? JSON.stringify(queryDeps.cleaningSteps) : '';
 
   useEffect(() => {
     if (view.kind !== 'ready') return;
@@ -361,6 +369,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           direction: current.sort.direction,
         };
       }
+      if (current.cleaningSteps.length > 0) spec.cleaning = current.cleaningSteps;
       const run = runner.run(spec);
       const outcome: QueryOutcome = await run.done;
       if (!live) return;
@@ -378,21 +387,32 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           setNotice({ variant: 'error', message: friendlyImportError(outcome.error) });
           return { ...state, queryBusy: false };
         }
-        return { ...state, rowIndices: outcome.rowIndices, queryBusy: false };
+        return {
+          ...state,
+          rowIndices: outcome.rowIndices,
+          stepSummaries: outcome.stepSummaries ?? [],
+          queryBusy: false,
+        };
       });
     })();
     return () => {
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
-  }, [datasetIdKey, searchKey, filtersKey, sortKey, ensureQueryRunner]);
+  }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, ensureQueryRunner]);
 
   const readyGridSort: GridSort | null = useMemo(() => {
     if (view.kind !== 'ready' || view.sort === null) return null;
     const visible = view.data.meta.columns
       .map((column, index) => ({ column, index }))
       .filter(({ column }) => !view.hiddenColumns.includes(column.id));
-    const gridIndex = visible.findIndex(({ index }) => index === view.sort?.datasetIndex);
+    const selection = [...view.cleaningSteps]
+      .reverse()
+      .find((step) => step.type === 'select-columns' && step.enabled);
+    const kept =
+      selection && selection.type === 'select-columns' ? new Set(selection.columnIds) : null;
+    const effective = kept ? visible.filter(({ column }) => kept.has(column.id)) : visible;
+    const gridIndex = effective.findIndex(({ index }) => index === view.sort?.datasetIndex);
     if (gridIndex === -1 || view.sort === null) return null;
     return { columnIndex: gridIndex, direction: view.sort.direction };
   }, [view]);
@@ -403,6 +423,100 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       .map((_, index) => index)
       .filter((index) => !view.hiddenColumns.includes(view.data.meta.columns[index]?.id ?? ''));
   }, [view]);
+
+  /** Visible columns further narrowed by the last enabled select-columns step. */
+  const effectiveDatasetIndexes = useMemo(() => {
+    if (view.kind !== 'ready') return [] as number[];
+    const selection = [...view.cleaningSteps]
+      .reverse()
+      .find((step) => step.type === 'select-columns' && step.enabled);
+    if (!selection || selection.type !== 'select-columns') return visibleDatasetIndexes;
+    const kept = new Set(selection.columnIds);
+    return visibleDatasetIndexes.filter((index) =>
+      kept.has(view.data.meta.columns[index]?.id ?? ''),
+    );
+  }, [view, visibleDatasetIndexes]);
+
+  const patchReady = useCallback(
+    (patch: (current: Extract<View, { kind: 'ready' }>) => Extract<View, { kind: 'ready' }>) => {
+      setView((current) => (current.kind === 'ready' ? patch(current) : current));
+    },
+    [],
+  );
+
+  const addCleaningStep = useCallback(
+    (type: CleaningStepType) => {
+      patchReady((current) => {
+        const id =
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `step-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const step: CleaningStep = (() => {
+          switch (type) {
+            case 'trim':
+              return { id, type, enabled: true, scope: { kind: 'all-columns' } };
+            case 'remove-empty-rows':
+              return { id, type, enabled: true, scope: { kind: 'all-columns' } };
+            case 'remove-duplicates':
+              return {
+                id,
+                type,
+                enabled: true,
+                keys: { kind: 'all-columns' },
+                compare: 'exact',
+              };
+            case 'select-columns':
+              return {
+                id,
+                type,
+                enabled: true,
+                columnIds: current.data.meta.columns.map((column) => column.id),
+              };
+          }
+        })();
+        return {
+          ...current,
+          cleaningSteps: [...current.cleaningSteps, step],
+          stepSummaries: [],
+          queryBusy: true,
+        };
+      });
+    },
+    [patchReady],
+  );
+
+  const updateCleaningStep = useCallback(
+    (step: CleaningStep) => {
+      patchReady((current) => ({
+        ...current,
+        cleaningSteps: current.cleaningSteps.map((existing) =>
+          existing.id === step.id ? step : existing,
+        ),
+        queryBusy: true,
+      }));
+    },
+    [patchReady],
+  );
+
+  const removeCleaningStep = useCallback(
+    (stepId: string) => {
+      patchReady((current) => ({
+        ...current,
+        cleaningSteps: current.cleaningSteps.filter((step) => step.id !== stepId),
+        queryBusy: true,
+      }));
+    },
+    [patchReady],
+  );
+
+  const resetCleaningSteps = useCallback(() => {
+    patchReady((current) => ({
+      ...current,
+      cleaningSteps: [],
+      stepSummaries: [],
+      queryBusy: true,
+    }));
+  }, [patchReady]);
 
   const activeFilterCount =
     view.kind === 'ready'
@@ -499,7 +613,19 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             busy={view.queryBusy}
           />
           <div className="workspace">
-            <CleaningPanel />
+            <CleaningPanel
+              steps={view.cleaningSteps}
+              columns={view.data.meta.columns.map((column) => ({
+                id: column.id,
+                label: column.label,
+              }))}
+              summaries={new Map(view.stepSummaries.map((s) => [s.stepId, s]))}
+              busy={view.queryBusy}
+              onAdd={addCleaningStep}
+              onUpdate={updateCleaningStep}
+              onRemove={removeCleaningStep}
+              onReset={resetCleaningSteps}
+            />
             <div className="grid-region">
               {view.rowIndices.length === 0 && !view.queryBusy && view.search !== '' ? (
                 <NoResultsState
@@ -509,12 +635,15 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               ) : (
                 <DataGrid
                   columns={gridColumns(
-                    visibleDatasetIndexes.map((index) => view.data.meta.columns[index]!),
+                    effectiveDatasetIndexes.map((index) => view.data.meta.columns[index]!),
                   )}
                   totalRowCount={view.data.meta.rowCount}
                   visibleIndices={view.rowIndices}
                   valueAt={(rowIndex, gridColumnIndex) =>
-                    view.data.store.getCell(rowIndex, visibleDatasetIndexes[gridColumnIndex] ?? -1)
+                    view.data.store.getCell(
+                      rowIndex,
+                      effectiveDatasetIndexes[gridColumnIndex] ?? -1,
+                    )
                   }
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
                   sort={readyGridSort}
@@ -525,7 +654,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                         gridSort === null
                           ? null
                           : {
-                              datasetIndex: visibleDatasetIndexes[gridSort.columnIndex] ?? 0,
+                              datasetIndex: effectiveDatasetIndexes[gridSort.columnIndex] ?? 0,
                               direction: gridSort.direction,
                             },
                     })

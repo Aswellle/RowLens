@@ -112,4 +112,34 @@ describe('App shell (synthetic data)', () => {
       screen.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
     ).toBeInTheDocument();
   }, 20_000);
+  it('cleaning steps recompute the view and can be edited and disabled', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={300} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15000,
+    });
+
+    await user.click(screen.getByRole('button', { name: '+ Remove duplicates' }));
+    // Full-row keys include unique ticket ids: nothing removed, pipeline ran.
+    await waitFor(() => expect(screen.getByText(/rows? removed/)).toBeInTheDocument(), {
+      timeout: 15000,
+    });
+    expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument();
+
+    // Narrow the key to the Priority column through the step editor.
+    await user.click(screen.getByText('Edit'));
+    await user.click(screen.getByRole('checkbox', { name: 'Compare all columns' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Use as key Priority' }));
+    await waitFor(() => expect(screen.getByText('3 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15000,
+    });
+    expect(screen.getByText('297 rows removed')).toBeInTheDocument();
+
+    // Disabling the step restores the full view.
+    await user.click(screen.getByRole('checkbox', { name: 'Enable Remove duplicates' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15000,
+    });
+  }, 20_000);
 });
