@@ -787,3 +787,27 @@
   background: var(--success-bg);
   color: var(--success-text);
 }
+
+/* ---------- cell copy action ---------- */
+
+.grid-cell__text {
+  min-width: 0;
+}
+
+.grid-cell__copy {
+  display: none;
+  flex: none;
+  margin-left: 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+.grid-row:hover .grid-cell__copy,
+.grid-cell__copy:focus-visible {
+  display: inline-block;
+}

@@ -180,6 +180,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const coordinatorRef = useRef<ImportCoordinator | null>(null);
   const queryRunnerRef = useRef<AppQueryRunner | null>(null);
   const activeImportRef = useRef<ActiveImport | null>(null);
+  const activeQueryRef = useRef<QueryRun | null>(null);
   const storeRef = useRef<InMemoryDataset>(new InMemoryDataset());
 
   const handleProgress = useCallback((progress: ImportProgressInfo) => {
@@ -387,7 +388,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       }
       if (current.cleaningSteps.length > 0) spec.cleaning = current.cleaningSteps;
       const run = runner.run(spec);
+      activeQueryRef.current = run;
       const outcome: QueryOutcome = await run.done;
+      activeQueryRef.current = null;
       if (!live) return;
       setView((state) => {
         if (state.kind !== 'ready') return state;
@@ -641,6 +644,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     [view, effectiveDatasetIndexes, exportIndices],
   );
 
+  const cancelQuery = useCallback(() => {
+    activeQueryRef.current?.cancel();
+  }, []);
+
   const activeFilterCount =
     view.kind === 'ready'
       ? Object.values(view.columnFilters).filter((value) => value !== '').length
@@ -755,6 +762,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             }
             filterCount={activeFilterCount}
             busy={view.queryBusy}
+            onCancelQuery={cancelQuery}
           />
           <div className="workspace">
             <CleaningPanel

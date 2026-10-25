@@ -9,6 +9,8 @@ type StatusLineProps = {
   onReset: () => void;
   filterCount?: number;
   busy?: boolean;
+  /** Present when a running query can be cancelled. */
+  onCancelQuery?: () => void;
 };
 
 export function StatusLine({
@@ -18,6 +20,7 @@ export function StatusLine({
   onReset,
   filterCount = 0,
   busy = false,
+  onCancelQuery,
 }: StatusLineProps) {
   return (
     <div className="status-line">
@@ -29,7 +32,16 @@ export function StatusLine({
           {filterCount} active filter{filterCount === 1 ? '' : 's'}
         </span>
       )}
-      {busy && <span role="status">Searching…</span>}
+      {busy && (
+        <>
+          <span role="status">Searching…</span>
+          {onCancelQuery && (
+            <button type="button" className="btn btn--ghost" onClick={onCancelQuery}>
+              Cancel query
+            </button>
+          )}
+        </>
+      )}
       {hasActiveQuery && (
         <button type="button" className="btn btn--ghost" onClick={onReset}>
           Reset

@@ -44,6 +44,22 @@ type DataGridProps = {
 
 const ROW_NUM_WIDTH = 110;
 
+/** execCommand fallback for non-secure contexts where the Clipboard API is absent. */
+function copyFallback(text: string): void {
+  const area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.append(area);
+  area.select();
+  try {
+    document.execCommand('copy');
+  } finally {
+    area.remove();
+  }
+}
+
 export function DataGrid({
   columns,
   totalRowCount,
@@ -151,17 +167,32 @@ export function DataGrid({
                 >
                   {recordLabel(rowIndex)}
                 </div>
-                {columns.map((column, columnIndex) => (
-                  <div
-                    key={column.id}
-                    role="gridcell"
-                    className="grid-cell"
-                    style={{ width: column.width }}
-                    title={valueAt(rowIndex, columnIndex) ?? undefined}
-                  >
-                    {valueAt(rowIndex, columnIndex)}
-                  </div>
-                ))}
+                {columns.map((column, columnIndex) => {
+                  const cellValue = valueAt(rowIndex, columnIndex) ?? '';
+                  return (
+                    <div
+                      key={column.id}
+                      role="gridcell"
+                      className="grid-cell"
+                      style={{ width: column.width }}
+                      title={valueAt(rowIndex, columnIndex) ?? undefined}
+                    >
+                      <span className="grid-cell__text truncate">{cellValue}</span>
+                      <button
+                        type="button"
+                        className="grid-cell__copy"
+                        aria-label={`Copy value of ${column.label} in ${recordLabel(rowIndex)}`}
+                        onClick={() => {
+                          void navigator.clipboard
+                            ?.writeText(cellValue)
+                            .catch(() => copyFallback(cellValue));
+                        }}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
