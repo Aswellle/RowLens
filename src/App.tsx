@@ -8,7 +8,7 @@
  * every dataset is queried the same way.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AppError } from './app/app-error';
+import { toAppError, type AppError } from './app/app-error';
 import { AppHeader } from './components/AppHeader';
 import { CleaningPanel } from './components/CleaningPanel';
 import { DataGrid, type GridSort } from './components/DataGrid';
@@ -17,6 +17,7 @@ import { EmptyState } from './components/EmptyState';
 import { FileInfoBar } from './components/FileInfoBar';
 import { LoadingState, NoResultsState } from './components/GridStates';
 import { ImportOptions, type DelimiterChoice } from './components/ImportOptions';
+import { ExportDialog, type ExportRequest } from './components/ExportDialog';
 import { ImportProgress } from './components/ImportProgress';
 import { NoticeBar, type NoticeVariant } from './components/NoticeBar';
 import { StatusLine } from './components/StatusLine';
@@ -38,6 +39,10 @@ import type {
 } from './features/dataset/types';
 import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
 import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
+import { createCleaningTransform } from './features/cleaning/transform';
+import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
+import { runExport } from './features/export/run';
+import type { ExportScope } from './features/export/types';
 import {
   QueryClient,
   createQueryWorkerTransport,
@@ -158,6 +163,16 @@ async function seedSampleDataset(
 export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const [view, setView] = useState<View>({ kind: 'empty' });
   const [notice, setNotice] = useState<{ variant: NoticeVariant; message: string } | null>(null);
+  const [exportState, setExportState] = useState<{
+    open: boolean;
+    busy: boolean;
+    error: string | null;
+  }>({
+    open: false,
+    busy: false,
+    error: null,
+  });
+  const exportCancelRef = useRef<{ aborted: boolean } | null>(null);
   const sampleRef = useRef<SampleDataset | null>(null);
 
   const repositoryRef = useRef<DatasetRepository | null>(null);
@@ -518,6 +533,104 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     }));
   }, [patchReady]);
 
+  /** Row indices for an export scope: the current view, or all records. */
+  const exportIndices = useCallback(
+    (scope: ExportScope): number[] => {
+      if (view.kind !== 'ready') return [];
+      return scope === 'filtered'
+        ? view.rowIndices
+        : Array.from({ length: view.data.meta.rowCount }, (_, i) => i);
+    },
+    [view],
+  );
+
+  const countRiskCells = useCallback(
+    (scope: ExportScope): number | null => {
+      if (view.kind !== 'ready') return 0;
+      const { store, meta } = view.data;
+      const indices = exportIndices(scope);
+      if (indices.length * meta.columns.length > 3_000_000) return -1;
+      let count = 0;
+      for (const rowIndex of indices) {
+        for (let columnIndex = 0; columnIndex < meta.columns.length; columnIndex++) {
+          const cell = store.getCell(rowIndex, columnIndex);
+          if (cell !== null && hasFormulaRisk(cell)) count += 1;
+        }
+      }
+      return count;
+    },
+    [view, exportIndices],
+  );
+
+  const handleExportConfirm = useCallback(
+    async (request: ExportRequest) => {
+      if (view.kind !== 'ready') return;
+      const cancelFlag = { aborted: false };
+      exportCancelRef.current = cancelFlag;
+      setExportState({ open: true, busy: true, error: null });
+
+      const { store, meta } = view.data;
+      const allColumnIds = meta.columns.map((column) => column.id);
+      const transform = view.cleaningSteps.length
+        ? createCleaningTransform(view.cleaningSteps, allColumnIds)
+        : null;
+      const columnIndexes = view.kind === 'ready' ? effectiveDatasetIndexes : ([] as number[]);
+      const exportIds = columnIndexes.map((index) => allColumnIds[index]!);
+      const indices = exportIndices(request.scope);
+
+      async function* rows(): AsyncGenerator<(string | null)[]> {
+        for (const rowIndex of indices) {
+          const record: Record<string, string | null> = {};
+          for (let d = 0; d < allColumnIds.length; d++) {
+            record[allColumnIds[d]!] = store.getCell(rowIndex, d);
+          }
+          const out = transform
+            ? transform.process({ rowIndex, values: record })
+            : { rowIndex, values: record };
+          if (!out) continue;
+          yield exportIds.map((id) => out.values[id] ?? null);
+        }
+      }
+
+      const header = exportIds.map((id) => meta.columns[allColumnIds.indexOf(id)]?.label ?? id);
+
+      try {
+        const result = await runExport({
+          fileName: sanitizeCsvFileName(request.fileName),
+          header,
+          rows: rows(),
+          safetyMode: request.safetyMode,
+          isCancelled: () => cancelFlag.aborted,
+        });
+        if (result.status === 'cancelled') {
+          setExportState({ open: false, busy: false, error: null });
+          setNotice({ variant: 'info', message: 'Export cancelled.' });
+          return;
+        }
+        setExportState({ open: false, busy: false, error: null });
+        setNotice({
+          variant: 'success',
+          message: `${result.stats.rows.toLocaleString('en-US')} rows exported${
+            result.stats.protectedCells > 0
+              ? `, ${result.stats.protectedCells.toLocaleString('en-US')} cells prefixed for spreadsheet safety`
+              : ''
+          }.`,
+        });
+      } catch (error) {
+        const appError = toAppError(error) as AppError;
+        if (appError.code === 'EXPORT_CANCELLED') {
+          setExportState({ open: false, busy: false, error: null });
+          return; // save picker dismissed, nothing to report
+        }
+        setExportState({ open: true, busy: false, error: appError.message });
+      } finally {
+        exportCancelRef.current = null;
+      }
+    },
+    // effectiveDatasetIndexes is derived from view and captured fresh per run.
+    [view, effectiveDatasetIndexes, exportIndices],
+  );
+
   const activeFilterCount =
     view.kind === 'ready'
       ? Object.values(view.columnFilters).filter((value) => value !== '').length
@@ -601,7 +714,28 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   : [...view.hiddenColumns, columnId],
               })
             }
+            onExport={() => setExportState((current) => ({ ...current, open: true, error: null }))}
           />
+          {exportState.open && (
+            <ExportDialog
+              defaultFileName={cleanedFileName(view.data.meta.fileName)}
+              filteredCount={view.rowIndices.length}
+              totalCount={view.data.meta.rowCount}
+              exportColumnCount={effectiveDatasetIndexes.length}
+              totalColumnCount={view.data.meta.columns.length}
+              countRiskCells={countRiskCells}
+              busy={exportState.busy}
+              error={exportState.error}
+              onConfirm={(request) => void handleExportConfirm(request)}
+              onCancel={() => {
+                if (exportState.busy) {
+                  if (exportCancelRef.current) exportCancelRef.current.aborted = true;
+                  return;
+                }
+                setExportState({ open: false, busy: false, error: null });
+              }}
+            />
+          )}
           <StatusLine
             matchCount={view.rowIndices.length}
             totalRows={view.data.meta.rowCount}

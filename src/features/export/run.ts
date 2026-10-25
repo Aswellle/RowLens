@@ -43,7 +43,7 @@ export async function createFileSystemSaver(suggestedName: string): Promise<Expo
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       // The user dismissed the save picker — not an export failure.
-      throw new AppError('IMPORT_CANCELLED', 'Save was cancelled.');
+      throw new AppError('EXPORT_CANCELLED', 'Save was cancelled.');
     }
     throw error;
   }

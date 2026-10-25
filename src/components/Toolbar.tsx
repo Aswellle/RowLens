@@ -17,11 +17,11 @@ type ToolbarProps = {
   onClearFilters: () => void;
   hiddenColumns: ReadonlySet<string>;
   onToggleColumn: (columnId: string, visible: boolean) => void;
+  onExport: () => void;
 };
 
 const PENDING_FEATURES = [
   { key: 'clean', label: 'Clean steps', note: 'Cleaning steps arrive in a later update.' },
-  { key: 'export', label: 'Export', note: 'Export arrives after cleaning steps.' },
 ];
 
 export function Toolbar({
@@ -33,6 +33,7 @@ export function Toolbar({
   onClearFilters,
   hiddenColumns,
   onToggleColumn,
+  onExport,
 }: ToolbarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -136,6 +137,9 @@ export function Toolbar({
             </div>
           ))}
         </Popover>
+        <button type="button" className="btn btn--primary" onClick={onExport}>
+          Export
+        </button>
       </div>
 
       <div className="toolbar__more">

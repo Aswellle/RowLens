@@ -19,6 +19,7 @@ describe('APP_ERROR_CODES catalogue', () => {
       'STORAGE_UNAVAILABLE',
       'IMPORT_CANCELLED',
       'EXPORT_TOO_LARGE_FOR_FALLBACK',
+      'EXPORT_CANCELLED',
       'EXPORT_FAILED',
       'QUERY_FAILED',
       'DATASET_NOT_FOUND',

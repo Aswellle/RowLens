@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from 'react';
 
-export type NoticeVariant = 'info' | 'warning' | 'error';
+export type NoticeVariant = 'info' | 'success' | 'warning' | 'error';
 
 type NoticeBarProps = {
   variant: NoticeVariant;
