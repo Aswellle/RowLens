@@ -36,3 +36,13 @@ export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;
  * (architecture §8: exceeding the cap must be reported, never truncated).
  */
 export const QUERY_MATCH_LIMIT = 200_000;
+
+/**
+ * Stricter size cap for the download fallback path (blob in memory) versus
+ * the streaming File System Access path; exceeding it refuses the export
+ * with an actionable message instead of attempting the allocation.
+ */
+export const EXPORT_FALLBACK_MAX_BYTES = 150 * 1024 * 1024;
+
+/** Object URLs live until this delay after the download starts, then revoke. */
+export const EXPORT_URL_REVOKE_DELAY_MS = 60_000;
