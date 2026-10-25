@@ -10,6 +10,7 @@
 import type { ColumnId, RowIndex } from '../dataset/types';
 import { matchesLiteral, rowMatchesSearch, sortIndicesStable } from './literal';
 import type { SortDirection } from './types';
+import type { QueryRequestSpec } from './protocol';
 
 export type EngineRow = {
   rowIndex: RowIndex;
@@ -118,4 +119,15 @@ export async function runQueryEngine(
     matched: matchedIndices.length,
     totalRows,
   };
+}
+
+/** Adapt the wire spec to the engine spec (keeps optional keys exact). */
+export function requestToEngineSpec(spec: QueryRequestSpec): QueryEngineSpec {
+  const engineSpec: QueryEngineSpec = {
+    columns: spec.columns,
+    search: spec.search,
+    columnFilters: spec.columnFilters,
+  };
+  if (spec.sort) engineSpec.sort = spec.sort;
+  return engineSpec;
 }

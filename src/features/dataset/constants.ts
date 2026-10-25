@@ -30,3 +30,9 @@ export const IDB_STORE_IMPORT_ERRORS = 'importErrors';
 
 /** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
 export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Verified upper bound on matched row indices returned by one query
+ * (architecture §8: exceeding the cap must be reported, never truncated).
+ */
+export const QUERY_MATCH_LIMIT = 200_000;
