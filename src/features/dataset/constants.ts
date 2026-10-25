@@ -1,0 +1,32 @@
+/**
+ * Tunable limits. These are named constants (not scattered magic numbers) so
+ * they can be referenced from tests and adjusted after real benchmarks, per
+ * PRD FR-01 and docs/02-architecture.md §6.
+ */
+
+/** Initial import size cap: 100 MiB (PRD FR-01, pending real-machine tuning). */
+export const MAX_FILE_BYTES = 100 * 1024 * 1024;
+
+/** JSONL maximum line length before a line is recorded as an error (contracts §3). */
+export const MAX_JSONL_LINE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Rows persisted per IndexedDB batch. Architecture §6 recommends starting at
+ * 500 and adjusting only with benchmark evidence.
+ */
+export const ROW_WRITE_BATCH_SIZE = 500;
+
+/** Parse warnings shown as examples in the UI (contracts §2). */
+export const PARSE_WARNING_SAMPLE_LIMIT = 20;
+
+/** IndexedDB database identity. Must stay in sync across main thread and workers. */
+export const IDB_NAME = 'rowlens-local';
+export const IDB_VERSION = 1;
+
+/** Object store names inside IDB_NAME. */
+export const IDB_STORE_DATASETS = 'datasets';
+export const IDB_STORE_ROWS = 'rows';
+export const IDB_STORE_IMPORT_ERRORS = 'importErrors';
+
+/** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
+export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;
