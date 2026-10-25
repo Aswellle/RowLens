@@ -53,6 +53,23 @@ clean → export, entirely in the browser.
   sample and benchmark fixtures, and measured performance results
   (`docs/performance-results.md`).
 
+### Improved (post-rc additions, same release)
+
+- **Query cancellation**: long-running searches show a busy marker with a
+  working "Cancel query" button; the engine stops between batches and the
+  previous view is preserved.
+- **Cell copy action**: every cell gains a keyboard-reachable Copy button
+  (with a non-secure-context fallback) so full values no longer depend on
+  the hover tooltip.
+- **Search performance**: the query worker keeps a case-folded value cache
+  per dataset (invalidated on re-import), amortising per-cell folding across
+  queries — measured on the P2 benchmark: first search 12.4 s, repeat
+  searches 2.6 s (was 17–19 s uncached); P3 first search 34.8 s (was
+  64.7 s). Numbers and methodology in `docs/performance-results.md`.
+- **Viewport coverage**: automated layout checks at 360/768/1280/1440 px
+  (internal grid scrolling, no page-level horizontal overflow on narrow
+  screens, feature buttons reachable).
+
 ### Known limitations
 
 See the README ("Known limitations") — notably search's per-cell scan cost

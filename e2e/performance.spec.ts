@@ -14,7 +14,7 @@ test.skip(!process.env.PERF, 'set PERF=1 to run performance benchmarks');
 
 test.describe.configure({ mode: 'serial' });
 
-const BENCH_DIR = join(process.cwd(), 'test-results', 'bench');
+const BENCH_DIR = join(process.cwd(), '.bench');
 const results: Array<Record<string, string | number>> = [];
 
 const generated = new Map<string, { path: string; bytes: number; markerRows: number }>();

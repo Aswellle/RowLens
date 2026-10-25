@@ -65,16 +65,13 @@ Playwright browser job (`.github/workflows/ci.yml`).
 
 ## Known limitations
 
-- Search scans every cell of the current dataset on each query (measured in
-  [docs/performance-results.md](docs/performance-results.md)): ~2.7 s at
-  20k rows, ~65 s at 250k rows. Sorting and export are measured there too.
+- Search scans the current dataset on each query; a case-folded cache makes
+  repeat searches much faster than the first (measured in
+  [docs/performance-results.md](docs/performance-results.md)): P2 repeat
+  ~2.6 s vs ~10–17 s before, P3 first search ~35 s (was ~65 s).
 - Memory holds a write-through mirror of the dataset (~6.5× file size at the
   95 MiB benchmark); bounded by the 100 MiB import cap but heavy on low-RAM
   devices.
-- Long-running queries show a busy marker but have no explicit cancel button;
-  starting a new query supersedes the old one.
-- Copying a full cell value relies on the hover tooltip (title attribute);
-  there is no dedicated copy action yet.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via

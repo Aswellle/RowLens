@@ -8,7 +8,7 @@
  * exceeding it returns an explicit `limit` result — never a silent truncation.
  */
 import type { ColumnId, RowIndex } from '../dataset/types';
-import { matchesLiteral, rowMatchesSearch, sortIndicesStable } from './literal';
+import { sortIndicesStable } from './literal';
 import type { SortDirection } from './types';
 import type { QueryRequestSpec } from './protocol';
 
@@ -44,6 +44,12 @@ export type EngineOptions = {
    * the surviving index list therefore reflect cleaned values.
    */
   transform?: (row: EngineRow) => EngineRow | undefined;
+  /**
+   * Optional case-folded value lookup used by search and filters. When
+   * provided, the engine consults it instead of folding each cell on every
+   * comparison — lets a worker amortise folding into a per-dataset cache.
+   */
+  foldedAt?: (row: EngineRow, columnId: ColumnId) => string | null;
 };
 
 export type EngineResult =
@@ -51,7 +57,7 @@ export type EngineResult =
   | { status: 'limit'; matched: number; limit: number }
   | { status: 'cancelled'; scanned: number };
 
-type ActiveFilter = { columnId: ColumnId; needle: string };
+type ActiveFilter = { columnId: ColumnId; foldedNeedle: string };
 
 export async function runQueryEngine(
   batches: AsyncIterable<readonly EngineRow[]>,
@@ -60,8 +66,12 @@ export async function runQueryEngine(
 ): Promise<EngineResult> {
   const activeFilters: ActiveFilter[] = Object.entries(spec.columnFilters)
     .filter((entry): entry is [ColumnId, string] => entry[1] !== '' && entry[1] !== undefined)
-    .map(([columnId, needle]) => ({ columnId, needle: needle as string }));
+    .map(([columnId, needle]) => ({
+      columnId,
+      foldedNeedle: (needle as string).toLocaleLowerCase('en-US'),
+    }));
   const hasSearch = spec.search !== '';
+  const foldedNeedle = spec.search.toLocaleLowerCase('en-US');
   const sortColumnId = spec.sort ? spec.columns[spec.sort.columnIndex] : undefined;
 
   const matchedIndices: RowIndex[] = [];
@@ -77,13 +87,26 @@ export async function runQueryEngine(
     for (const row of batch) {
       totalRows += 1;
       if (hasSearch) {
-        const cells = spec.columns.map((id) => row.values[id] ?? null);
-        if (!rowMatchesSearch(cells, spec.search)) continue;
+        let found = false;
+        for (const id of spec.columns) {
+          const folded =
+            options.foldedAt !== undefined
+              ? options.foldedAt(row, id)
+              : ((row.values[id] ?? null)?.toLocaleLowerCase('en-US') ?? null);
+          if (folded !== null && folded.includes(foldedNeedle)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) continue;
       }
       let matches = true;
       for (const filter of activeFilters) {
-        const value = row.values[filter.columnId] ?? null;
-        if (!matchesLiteral(value, filter.needle)) {
+        const folded =
+          options.foldedAt !== undefined
+            ? options.foldedAt(row, filter.columnId)
+            : ((row.values[filter.columnId] ?? null)?.toLocaleLowerCase('en-US') ?? null);
+        if (folded === null || !folded.includes(filter.foldedNeedle)) {
           matches = false;
           break;
         }

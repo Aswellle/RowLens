@@ -25,6 +25,18 @@ const post = (message: unknown): void => {
 
 let repositoryPromise: Promise<DatasetRepository> | null = null;
 
+/**
+ * Case-folded value cache, amortising search/filter folding across queries.
+ * Populated row-by-row on the first pass over a dataset (a Map per row);
+ * invalidated when the dataset's stored row count changes (re-import).
+ * Trade-off (ADR-022): one folded copy of every cell in exchange for
+ * repeated-query speed on large datasets.
+ */
+const foldedCache = new Map<
+  string,
+  { rowCount: number; rows: Map<number, Record<string, string | null>> }
+>();
+
 async function getRepository(): Promise<DatasetRepository> {
   repositoryPromise ??= DatasetRepository.open();
   return repositoryPromise;
@@ -71,10 +83,29 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
       ? createCleaningTransform(spec.cleaning, spec.columns)
       : undefined;
 
+    const cacheEntry = foldedCache.get(spec.datasetId);
+    const cache =
+      cacheEntry && cacheEntry.rowCount === dataset.rowCount
+        ? cacheEntry
+        : { rowCount: dataset.rowCount, rows: new Map() };
+    foldedCache.set(spec.datasetId, cache);
+
     const result = await runQueryEngine(
       scanDatasetRows(repository, spec.datasetId),
       requestToEngineSpec(spec),
       {
+        foldedAt: (row, columnId) => {
+          let foldedRow = cache.rows.get(row.rowIndex);
+          if (foldedRow === undefined) {
+            foldedRow = {};
+            cache.rows.set(row.rowIndex, foldedRow);
+          }
+          if (!(columnId in foldedRow)) {
+            const raw = row.values[columnId] ?? null;
+            foldedRow[columnId] = raw === null ? null : raw.toLocaleLowerCase('en-US');
+          }
+          return foldedRow[columnId] ?? null;
+        },
         matchLimit: QUERY_MATCH_LIMIT,
         onProgress: (scanned, matched) =>
           post({ type: 'QUERY_PROGRESS', queryId, scanned, matched }),
