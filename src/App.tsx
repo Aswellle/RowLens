@@ -804,6 +804,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                               datasetIndex: effectiveDatasetIndexes[gridSort.columnIndex] ?? 0,
                               direction: gridSort.direction,
                             },
+                      queryBusy: true,
                     })
                   }
                 />
