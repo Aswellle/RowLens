@@ -7,6 +7,8 @@
  * windows on the main thread for environments without module Worker support.
  */
 import { AppError } from '../../app/app-error';
+import type { StepSummary } from '../cleaning/types';
+import { createCleaningTransform } from '../cleaning/transform';
 import type { DatasetRepository } from '../dataset/repository';
 import { QUERY_MATCH_LIMIT } from '../dataset/constants';
 import { requestToEngineSpec, runQueryEngine } from './engine';
@@ -14,7 +16,13 @@ import { scanDatasetRows } from './scan';
 import type { MainToQueryWorker, QueryId, QueryRequestSpec, QueryWorkerToMain } from './protocol';
 
 export type QueryOutcome =
-  | { kind: 'done'; rowIndices: number[]; matched: number; totalRows: number }
+  | {
+      kind: 'done';
+      rowIndices: number[];
+      matched: number;
+      totalRows: number;
+      stepSummaries?: StepSummary[];
+    }
   | { kind: 'limit'; matched: number; limit: number }
   | { kind: 'cancelled' }
   | { kind: 'superseded' }
@@ -84,6 +92,7 @@ export class QueryClient {
             rowIndices: message.rowIndices,
             matched: message.matched,
             totalRows: message.totalRows,
+            ...(message.stepSummaries ? { stepSummaries: message.stepSummaries } : {}),
           });
           break;
         case 'QUERY_LIMIT':
@@ -170,7 +179,8 @@ export async function runLocalQuery(
     };
   }
   const hasActiveFilter = Object.values(spec.columnFilters).some((value) => value !== '');
-  if (spec.search === '' && !hasActiveFilter && !spec.sort) {
+  const hasActiveCleaning = (spec.cleaning ?? []).some((step) => step.enabled);
+  if (spec.search === '' && !hasActiveFilter && !spec.sort && !hasActiveCleaning) {
     // Every row matches by definition; the finalized row count already knows
     // it — skip the scan entirely (the worker keeps its scan-based path).
     const rowIndices = Array.from({ length: dataset.rowCount }, (_, i) => i);
@@ -179,10 +189,16 @@ export async function runLocalQuery(
   try {
     // Larger windows than the import batch size: fewer transactions on the
     // fallback path, same engine semantics.
+    const transform = spec.cleaning
+      ? createCleaningTransform(spec.cleaning, spec.columns)
+      : undefined;
     const result = await runQueryEngine(
       scanDatasetRows(repository, spec.datasetId, 2000),
       requestToEngineSpec(spec),
-      { matchLimit: QUERY_MATCH_LIMIT },
+      {
+        matchLimit: QUERY_MATCH_LIMIT,
+        ...(transform ? { transform: (row) => transform.process(row) } : {}),
+      },
     );
     switch (result.status) {
       case 'done':
@@ -191,6 +207,7 @@ export async function runLocalQuery(
           rowIndices: result.rowIndices,
           matched: result.matched,
           totalRows: result.totalRows,
+          ...(transform ? { stepSummaries: transform.summaries() } : {}),
         };
       case 'limit':
         return { kind: 'limit', matched: result.matched, limit: result.limit };

@@ -38,6 +38,12 @@ export type EngineOptions = {
   isCancelled?: () => boolean;
   /** Progress/reporting granularity in rows. */
   progressEvery?: number;
+  /**
+   * Optional cleaning pass applied to each row after search/filter match and
+   * before sort-key capture; returning undefined drops the row. Sort keys and
+   * the surviving index list therefore reflect cleaned values.
+   */
+  transform?: (row: EngineRow) => EngineRow | undefined;
 };
 
 export type EngineResult =
@@ -84,9 +90,16 @@ export async function runQueryEngine(
       }
       if (!matches) continue;
 
-      matchedIndices.push(row.rowIndex);
+      let effective: EngineRow = row;
+      if (options.transform) {
+        const transformed = options.transform(row);
+        if (transformed === undefined) continue; // dropped by a cleaning step
+        effective = transformed;
+      }
+
+      matchedIndices.push(effective.rowIndex);
       if (spec.sort && sortColumnId !== undefined) {
-        sortKeys.set(row.rowIndex, row.values[sortColumnId] ?? null);
+        sortKeys.set(effective.rowIndex, effective.values[sortColumnId] ?? null);
       }
       if (matchedIndices.length > options.matchLimit) {
         exceeded = true;

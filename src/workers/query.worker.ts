@@ -6,6 +6,8 @@
  */
 import { DatasetRepository } from '../features/dataset/repository';
 import { QUERY_MATCH_LIMIT } from '../features/dataset/constants';
+import type { StepSummary } from '../features/cleaning/types';
+import { createCleaningTransform } from '../features/cleaning/transform';
 import { requestToEngineSpec, runQueryEngine } from '../features/query/engine';
 import { scanDatasetRows } from '../features/query/scan';
 import type { MainToQueryWorker, QueryRequestSpec } from '../features/query/protocol';
@@ -49,6 +51,10 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
       return;
     }
 
+    const transform = spec.cleaning
+      ? createCleaningTransform(spec.cleaning, spec.columns)
+      : undefined;
+
     const result = await runQueryEngine(
       scanDatasetRows(repository, spec.datasetId),
       requestToEngineSpec(spec),
@@ -57,19 +63,30 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
         onProgress: (scanned, matched) =>
           post({ type: 'QUERY_PROGRESS', queryId, scanned, matched }),
         isCancelled: () => cancelled,
+        ...(transform ? { transform: (row) => transform.process(row) } : {}),
       },
     );
 
     switch (result.status) {
-      case 'done':
-        post({
+      case 'done': {
+        const message: {
+          type: 'QUERY_DONE';
+          queryId: string;
+          rowIndices: number[];
+          matched: number;
+          totalRows: number;
+          stepSummaries?: StepSummary[];
+        } = {
           type: 'QUERY_DONE',
           queryId,
           rowIndices: result.rowIndices,
           matched: result.matched,
           totalRows: result.totalRows,
-        });
+        };
+        if (transform) message.stepSummaries = transform.summaries();
+        post(message);
         break;
+      }
       case 'limit':
         post({ type: 'QUERY_LIMIT', queryId, matched: result.matched, limit: result.limit });
         break;

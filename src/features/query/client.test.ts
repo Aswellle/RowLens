@@ -202,6 +202,50 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
     expect(outcome.kind === 'failed' && outcome.error.code).toBe('DATASET_NOT_FOUND');
   });
 
+  it('applies serializable cleaning steps in the same pass', async () => {
+    await repository.putRows('ds', [
+      { datasetId: 'ds', rowIndex: 3, values: { c0: 'Berlin', c1: '12' } },
+      { datasetId: 'ds', rowIndex: 4, values: { c0: ' Cairo ', c1: '34' } },
+      { datasetId: 'ds', rowIndex: 5, values: { c0: 'Cairo', c1: '34' } },
+      { datasetId: 'ds', rowIndex: 6, values: { c0: '   ', c1: '  ' } },
+    ]);
+    const outcome = await runLocalQuery(
+      {
+        datasetId: 'ds',
+        columns: ['c0', 'c1'],
+        search: '',
+        columnFilters: {},
+        cleaning: [
+          { id: 't', type: 'trim', enabled: true, scope: { kind: 'all-columns' } },
+          {
+            id: 'd',
+            type: 'remove-duplicates',
+            enabled: true,
+            keys: { kind: 'all-columns' },
+            compare: 'exact',
+          },
+          {
+            id: 'e',
+            type: 'remove-empty-rows',
+            enabled: false, // disabled: blank row 6 stays
+            scope: { kind: 'all-columns' },
+          },
+        ],
+      },
+      repository,
+    );
+    expect(outcome.kind).toBe('done');
+    if (outcome.kind !== 'done') return;
+    // rows: 0 Berlin/12, 1 Cairo/34, 2 Berlin/21, 3 Berlin/12 dup-of-0,
+    // 4 ' Cairo ' trims to Cairo/34 dup-of-1, 5 Cairo/34 dup, 6 blanks kept.
+    expect(outcome.rowIndices).toEqual([0, 1, 2, 6]);
+    expect(outcome.stepSummaries).toEqual([
+      // row 4 ' Cairo ' (1 cell) + row 6 two whitespace cells = 3 changed.
+      { stepId: 't', rowsRemoved: 0, cellsChanged: 3 },
+      { stepId: 'd', rowsRemoved: 3, cellsChanged: 0 },
+    ]);
+  });
+
   it('returns every index when no predicates are set', async () => {
     const outcome = await runLocalQuery(
       { datasetId: 'ds', columns: ['c0', 'c1'], search: '', columnFilters: {} },
