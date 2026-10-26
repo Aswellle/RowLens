@@ -12,6 +12,8 @@ type StatusLineProps = {
   hasActiveQuery: boolean;
   onReset: () => void;
   filterCount?: number;
+  /** Columns currently hidden; part of what Reset restores. */
+  hiddenCount?: number;
   busy?: boolean;
   /** Present when a running query can be cancelled. */
   onCancelQuery?: () => void;
@@ -30,6 +32,7 @@ export function StatusLine({
   hasActiveQuery,
   onReset,
   filterCount = 0,
+  hiddenCount = 0,
   busy = false,
   onCancelQuery,
   editedCount = 0,
@@ -51,6 +54,11 @@ export function StatusLine({
       {filterCount > 0 && (
         <span>
           {filterCount} active filter{filterCount === 1 ? '' : 's'}
+        </span>
+      )}
+      {hiddenCount > 0 && (
+        <span>
+          {hiddenCount} column{hiddenCount === 1 ? '' : 's'} hidden
         </span>
       )}
       {editedCount > 0 && (

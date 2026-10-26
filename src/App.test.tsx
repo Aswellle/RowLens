@@ -557,3 +557,130 @@ describe('App pipeline persistence', () => {
     expect(screen.getByText('No cleaning steps yet.')).toBeInTheDocument();
   }, 40_000);
 });
+
+/**
+ * The query view (search, filters, sort, hidden columns) is the other half of
+ * "where I left off": reopening a dataset returns to what was on screen
+ * instead of the unfiltered table (ADR-031).
+ */
+describe('App view persistence', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  async function loadSample(user: ReturnType<typeof userEvent.setup>, size: number): Promise<void> {
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(
+      () => expect(screen.getByText(`${size} of ${size} rows match`)).toBeInTheDocument(),
+      { timeout: 15_000 },
+    );
+  }
+
+  it('restores the search term and its narrowed result after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={80} />);
+    await loadSample(user, 80);
+
+    await user.type(screen.getByLabelText('Search all columns'), 'T-0001');
+    // Wait for the debounced query to actually narrow the count, not just for
+    // the status line to exist (it is present the whole time).
+    await waitFor(
+      () => expect(screen.getByText(/of 80 rows match/).textContent).not.toContain('80 of 80'),
+      { timeout: 15_000 },
+    );
+    const narrowed = screen.getByText(/of 80 rows match/).textContent ?? '';
+
+    // Let the debounced write land, then remount as a reload would.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={80} />);
+    await waitFor(() => expect(screen.getByText(/of 80 rows match/).textContent).toBe(narrowed), {
+      timeout: 15_000,
+    });
+    expect(screen.getByLabelText('Search all columns')).toHaveValue('T-0001');
+    expect(
+      screen.getByText(/Restored your previous session with its filters and sort/),
+    ).toBeInTheDocument();
+  }, 40_000);
+
+  it('restores the sort direction after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={80} />);
+    await loadSample(user, 80);
+
+    await user.click(screen.getByRole('button', { name: 'Sort by Status' }));
+    expect(screen.getByRole('columnheader', { name: /^Status/ })).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={80} />);
+    await waitFor(
+      () =>
+        expect(screen.getByRole('columnheader', { name: /^Status/ })).toHaveAttribute(
+          'aria-sort',
+          'ascending',
+        ),
+      { timeout: 15_000 },
+    );
+  }, 40_000);
+
+  it('restores hidden columns and lets Reset bring them back', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={80} />);
+    await loadSample(user, 80);
+
+    await user.click(screen.getByRole('button', { name: 'Columns' }));
+    await user.click(screen.getByRole('checkbox', { name: /Status/ }));
+    await waitFor(() => expect(screen.getByText('1 column hidden')).toBeInTheDocument());
+    expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={80} />);
+    await waitFor(() => expect(screen.getByText('1 column hidden')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
+
+    // Reset clears the whole view, hidden columns included.
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await waitFor(() =>
+      expect(screen.getByRole('columnheader', { name: /Status/ })).toBeInTheDocument(),
+    );
+    expect(screen.queryByText('1 column hidden')).not.toBeInTheDocument();
+  }, 40_000);
+
+  it('does not restore a view the user reset', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={80} />);
+    await loadSample(user, 80);
+
+    await user.type(screen.getByLabelText('Search all columns'), 'T-0002');
+    // The Reset control appears with the active query, which lands after the
+    // search debounce — wait for the count to narrow first.
+    await waitFor(
+      () => expect(screen.getByText(/of 80 rows match/).textContent).not.toContain('80 of 80'),
+      { timeout: 15_000 },
+    );
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument());
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={80} />);
+    await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(screen.getByLabelText('Search all columns')).toHaveValue('');
+    expect(
+      screen.queryByText(/Restored your previous session with its filters and sort/),
+    ).not.toBeInTheDocument();
+  }, 40_000);
+});
