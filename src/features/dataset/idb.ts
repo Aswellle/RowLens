@@ -67,11 +67,23 @@ function openWith(factory: IDBFactory): Promise<IDBDatabase> {
         db.createObjectStore(IDB_STORE_PRESETS, { keyPath: 'id' });
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const db = request.result;
+      // Another tab (or a future version bump) requesting a schema change
+      // needs this connection closed promptly — holding it would leave the
+      // other side's upgrade pending forever. Clearing the memo lets the
+      // next open here reconnect at the new version.
+      db.onversionchange = () => {
+        db.close();
+        sharedPromise = null;
+      };
+      resolve(db);
+    };
     request.onerror = () => reject(toAppError(request.error));
     request.onblocked = () => {
-      // Another tab holds an older connection; the request stays pending and
-      // will settle when that tab closes. Nothing to do here.
+      // Another tab holds an older connection. Since every connection closes
+      // itself on `versionchange`, the block is transient; the request stays
+      // pending until the upgrade can proceed.
     };
   });
 }
