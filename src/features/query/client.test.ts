@@ -182,7 +182,7 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
         columns: ['c0', 'c1'],
         searchTerms: [],
         columnFilters: { c0: 'berlin' },
-        sort: { columnIndex: 1, direction: 'desc' },
+        sort: { columnIndex: 1, direction: 'desc', numeric: false },
       },
       repository,
     );
