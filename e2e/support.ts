@@ -21,23 +21,40 @@ export const SAMPLE_READY = '5,000 of 5,000 rows match';
  * The pointer is cleared by evaluating in the page *after* navigating, not by
  * `addInitScript`: an init script would re-run on every later navigation and
  * silently wipe the pointer on the reload a restore test depends on.
+ *
+ * The deletion is issued from a blank page, not the app: the app opens its
+ * IndexedDB connection at startup (to read presets), and an open connection
+ * blocks a deletion. Resolving on `onblocked` would leave that deletion pending
+ * — it then fires at an unpredictable moment and can tear down the database
+ * while the *next* test is seeding its sample. Navigating away first closes the
+ * connection, so the delete completes here and now.
  */
 export async function resetSession(page: Page): Promise<void> {
   await page.goto('/');
-  await page.evaluate(async () => {
+  await page.evaluate(() => {
     try {
       window.localStorage.removeItem('rowlens:last-dataset');
+    } catch {
+      // Storage may be blocked; the empty state is the fallback anyway.
+    }
+  });
+  // `about:blank` has no app, so nothing holds a connection open.
+  await page.goto('about:blank');
+  await page.evaluate(async () => {
+    try {
       const dbs = await indexedDB.databases();
       await Promise.all(
         dbs
           .filter((info) => info.name !== undefined)
           .map(
             (info) =>
-              new Promise<void>((resolve) => {
+              new Promise<void>((resolve, reject) => {
                 const request = indexedDB.deleteDatabase(info.name!);
                 request.onsuccess = () => resolve();
-                request.onerror = () => resolve();
-                request.onblocked = () => resolve();
+                request.onerror = () => reject(request.error);
+                // No app holds a connection here, so a block is unexpected;
+                // reject rather than silently leaving the deletion pending.
+                request.onblocked = () => reject(new Error(`deletion of ${info.name} was blocked`));
               }),
           ),
       );
@@ -45,6 +62,8 @@ export async function resetSession(page: Page): Promise<void> {
       // Best effort: a leftover database only affects the restore path.
     }
   });
+  // Return to the app, now with a clean database, so callers can assert on it.
+  await page.goto('/');
 }
 
 /**
