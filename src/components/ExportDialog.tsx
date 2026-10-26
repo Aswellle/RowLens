@@ -20,6 +20,11 @@ type ExportDialogProps = {
   totalCount: number;
   exportColumnCount: number;
   totalColumnCount: number;
+  /**
+   * Present when the grid holds a multi-cell selection: the size of the
+   * rectangle the Selected-range scope would export (ADR-036).
+   */
+  selection: { rows: number; columns: number } | null;
   /** -1 when the scope is too large to preview cheaply; null while counting. */
   countRiskCells: (scope: ExportScope) => number | null;
   busy: boolean;
@@ -28,9 +33,23 @@ type ExportDialogProps = {
   onCancel: () => void;
 };
 
+/** Row count shown in the estimate for a scope. */
+function scopeRowCount(
+  scope: ExportScope,
+  props: { filteredCount: number; totalCount: number; selection: { rows: number } | null },
+): number {
+  if (scope === 'all') return props.totalCount;
+  if (scope === 'selection') return props.selection?.rows ?? 0;
+  return props.filteredCount;
+}
+
 export function ExportDialog(props: ExportDialogProps) {
   const [fileName, setFileName] = useState(props.defaultFileName);
-  const [scope, setScope] = useState<ExportScope>('filtered');
+  // A selection is why the user opened the dialog, so it is the default when
+  // one exists; otherwise the view is.
+  const [scope, setScope] = useState<ExportScope>(
+    props.selection === null ? 'filtered' : 'selection',
+  );
   const [safetyMode, setSafetyMode] = useState<CsvSafetyMode>('spreadsheet-safe');
   const [riskCount, setRiskCount] = useState<number | null>(null);
 
@@ -63,6 +82,19 @@ export function ExportDialog(props: ExportDialogProps) {
 
       <fieldset className="export-dialog__field">
         <legend>Rows</legend>
+        {props.selection !== null && (
+          <label>
+            <input
+              type="radio"
+              name="export-scope"
+              checked={scope === 'selection'}
+              onChange={() => setScope('selection')}
+              disabled={props.busy}
+            />
+            Selected range ({props.selection.rows.toLocaleString('en-US')} rows ×{' '}
+            {props.selection.columns.toLocaleString('en-US')} columns)
+          </label>
+        )}
         <label>
           <input
             type="radio"
@@ -86,9 +118,9 @@ export function ExportDialog(props: ExportDialogProps) {
       </fieldset>
 
       <p className="export-dialog__columns">
-        {props.exportColumnCount.toLocaleString('en-US')} of{' '}
-        {props.totalColumnCount.toLocaleString('en-US')} columns — the current view columns,
-        narrowed by any select-columns step.
+        {scope === 'selection'
+          ? `${(props.selection?.columns ?? 0).toLocaleString('en-US')} selected columns — exactly the rectangle on screen.`
+          : `${props.exportColumnCount.toLocaleString('en-US')} of ${props.totalColumnCount.toLocaleString('en-US')} columns — the current view columns, narrowed by any select-columns step.`}
       </p>
 
       <fieldset className="export-dialog__field">
@@ -129,8 +161,9 @@ export function ExportDialog(props: ExportDialogProps) {
       </fieldset>
 
       <p className="export-dialog__estimate">
-        Estimate: {scope === 'filtered' ? props.filteredCount : props.totalCount} rows ·{' '}
-        {props.exportColumnCount} columns · {riskLabel} formula-looking cells.
+        Estimate: {scopeRowCount(scope, props).toLocaleString('en-US')} rows ·{' '}
+        {scope === 'selection' ? (props.selection?.columns ?? 0) : props.exportColumnCount} columns
+        · {riskLabel} formula-looking cells.
       </p>
 
       {props.error !== null && (
