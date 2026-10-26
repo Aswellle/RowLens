@@ -72,6 +72,14 @@ clean → export, entirely in the browser.
 - **Keyboard grid navigation**: arrow keys, Home/End and PageUp/PageDown move
   focus cell-by-cell with a roving tabindex (one tabbable cell), scrolling the
   virtualized window as needed; clicking a cell makes it the focus target.
+- **Row header and range selection**: the record header joins the keyboard
+  roam (one step left of the first column) and selects its whole row with
+  Space or a click. Shift+arrows, Shift+click and drag extend a rectangular
+  selection that auto-scrolls past the viewport edge, Ctrl/Cmd+A selects the
+  whole view, Escape collapses it, and Ctrl/Cmd+C or the selection bar copies
+  the range as tab-separated text with CRLF rows. Copies over 100,000 cells
+  are refused with an explanation instead of being truncated, and the record
+  header is a selector that never contributes a value.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).

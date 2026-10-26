@@ -29,6 +29,11 @@ spreadsheet-safe formula protection by default and an explicit raw mode.
 All cell values stay strings — no implicit numeric or date conversion, so
 leading zeros and date-like text are preserved exactly.
 
+The grid is fully keyboard-operable: arrows/Home/End/PageUp/PageDown move the
+active cell, the record header is one step to the left of the first column,
+Shift+arrows or a drag extends a rectangular selection, Ctrl/Cmd+A selects the
+view and Ctrl/Cmd+C copies the range as tab-separated text.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -72,8 +77,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
 - Memory holds a write-through mirror of the dataset (~6.5× file size at the
   95 MiB benchmark); bounded by the 100 MiB import cap but heavy on low-RAM
   devices.
-- Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown and a
-  roving tabindex; the row header is not yet reachable by keyboard.
+- Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown, the record
+  header and rectangular range selection (Shift+arrows, drag with edge
+  auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
+  refused rather than truncated — use Export CSV for extracts that large.
+  There is no cell editing and no multi-range (Ctrl+click) selection.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via
