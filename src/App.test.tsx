@@ -684,3 +684,136 @@ describe('App view persistence', () => {
     ).not.toBeInTheDocument();
   }, 40_000);
 });
+
+/**
+ * Presets are recipes, not per-dataset state: they survive the dataset they
+ * were captured from and can be applied to a different file (ADR-032).
+ */
+describe('App cleaning presets', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  async function loadSample(user: ReturnType<typeof userEvent.setup>, size: number): Promise<void> {
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(
+      () => expect(screen.getByText(`${size} of ${size} rows match`)).toBeInTheDocument(),
+      { timeout: 15_000 },
+    );
+  }
+
+  async function savePreset(user: ReturnType<typeof userEvent.setup>, name: string): Promise<void> {
+    await user.click(screen.getByRole('button', { name: 'Save as preset…' }));
+    await user.type(screen.getByLabelText('Preset name'), name);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+  }
+
+  it('saves the pipeline as a preset and keeps it after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={60} />);
+    await loadSample(user, 60);
+
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(screen.getByText('Trim whitespace')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+    await savePreset(user, 'Weekly cleanup');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Apply preset: Weekly cleanup' })).toBeVisible(),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    unmount();
+
+    // Presets load on startup independently of the dataset restore.
+    render(<App sampleSize={60} />);
+    await waitFor(
+      () =>
+        expect(screen.getByRole('button', { name: 'Apply preset: Weekly cleanup' })).toBeVisible(),
+      { timeout: 15_000 },
+    );
+  }, 40_000);
+
+  it('keeps presets after the dataset they came from is removed', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSample(user, 60);
+
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(screen.getByText('Trim whitespace')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+    await savePreset(user, 'Reusable recipe');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Apply preset: Reusable recipe' })).toBeVisible(),
+    );
+
+    // Removing the dataset deletes its rows, edits, pipeline and view — but the
+    // preset is a recipe for other files, so it must outlive them.
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
+      ).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(screen.getByRole('button', { name: 'Apply preset: Reusable recipe' })).toBeVisible();
+    // The new dataset starts with an empty pipeline; the preset is not applied
+    // automatically.
+    expect(screen.getByText('No cleaning steps yet.')).toBeInTheDocument();
+  }, 40_000);
+
+  it('applies a preset to a fresh pipeline and recomputes the view', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSample(user, 60);
+
+    await user.click(screen.getByRole('button', { name: '+ Remove duplicates' }));
+    await waitFor(() => expect(screen.getByText(/rows? removed/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    await savePreset(user, 'Dedupe');
+
+    // Clear the pipeline, then re-apply the recipe from scratch.
+    await user.click(screen.getByRole('button', { name: 'Reset all steps' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm reset' }));
+    await waitFor(() => expect(screen.getByText('No cleaning steps yet.')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Apply preset: Dedupe' }));
+    await waitFor(() => expect(screen.getByText('Remove duplicates')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    // The applied step actually ran: its impact summary is present.
+    await waitFor(() => expect(screen.getByText(/rows? removed/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(screen.getByText(/Applied “Dedupe” \(1 step\)/)).toBeInTheDocument();
+  }, 40_000);
+
+  it('deletes a preset without touching the current pipeline', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSample(user, 60);
+
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(screen.getByText('Trim whitespace')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+    await savePreset(user, 'Temp');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Apply preset: Temp' })).toBeVisible(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete preset: Temp' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Apply preset: Temp' })).not.toBeInTheDocument(),
+    );
+    // The live pipeline is untouched by deleting the saved copy.
+    expect(screen.getByText('Trim whitespace')).toBeInTheDocument();
+    expect(screen.getByText(/Deleted preset “Temp”/)).toBeInTheDocument();
+  }, 40_000);
+});

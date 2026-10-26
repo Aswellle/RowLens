@@ -92,6 +92,15 @@ import {
   viewSignature,
   type ViewState,
 } from './features/query/persist';
+import {
+  PRESET_RECORD_FORMAT,
+  applyPreset,
+  capturePresetSteps,
+  deserializePresets,
+  isSupportedPresetRecord,
+  type CleaningPreset,
+  type PresetColumn,
+} from './features/cleaning/presets';
 
 /**
  * Anything the grid can read cells from synchronously. The import path uses a
@@ -143,6 +152,13 @@ type View =
 const SEARCH_DEBOUNCE_MS = 250;
 /** Coalesces bursts of edits into one persisted record write. */
 const EDIT_PERSIST_DEBOUNCE_MS = 400;
+
+/** A fresh id for a cleaning step or a preset. */
+function newPresetId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 function friendlyImportError(error: AppError): string {
   switch (error.code) {
@@ -218,6 +234,12 @@ async function seedSampleDataset(
 export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const [view, setView] = useState<View>({ kind: 'empty' });
   const [notice, setNotice] = useState<{ variant: NoticeVariant; message: string } | null>(null);
+  /**
+   * Named cleaning recipes. They live outside `view` on purpose: a preset is
+   * global, not per dataset, and must stay available in the empty state and
+   * after the dataset it was captured from is removed (ADR-032).
+   */
+  const [presets, setPresets] = useState<CleaningPreset[]>([]);
   const [exportState, setExportState] = useState<{
     open: boolean;
     busy: boolean;
@@ -590,6 +612,27 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   }, [viewPersistSignature, ensureRepository]);
 
   /**
+   * Load the saved presets once on startup. Deliberately independent of the
+   * dataset restore below: presets are global, so they must be available even
+   * when there is nothing to restore (ADR-032).
+   */
+  const presetsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (presetsLoadedRef.current) return;
+    presetsLoadedRef.current = true;
+    void (async () => {
+      try {
+        const repository = await ensureRepository();
+        const record = await repository.getPresets();
+        if (!isSupportedPresetRecord(record)) return;
+        setPresets(deserializePresets(record));
+      } catch {
+        // Storage unavailable: presets simply start empty.
+      }
+    })();
+  }, [ensureRepository]);
+
+  /**
    * Restore the dataset the user was last looking at, together with its saved
    * edits. Runs once; any user action (import, sample, removal) supersedes it,
    * and a dataset that no longer exists simply leaves the empty state in place.
@@ -893,6 +936,135 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       queryBusy: true,
     }));
   }, [patchReady]);
+
+  /** Writes the whole preset list; the record is replaced, never appended. */
+  const persistPresets = useCallback(
+    (next: CleaningPreset[]) => {
+      setPresets(next);
+      void (async () => {
+        try {
+          const repository = await ensureRepository();
+          if (next.length === 0) {
+            await repository.deletePresets();
+            return;
+          }
+          await repository.putPresets({ format: PRESET_RECORD_FORMAT, presets: next });
+        } catch {
+          // Storage blocked or full: the presets stay usable for this session.
+          setNotice({
+            variant: 'error',
+            message: 'Presets could not be saved to this browser.',
+          });
+        }
+      })();
+    },
+    [ensureRepository],
+  );
+
+  /**
+   * Saves the current pipeline under a name. Returns an error message for the
+   * panel to show, or null on success. Overwriting an existing preset keeps its
+   * id so anything referring to it stays valid.
+   */
+  const savePreset = useCallback(
+    (name: string, overwriteId?: string): string | null => {
+      if (view.kind !== 'ready') return 'Open a dataset before saving a preset.';
+      if (view.cleaningSteps.length === 0) return 'Add at least one step first.';
+      const columns: PresetColumn[] = view.data.meta.columns.map((column) => ({
+        id: column.id,
+        label: column.label,
+      }));
+      const captured = capturePresetSteps(view.cleaningSteps, columns);
+      if (captured.steps.length === 0) {
+        // Every step pointed at a duplicate header, so nothing could be
+        // described by name. Saying so is better than saving an empty recipe.
+        return 'These steps only use duplicate column names, which cannot be matched by name in another file.';
+      }
+      const now = Date.now();
+      const existing =
+        overwriteId === undefined ? undefined : presets.find((p) => p.id === overwriteId);
+      const preset: CleaningPreset = {
+        id: existing?.id ?? newPresetId(),
+        name,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        steps: captured.steps,
+      };
+      const next =
+        existing === undefined
+          ? [...presets, preset]
+          : presets.map((entry) => (entry.id === existing.id ? preset : entry));
+      persistPresets(next);
+
+      const parts = [`Saved preset “${name}”`];
+      if (captured.droppedSteps > 0) {
+        parts.push(
+          `${captured.droppedSteps} step${captured.droppedSteps === 1 ? '' : 's'} left out because their columns share a header name`,
+        );
+      }
+      setNotice({
+        variant: captured.droppedSteps > 0 ? 'warning' : 'info',
+        message: `${parts.join(' — ')}.`,
+      });
+      return null;
+    },
+    [view, presets, persistPresets],
+  );
+
+  const applyPresetById = useCallback(
+    (presetId: string) => {
+      const preset = presets.find((entry) => entry.id === presetId);
+      if (preset === undefined || view.kind !== 'ready') return;
+      const columns: PresetColumn[] = view.data.meta.columns.map((column) => ({
+        id: column.id,
+        label: column.label,
+      }));
+      const outcome = applyPreset(preset, columns, newPresetId);
+      if (outcome.steps.length === 0) {
+        setNotice({
+          variant: 'warning',
+          message: `“${preset.name}” could not be applied: none of its columns exist in this dataset.`,
+        });
+        return;
+      }
+      patchReady((current) => ({
+        ...current,
+        cleaningSteps: outcome.steps,
+        stepSummaries: [],
+        queryBusy: true,
+      }));
+
+      const parts = [
+        `Applied “${preset.name}” (${outcome.steps.length} step${outcome.steps.length === 1 ? '' : 's'})`,
+      ];
+      if (outcome.droppedSteps > 0) {
+        parts.push(
+          `${outcome.droppedSteps} step${outcome.droppedSteps === 1 ? '' : 's'} skipped because no matching column exists`,
+        );
+      }
+      if (outcome.unresolvedLabels > 0) {
+        parts.push(
+          `${outcome.unresolvedLabels} column name${outcome.unresolvedLabels === 1 ? '' : 's'} could not be matched uniquely`,
+        );
+      }
+      setNotice({
+        variant: outcome.droppedSteps > 0 || outcome.unresolvedLabels > 0 ? 'warning' : 'info',
+        message: `${parts.join('; ')}.`,
+      });
+    },
+    [presets, view, patchReady],
+  );
+
+  const deletePreset = useCallback(
+    (presetId: string) => {
+      const preset = presets.find((entry) => entry.id === presetId);
+      persistPresets(presets.filter((entry) => entry.id !== presetId));
+      if (preset !== undefined) {
+        setNotice({ variant: 'info', message: `Deleted preset “${preset.name}”.` });
+      }
+    },
+    [presets, persistPresets],
+  );
 
   /** Row indices for an export scope: the current view, or all records. */
   const exportIndices = useCallback(
@@ -1233,6 +1405,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               onUpdate={updateCleaningStep}
               onRemove={removeCleaningStep}
               onReset={resetCleaningSteps}
+              presets={presets}
+              onSavePreset={savePreset}
+              onApplyPreset={applyPresetById}
+              onDeletePreset={deletePreset}
             />
             <div className="grid-region">
               {view.rowIndices.length === 0 && !view.queryBusy && view.search !== '' ? (
