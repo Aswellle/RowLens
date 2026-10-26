@@ -357,3 +357,132 @@ describe('App paste', () => {
     });
   }, 30_000);
 });
+
+/**
+ * Session continuity: edits and the last dataset survive a reload because they
+ * are persisted separately from the imported rows (ADR-027).
+ */
+describe('App session restore', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  async function loadAndEdit(user: ReturnType<typeof userEvent.setup>, size = 40) {
+    render(<App sampleSize={size} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(
+      () => expect(screen.getByText(`${size} of ${size} rows match`)).toBeInTheDocument(),
+      {
+        timeout: 15_000,
+      },
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.clear(screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }));
+    await user.type(
+      screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }),
+      'PERSISTED-EDIT',
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(grid.querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent).toBe(
+        'PERSISTED-EDIT',
+      ),
+    );
+    return grid;
+  }
+
+  it('restores the last dataset and its edits after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={40} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.clear(screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }));
+    await user.type(
+      screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }),
+      'PERSISTED-EDIT',
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(grid.querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent).toBe(
+        'PERSISTED-EDIT',
+      ),
+    );
+
+    // Wait for the debounced write to land before tearing the app down.
+    await waitFor(
+      () => {
+        const raw = window.localStorage.getItem('rowlens:last-dataset');
+        expect(raw).toBe('sample-tickets');
+      },
+      { timeout: 5_000 },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    unmount();
+
+    // A fresh mount restores the dataset and the edit from IndexedDB.
+    render(<App sampleSize={40} />);
+    await waitFor(
+      () =>
+        expect(
+          screen
+            .getByRole('grid', { name: 'Data grid' })
+            .querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent,
+        ).toBe('PERSISTED-EDIT'),
+      { timeout: 15_000 },
+    );
+    expect(screen.getByText('1 cell edited')).toBeInTheDocument();
+    expect(screen.getByText(/Restored your previous session with 1 cell edit/)).toBeInTheDocument();
+  }, 40_000);
+
+  it('does not restore a dataset the user removed', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={40} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
+      ).toBeInTheDocument(),
+    );
+    expect(window.localStorage.getItem('rowlens:last-dataset')).toBeNull();
+  }, 30_000);
+
+  it('stays on the empty state when the remembered dataset is gone', async () => {
+    // A pointer left over from a cleared profile must not resurrect anything.
+    window.localStorage.setItem('rowlens:last-dataset', 'deleted-dataset-id');
+    render(<App sampleSize={40} />);
+
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
+        ).toBeInTheDocument(),
+      { timeout: 10_000 },
+    );
+    await waitFor(() => expect(window.localStorage.getItem('rowlens:last-dataset')).toBeNull());
+  }, 20_000);
+
+  it('keeps the imported rows unchanged while edits persist separately', async () => {
+    const user = userEvent.setup();
+    const grid = await loadAndEdit(user);
+    expect(grid.querySelector('[data-cell="0-0"]')).toHaveClass('grid-cell--edited');
+
+    // Resetting the edits removes the record rather than writing values back.
+    await user.click(screen.getByRole('button', { name: 'Reset edits' }));
+    await waitFor(() => expect(screen.queryByText(/cells? edited/)).not.toBeInTheDocument());
+    expect(grid.querySelector('[data-cell="0-0"]')).not.toHaveClass('grid-cell--edited');
+  }, 30_000);
+});

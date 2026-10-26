@@ -62,6 +62,15 @@ import {
   type EditState,
 } from './features/editing/edits';
 import {
+  EDIT_RECORD_FORMAT,
+  deserializeEdits,
+  isSupportedEditRecord,
+  pruneEdits,
+  serializeEdits,
+} from './features/editing/persist';
+import { readLastDatasetId, rememberLastDataset } from './features/dataset/session';
+import { ROW_WRITE_BATCH_SIZE } from './features/dataset/constants';
+import {
   QueryClient,
   createQueryWorkerTransport,
   runLocalQuery,
@@ -108,6 +117,8 @@ type View =
     };
 
 const SEARCH_DEBOUNCE_MS = 250;
+/** Coalesces bursts of edits into one persisted record write. */
+const EDIT_PERSIST_DEBOUNCE_MS = 400;
 
 function friendlyImportError(error: AppError): string {
   switch (error.code) {
@@ -194,6 +205,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   });
   const exportCancelRef = useRef<{ aborted: boolean } | null>(null);
   const sampleRef = useRef<SampleDataset | null>(null);
+  /** Set once startup restoration ran, so it never fights a user action. */
+  const restoreAttemptedRef = useRef(false);
+  /** Latest view, readable from async startup work without stale closures. */
+  const viewRef = useRef(view);
+  viewRef.current = view;
 
   const repositoryRef = useRef<DatasetRepository | null>(null);
   const coordinatorRef = useRef<ImportCoordinator | null>(null);
@@ -263,6 +279,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         activeImportRef.current = null;
 
         if (outcome.kind === 'ready') {
+          rememberLastDataset(outcome.metadata.id);
           setView({
             kind: 'ready',
             data: { meta: outcome.metadata, store: storeRef.current },
@@ -332,6 +349,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const sample = (sampleRef.current ??= createSampleDataset(sampleSize));
       await seedSampleDataset(repository, sample);
       storeRef.current = buildSampleStore(sample);
+      rememberLastDataset(sample.metadata.id);
       setView({
         kind: 'ready',
         data: { meta: { ...sample.metadata, status: 'ready' }, store: storeRef.current },
@@ -356,6 +374,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     if (view.kind !== 'ready') return;
     const datasetId = view.data.meta.id;
     storeRef.current = new InMemoryDataset();
+    rememberLastDataset(null);
     setView({ kind: 'empty' });
     try {
       await repositoryRef.current?.deleteDataset(datasetId);
@@ -376,6 +395,115 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [view]);
+
+  /**
+   * Persist the edit overlay whenever it changes (ADR-027). Debounced so a
+   * burst of typing does not queue one write per keystroke; the write is
+   * fire-and-forget because losing persistence must not interrupt editing —
+   * the in-memory overlay stays authoritative for this session either way.
+   */
+  const persistedRevisionRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (view.kind !== 'ready') return;
+    const { id } = view.data.meta;
+    const edits = view.edits;
+    if (persistedRevisionRef.current === edits.revision) return;
+    const timer = window.setTimeout(() => {
+      persistedRevisionRef.current = edits.revision;
+      void (async () => {
+        try {
+          const repository = await ensureRepository();
+          if (edits.edits.size === 0) {
+            await repository.deleteCellEdits(id);
+            return;
+          }
+          await repository.putCellEdits({
+            datasetId: id,
+            updatedAt: Date.now(),
+            format: EDIT_RECORD_FORMAT,
+            cells: serializeEdits(edits),
+          });
+        } catch {
+          // Storage full or blocked: the session keeps its edits in memory.
+          // Resetting the marker makes the next change retry.
+          persistedRevisionRef.current = null;
+        }
+      })();
+    }, EDIT_PERSIST_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [view, ensureRepository]);
+
+  /**
+   * Restore the dataset the user was last looking at, together with its saved
+   * edits. Runs once; any user action (import, sample, removal) supersedes it,
+   * and a dataset that no longer exists simply leaves the empty state in place.
+   */
+  useEffect(() => {
+    if (restoreAttemptedRef.current) return;
+    restoreAttemptedRef.current = true;
+    const datasetId = readLastDatasetId();
+    if (datasetId === null) return;
+
+    void (async () => {
+      try {
+        const repository = await ensureRepository();
+        const meta = await repository.getDataset(datasetId);
+        if (meta === undefined || meta.status !== 'ready') {
+          rememberLastDataset(null);
+          return;
+        }
+        // A user action may have started while IndexedDB was opening.
+        if (viewRef.current.kind !== 'empty') return;
+
+        const store = new InMemoryDataset();
+        const batchSize = ROW_WRITE_BATCH_SIZE;
+        for (let offset = 0; offset < meta.rowCount; offset += batchSize) {
+          const rows = await repository.readRows(datasetId, offset, batchSize);
+          if (rows.length === 0) break;
+          store.appendBatch(
+            offset === 0 ? meta.columns : undefined,
+            rows.map((row) => ({ rowIndex: row.rowIndex, values: row.values })),
+          );
+        }
+
+        const record = await repository.getCellEdits(datasetId);
+        const restoredEdits = isSupportedEditRecord(record)
+          ? pruneEdits(
+              deserializeEdits(record),
+              meta.rowCount,
+              new Set(meta.columns.map((column) => column.id)),
+            )
+          : emptyEditState();
+        persistedRevisionRef.current = restoredEdits.revision;
+
+        storeRef.current = store;
+        setView({
+          kind: 'ready',
+          data: { meta, store },
+          searchInput: '',
+          search: '',
+          columnFilters: {},
+          sort: null,
+          hiddenColumns: [],
+          cleaningSteps: [],
+          stepSummaries: [],
+          rowIndices: [],
+          queryBusy: true,
+          edits: restoredEdits,
+        });
+        if (editCount(restoredEdits) > 0) {
+          setNotice({
+            variant: 'info',
+            message: `Restored your previous session with ${editCount(restoredEdits).toLocaleString('en-US')} cell edit${editCount(restoredEdits) === 1 ? '' : 's'}.`,
+          });
+        }
+      } catch {
+        // Storage unavailable: the empty state is still a working app.
+        rememberLastDataset(null);
+      }
+    })();
+    // Runs once on mount; viewRef guards against clobbering a user action.
+  }, [ensureRepository]);
 
   // Run the query whenever the committed inputs change. Deps are leaf keys
   // (not the view object) so result updates never re-trigger the query.

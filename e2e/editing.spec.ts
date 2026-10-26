@@ -139,23 +139,37 @@ test('an exported file contains the edited value, not the original', async ({ pa
   expect(content.split('\r\n').filter((line) => line !== '')).toHaveLength(5001);
 });
 
-test('reloading the page discards edits: the stored dataset is untouched', async ({ page }) => {
+test('reloading restores the dataset and its edits from the separate store', async ({ page }) => {
   await loadSample(page);
   await focusCell(page, 0, 0);
   const before = await cellText(page, 0, 0);
 
   await page.keyboard.press('Enter');
-  await page.keyboard.type('NOT-PERSISTED');
+  await page.keyboard.type('PERSISTED-EDIT');
   await page.keyboard.press('Enter');
-  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('NOT-PERSISTED');
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('PERSISTED-EDIT');
+  await expect(page.getByText('1 cell edited')).toBeVisible();
 
-  // Edits are an in-memory overlay, so a reload shows the imported values
-  // again — the imported rows were never rewritten.
+  // Give the debounced write time to land, then reload without touching the UI.
+  await page.waitForTimeout(1_000);
   await page.reload();
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
+
+  // The app reopens the last dataset on its own and restores the edit. The
+  // row count can appear before the restored overlay has rendered, so the
+  // assertion polls instead of racing the restore.
+  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('[data-cell="0-0"]')).toHaveClass(/grid-cell--edited/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('PERSISTED-EDIT');
+  await expect(page.getByText('1 cell edited')).toBeVisible();
+
+  // A reloaded session has no undo history (undo cannot reach past the
+  // reload), so the way back to the imported value is Reset edits.
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Reset edits' }).click();
   await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText(before);
-  await expect(page.getByText(/cell edited/)).toHaveCount(0);
+  await expect(page.getByText(/cells? edited/)).toHaveCount(0);
 });
 
 /**
