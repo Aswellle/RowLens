@@ -3,10 +3,21 @@
  * steps, with per-step impact from the latest pipeline run. Every change is a
  * configuration edit — the app recomputes results in the background and the
  * stored dataset is never modified, which the copy states explicitly.
+ *
+ * Named presets live here too: they are the same pipeline, saved so it can be
+ * applied to a different file (ADR-032). A preset matches columns by header
+ * label, so the panel says so rather than implying it is tied to this dataset.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { CleaningStep, CleaningStepType, StepSummary } from '../features/cleaning/types';
 import { stepDescription, stepDisplayName } from '../features/cleaning/types';
+import {
+  MAX_PRESETS,
+  MAX_PRESET_NAME_LENGTH,
+  normalizePresetName,
+  presetSummary,
+  type CleaningPreset,
+} from '../features/cleaning/presets';
 
 export type CleaningPanelColumn = { id: string; label: string };
 
@@ -19,6 +30,11 @@ type CleaningPanelProps = {
   onUpdate: (step: CleaningStep) => void;
   onRemove: (stepId: string) => void;
   onReset: () => void;
+  presets: readonly CleaningPreset[];
+  /** Saves the current steps under a name; returns an error message or null. */
+  onSavePreset: (name: string, overwriteId?: string) => string | null;
+  onApplyPreset: (presetId: string) => void;
+  onDeletePreset: (presetId: string) => void;
 };
 
 const ADD_LABELS: { type: CleaningStepType; label: string }[] = [
@@ -205,15 +221,53 @@ export function CleaningPanel({
   onUpdate,
   onRemove,
   onReset,
+  presets,
+  onSavePreset,
+  onApplyPreset,
+  onDeletePreset,
 }: CleaningPanelProps) {
   const [confirmingReset, setConfirmingReset] = useState(false);
   const resetTimer = useRef<number | null>(null);
+
+  /** Preset name being saved; null when the form is closed. */
+  const [presetName, setPresetName] = useState<string | null>(null);
+  const [presetError, setPresetError] = useState<string | null>(null);
+  /** Set when the typed name matches an existing preset and awaits confirmation. */
+  const [overwriteId, setOverwriteId] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
       if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
     };
   }, []);
+
+  const closeSaveForm = () => {
+    setPresetName(null);
+    setPresetError(null);
+    setOverwriteId(null);
+  };
+
+  const submitPresetName = (raw: string) => {
+    const name = normalizePresetName(raw);
+    if (name === null) {
+      setPresetError(`Enter a name of up to ${MAX_PRESET_NAME_LENGTH} characters.`);
+      return;
+    }
+    // Saving over an existing name is destructive, so it needs a second click
+    // rather than silently replacing someone's saved recipe.
+    const existing = presets.find((preset) => preset.name === name);
+    if (existing !== undefined && overwriteId !== existing.id) {
+      setOverwriteId(existing.id);
+      setPresetError(`A preset named “${name}” already exists.`);
+      return;
+    }
+    const error = onSavePreset(name, existing?.id);
+    if (error !== null) {
+      setPresetError(error);
+      return;
+    }
+    closeSaveForm();
+  };
 
   const requestReset = () => {
     if (steps.length === 0) return;
@@ -289,6 +343,112 @@ export function CleaningPanel({
       <button type="button" className="btn btn--ghost" onClick={requestReset}>
         {confirmingReset ? 'Confirm reset' : 'Reset all steps'}
       </button>
+
+      <section className="cleaning-presets" aria-labelledby="cleaning-presets-title">
+        <h3 className="cleaning-presets__title" id="cleaning-presets-title">
+          Saved presets
+        </h3>
+        {presets.length === 0 ? (
+          <p className="cleaning-panel__note">
+            Save this pipeline as a preset to apply it to another file.
+          </p>
+        ) : (
+          <ul className="cleaning-presets__list">
+            {presets.map((preset) => (
+              <li key={preset.id} className="cleaning-preset">
+                <span className="cleaning-preset__name truncate">{preset.name}</span>
+                <span className="cleaning-preset__summary truncate">{presetSummary(preset)}</span>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => onApplyPreset(preset.id)}
+                  aria-label={`Apply preset: ${preset.name}`}
+                >
+                  Apply
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => onDeletePreset(preset.id)}
+                  aria-label={`Delete preset: ${preset.name}`}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {presetName === null ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              setPresetName('');
+              setPresetError(null);
+              setOverwriteId(null);
+            }}
+            disabled={steps.length === 0 || presets.length >= MAX_PRESETS}
+            title={
+              steps.length === 0
+                ? 'Add at least one step before saving a preset.'
+                : presets.length >= MAX_PRESETS
+                  ? `At most ${MAX_PRESETS} presets can be saved.`
+                  : undefined
+            }
+          >
+            Save as preset…
+          </button>
+        ) : (
+          <form
+            className="cleaning-presets__form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitPresetName(presetName);
+            }}
+          >
+            <label htmlFor="preset-name" className="visually-hidden">
+              Preset name
+            </label>
+            <input
+              id="preset-name"
+              className="text-input"
+              value={presetName}
+              maxLength={MAX_PRESET_NAME_LENGTH}
+              placeholder="Preset name"
+              autoFocus
+              onChange={(event) => {
+                setPresetName(event.target.value);
+                setPresetError(null);
+                setOverwriteId(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.preventDefault();
+                  closeSaveForm();
+                }
+              }}
+            />
+            <button type="submit" className="btn btn--primary">
+              {overwriteId === null ? 'Save' : 'Replace'}
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={closeSaveForm}>
+              Cancel
+            </button>
+          </form>
+        )}
+        {presetError !== null && (
+          <p className="cleaning-presets__error" role="alert">
+            {presetError}
+          </p>
+        )}
+        {presets.length > 0 && (
+          <p className="cleaning-panel__note">
+            Presets match columns by header name, so they work on other files with the same headers.
+          </p>
+        )}
+      </section>
+
       <p className="cleaning-panel__note">
         Steps recompute the view only — the stored file is never modified.
       </p>

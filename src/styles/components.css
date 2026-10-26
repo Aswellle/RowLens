@@ -769,6 +769,79 @@
   color: var(--text-secondary);
 }
 
+/* ---------- cleaning presets ---------- */
+
+.cleaning-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.cleaning-presets__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.cleaning-presets__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.cleaning-preset {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.cleaning-preset__name {
+  font-weight: 500;
+}
+
+.cleaning-preset__summary {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cleaning-preset .btn {
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.cleaning-presets__form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cleaning-presets__form .text-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.cleaning-presets__form .btn {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.cleaning-presets__error {
+  font-size: 11px;
+  color: var(--danger-text);
+  margin: 0;
+}
+
 /* ---------- modal / export dialog ---------- */
 
 .modal-overlay {
