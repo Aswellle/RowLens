@@ -8,6 +8,7 @@ import { toAppError } from '../../app/app-error';
 import type { ImportJobId } from '../import/protocol';
 import type { StoredEditRecord } from '../editing/persist';
 import type { StoredPipelineRecord } from '../cleaning/persist';
+import type { StoredViewRecord } from '../query/persist';
 import { openDatabase } from './idb';
 import {
   DATASET_TTL_MS,
@@ -16,6 +17,7 @@ import {
   IDB_STORE_PIPELINES,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
+  IDB_STORE_VIEWS,
 } from './constants';
 import type { DatasetId, DatasetMetadata, StoredRow } from './types';
 
@@ -162,7 +164,30 @@ export class DatasetRepository {
   }
 
   /**
-   * Remove the dataset and every stored row, import error and edit record.
+   * Persist the last query view for a dataset (ADR-031). Like the pipeline
+   * this is configuration: it records what the user was looking at and never
+   * touches a stored row.
+   */
+  async putView(record: StoredViewRecord): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_VIEWS, 'readwrite');
+    txn.objectStore(IDB_STORE_VIEWS).put(record);
+    await txnDone(txn);
+  }
+
+  async getView(datasetId: DatasetId): Promise<unknown> {
+    const txn = this.db.transaction(IDB_STORE_VIEWS, 'readonly');
+    return requestToPromise(txn.objectStore(IDB_STORE_VIEWS).get(datasetId) as IDBRequest<unknown>);
+  }
+
+  async deleteView(datasetId: DatasetId): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_VIEWS, 'readwrite');
+    txn.objectStore(IDB_STORE_VIEWS).delete(datasetId);
+    await txnDone(txn);
+  }
+
+  /**
+   * Remove the dataset and every stored row, import error, edit, pipeline and
+   * view record.
    *
    * Row keys are the compound [datasetId, rowIndex] with rowIndex < rowCount,
    * so when the finalized metadata is available the deletes are issued
@@ -180,12 +205,14 @@ export class DatasetRepository {
           IDB_STORE_IMPORT_ERRORS,
           IDB_STORE_CELL_EDITS,
           IDB_STORE_PIPELINES,
+          IDB_STORE_VIEWS,
         ],
         'readwrite',
       );
       txn.objectStore(IDB_STORE_DATASETS).delete(datasetId);
       txn.objectStore(IDB_STORE_CELL_EDITS).delete(datasetId);
       txn.objectStore(IDB_STORE_PIPELINES).delete(datasetId);
+      txn.objectStore(IDB_STORE_VIEWS).delete(datasetId);
       txn
         .objectStore(IDB_STORE_IMPORT_ERRORS)
         .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));

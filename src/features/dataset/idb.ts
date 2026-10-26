@@ -7,6 +7,7 @@
  *   importErrors keyPath ['datasetId', 'physicalLineNumber']
  *   cellEdits    keyPath 'datasetId' (v2; user edits, never mixed into rows)
  *   pipelines    keyPath 'datasetId' (v3; configured cleaning steps)
+ *   views        keyPath 'datasetId' (v4; last query view per dataset)
  *
  * The upgrade only creates stores that are missing, so a v1 database keeps all
  * of its imported rows and gains an empty edit store.
@@ -19,6 +20,7 @@ import {
   IDB_STORE_PIPELINES,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
+  IDB_STORE_VIEWS,
   IDB_VERSION,
 } from './constants';
 
@@ -51,6 +53,11 @@ function openWith(factory: IDBFactory): Promise<IDBDatabase> {
       // every reload makes the workbench feel stateless.
       if (!db.objectStoreNames.contains(IDB_STORE_PIPELINES)) {
         db.createObjectStore(IDB_STORE_PIPELINES, { keyPath: 'datasetId' });
+      }
+      // v4: the last query view. Same reasoning one step further: the filter
+      // the user was reading through is part of "where I left off".
+      if (!db.objectStoreNames.contains(IDB_STORE_VIEWS)) {
+        db.createObjectStore(IDB_STORE_VIEWS, { keyPath: 'datasetId' });
       }
     };
     request.onsuccess = () => resolve(request.result);

@@ -325,3 +325,75 @@ describe('DatasetRepository pipelines (fake IndexedDB)', () => {
     expect(await repository.getCellEdits('ds-1')).toBeDefined();
   });
 });
+
+describe('DatasetRepository views (fake IndexedDB)', () => {
+  let repository: DatasetRepository;
+
+  beforeEach(async () => {
+    repository = await DatasetRepository.open(new IDBFactory());
+  });
+
+  function makeView(updatedAt: number) {
+    return {
+      datasetId: 'ds-1',
+      updatedAt,
+      format: 1,
+      search: 'north',
+      columnFilters: { c0: 'T-0' },
+      sort: { columnId: 'c1' as const, direction: 'asc' as const },
+      hiddenColumns: ['c1'],
+    };
+  }
+
+  it('stores one view record per dataset and reads it back', async () => {
+    await repository.putView(makeView(9));
+    expect(await repository.getView('ds-1')).toEqual(makeView(9));
+  });
+
+  it('overwrites the record instead of appending', async () => {
+    await repository.putView(makeView(1));
+    await repository.putView({ ...makeView(2), search: 'later' });
+    const record = (await repository.getView('ds-1')) as { updatedAt: number; search: string };
+    expect(record.updatedAt).toBe(2);
+    expect(record.search).toBe('later');
+  });
+
+  it('keeps views separate per dataset', async () => {
+    await repository.putView(makeView(1));
+    expect(await repository.getView('ds-1')).toBeDefined();
+    expect(await repository.getView('ds-2')).toBeUndefined();
+  });
+
+  it('deleting the dataset removes its view too', async () => {
+    await repository.insertDataset(makeMeta({ status: 'ready', rowCount: 1 }));
+    await repository.putView(makeView(1));
+
+    await repository.deleteDataset('ds-1');
+
+    expect(await repository.getView('ds-1')).toBeUndefined();
+  });
+
+  it('deletes a view without touching rows, edits or the pipeline', async () => {
+    await repository.putRows('ds-1', [makeRow('ds-1', 0, ['kept'])]);
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'x']],
+    });
+    await repository.putPipeline({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      steps: [{ id: 's1', type: 'trim', enabled: true, scope: { kind: 'all-columns' } }],
+    });
+    await repository.putView(makeView(1));
+
+    await repository.deleteView('ds-1');
+
+    expect(await repository.getView('ds-1')).toBeUndefined();
+    expect(await repository.countRows('ds-1')).toBe(1);
+    expect(await repository.getCellEdits('ds-1')).toBeDefined();
+    expect(await repository.getPipeline('ds-1')).toBeDefined();
+  });
+});

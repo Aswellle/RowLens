@@ -27,9 +27,12 @@ export const IDB_NAME = 'rowlens-local';
  * (docs/decisions.md ADR-027).
  * v3 adds `pipelines`: the configured cleaning steps, so reopening a dataset
  * does not lose the pipeline (ADR-030).
+ * v4 adds `views`: the last query view (search, filters, sort, hidden
+ * columns), so reopening a dataset returns to what the user was looking at
+ * (ADR-031).
  * Every upgrade only creates missing stores and leaves existing records alone.
  */
-export const IDB_VERSION = 3;
+export const IDB_VERSION = 4;
 
 /** Object store names inside IDB_NAME. */
 export const IDB_STORE_DATASETS = 'datasets';
@@ -39,6 +42,8 @@ export const IDB_STORE_IMPORT_ERRORS = 'importErrors';
 export const IDB_STORE_CELL_EDITS = 'cellEdits';
 /** One record per dataset: { datasetId, updatedAt, format, steps: CleaningStep[] }. */
 export const IDB_STORE_PIPELINES = 'pipelines';
+/** One record per dataset: { datasetId, updatedAt, format, search, columnFilters, sort, hiddenColumns }. */
+export const IDB_STORE_VIEWS = 'views';
 
 /** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
 export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;
