@@ -820,6 +820,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     if (view.kind !== 'ready') return;
     let live = true;
     const current = view;
+    // Every query input change lands here, including search and filter
+    // commits that no mutation site marks busy — without this, the longest
+    // scans run with no "Searching…" feedback and no way to cancel.
+    setView((state) =>
+      state.kind === 'ready' && !state.queryBusy ? { ...state, queryBusy: true } : state,
+    );
     void (async () => {
       const runner = await ensureQueryRunner();
       if (!live) return;
