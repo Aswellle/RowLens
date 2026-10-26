@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { DataGrid } from './DataGrid';
@@ -165,11 +165,204 @@ describe('DataGrid', () => {
     expect(cell(1, columns.length - 1)).toHaveFocus();
     await user.keyboard('{Home}');
     expect(cell(1, 0)).toHaveFocus();
+    // One more step left reaches the record header, then clamps there.
+    const rowHeader = grid.querySelector<HTMLElement>('[data-row-header="1"]');
     await user.keyboard('{ArrowLeft}');
-    expect(cell(1, 0)).toHaveFocus(); // clamped at the first column
+    expect(rowHeader).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(rowHeader).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(cell(1, 0)).toHaveFocus();
     await user.keyboard('{ArrowUp}{ArrowUp}');
     expect(cell(0, 0)).toHaveFocus(); // clamped at the first row
-    // Only the focused cell is tabbable after moving.
-    expect(grid.querySelectorAll('[data-cell][tabindex="0"]')).toHaveLength(1);
+    // Only the focused cell is tabbable after moving (the header included).
+    expect(
+      grid.querySelectorAll('[data-cell][tabindex="0"], [data-row-header][tabindex="0"]'),
+    ).toHaveLength(1);
+  });
+
+  it('extends a rectangular selection with Shift+arrows and copies it as TSV', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+
+    cell(0, 0)?.focus();
+    await user.keyboard('{Shift>}{ArrowDown}{ArrowRight}{/Shift}');
+
+    // Anchor stays at the first cell; focus moves to the opposite corner.
+    expect(cell(1, 1)).toHaveFocus();
+    expect(cell(0, 0)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(0, 1)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(1, 0)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(1, 1)).toHaveAttribute('aria-selected', 'true');
+    // Outside the rectangle: not selected.
+    expect(cell(2, 0)).toHaveAttribute('aria-selected', 'false');
+
+    // The selection bar states the size (colour is not the only cue).
+    expect(screen.getByText('2 × 2 selected')).toBeInTheDocument();
+
+    // Ctrl/Cmd+C writes the rectangle as tab-separated rows with CRLF.
+    // jsdom has no real clipboard, so a synthetic event stands in for the
+    // browser contract (a native copy event always carries clipboardData).
+    const clipboardData = {
+      data: {} as Record<string, string>,
+      setData(type: string, value: string) {
+        this.data[type] = value;
+      },
+      getData(type: string) {
+        return this.data[type] ?? '';
+      },
+    };
+    fireEvent.copy(grid, { clipboardData });
+    expect(clipboardData.getData('text/plain')).toBe('beta\tBerlin\r\nalpha\tCairo');
+  });
+
+  it('selects the whole row from its record header and copies every visible column', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const header = grid.querySelector<HTMLElement>('[data-row-header="2"]');
+    header?.focus();
+    // Space on the row header selects the whole row (keyboard equivalent of
+    // clicking it); the header is a selector, never copied data.
+    await user.keyboard(' ');
+    expect(screen.getByText('1 × 2 selected')).toBeInTheDocument();
+
+    const clipboardData = {
+      data: {} as Record<string, string>,
+      setData(type: string, value: string) {
+        this.data[type] = value;
+      },
+      getData(type: string) {
+        return this.data[type] ?? '';
+      },
+    };
+    fireEvent.copy(grid, { clipboardData });
+    expect(clipboardData.getData('text/plain')).toBe('beta\tAuckland');
+  });
+
+  it('selects whole rows by dragging the record header, without shrinking to one column', async () => {
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const header = (row: number) => grid.querySelector<HTMLElement>(`[data-row-header="${row}"]`);
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+
+    // Press on row 1's header, drag over row 2's first data cell, release.
+    fireEvent.mouseDown(header(1)!, { button: 0 });
+    fireEvent.mouseEnter(cell(2, 0)!);
+    fireEvent.mouseUp(window);
+
+    expect(screen.getByText('2 × 2 selected')).toBeInTheDocument();
+    expect(cell(1, 1)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(2, 1)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(0, 1)).toHaveAttribute('aria-selected', 'false');
+
+    // Dragging ends at mouseup: later hovering must not keep extending.
+    fireEvent.mouseEnter(cell(3, 0)!);
+    expect(screen.getByText('2 × 2 selected')).toBeInTheDocument();
+  });
+
+  it('selects every visible row with Ctrl/Cmd+A and clears with Escape', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+
+    cell(0, 0)?.focus();
+    await user.keyboard('{Control>}a{/Control}');
+    expect(screen.getByText('4 × 2 selected')).toBeInTheDocument();
+
+    // Focus stays on the active cell after select-all (no jump to the end).
+    expect(cell(0, 0)).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByText('4 × 2 selected')).not.toBeInTheDocument();
+    expect(cell(0, 0)).toHaveAttribute('aria-selected', 'true');
+    expect(cell(1, 0)).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('refuses to copy a selection beyond the cell cap and explains why', async () => {
+    const user = userEvent.setup();
+    // 60,000 × 2 = 120,000 cells, above MAX_COPY_CELLS (100,000). The guard
+    // must fire before any serialization work happens.
+    const manyRows = Array.from({ length: 60_000 }, (_, i) => i);
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={60_000}
+        visibleIndices={manyRows}
+        valueAt={() => 'x'}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Control>}a{/Control}');
+
+    const clipboardData = {
+      data: {} as Record<string, string>,
+      setData(type: string, value: string) {
+        this.data[type] = value;
+      },
+      getData(type: string) {
+        return this.data[type] ?? '';
+      },
+    };
+    fireEvent.copy(grid, { clipboardData });
+    expect(clipboardData.getData('text/plain')).toBe('');
+    expect(screen.getByText(/120,000 cells — too many to copy at once/)).toBeInTheDocument();
+    // The selection is kept, so the user can narrow it instead of starting over.
+    expect(screen.getByText('60,000 × 2 selected')).toBeInTheDocument();
   });
 });
