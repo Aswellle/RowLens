@@ -256,6 +256,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const [view, setView] = useState<View>({ kind: 'empty' });
   const [notice, setNotice] = useState<{ variant: NoticeVariant; message: string } | null>(null);
   /**
+   * Notices produced inside `setView` updaters are parked here and drained by
+   * an effect — calling `setNotice` inside an updater would be a side effect in
+   * a function React may invoke more than once.
+   */
+  const pendingNoticeRef = useRef<{ variant: NoticeVariant; message: string } | null>(null);
+  /**
    * Named cleaning recipes. They live outside `view` on purpose: a preset is
    * global, not per dataset, and must stay available in the empty state and
    * after the dataset it was captured from is removed (ADR-032).
@@ -863,9 +869,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         const reduced = reduceQueryOutcome(state, outcome, (code, message) =>
           friendlyImportError(new AppError(code as AppError['code'], message)),
         );
-        if (reduced.notice) {
-          setNotice({ variant: reduced.notice.variant, message: reduced.notice.message });
-        }
+        // Stashed for the drain effect below: state updaters must stay pure.
+        pendingNoticeRef.current = reduced.notice ?? null;
         return reduced.state;
       });
     })();
@@ -874,6 +879,13 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
   }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, editsKey, ensureQueryRunner]);
+
+  useEffect(() => {
+    if (pendingNoticeRef.current === null) return;
+    const pending = pendingNoticeRef.current;
+    pendingNoticeRef.current = null;
+    setNotice(pending);
+  });
 
   const readyGridSort: GridSort | null = useMemo(() => {
     if (view.kind !== 'ready' || view.sort === null) return null;
@@ -1449,17 +1461,16 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         stored: edit.stored,
         after: edit.value,
       }));
-      let refusal: string | null = null;
-      patchReady((current) => {
-        if (wouldExceedCap(current.edits, inputs)) {
-          refusal = `Cell edits are limited to ${MAX_EDITS.toLocaleString('en-US')} cells. Reset edits or use a cleaning step for bulk changes.`;
-          return current;
-        }
-        const edits = applyEdits(current.edits, inputs);
-        if (edits === current.edits) return current;
-        return { ...current, edits, queryBusy: true };
+      const current = viewRef.current;
+      if (current.kind === 'ready' && wouldExceedCap(current.edits, inputs)) {
+        return `Cell edits are limited to ${MAX_EDITS.toLocaleString('en-US')} cells. Reset edits or use a cleaning step for bulk changes.`;
+      }
+      patchReady((state) => {
+        const edits = applyEdits(state.edits, inputs);
+        if (edits === state.edits) return state;
+        return { ...state, edits, queryBusy: true };
       });
-      return refusal;
+      return null;
     },
     [patchReady],
   );
