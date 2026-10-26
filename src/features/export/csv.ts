@@ -5,8 +5,12 @@
  * strategy. No function here touches the DOM, storage or state.
  */
 
-/** Characters that force a field to be wrapped in double quotes. */
-const QUOTE_TRIGGERS = new Set([',', '"', '\r', '\n']);
+/**
+ * Characters that force a field to be wrapped in double quotes. One precompiled
+ * regex: csvField runs for every exported cell, and a code-point array spread per
+ * cell was avoidable allocation in the hot path.
+ */
+const QUOTE_TRIGGER_PATTERN = /[,"\r\n]/;
 
 /**
  * Risky leading characters per the OWASP CSV injection guidance: formulas can
@@ -51,9 +55,7 @@ export function protectFormulaValue(value: string): string {
 
 /** Encode one field, quoting only when the content requires it. */
 export function csvField(value: string): string {
-  const needsQuoting =
-    value.length === 0 ? false : [...value].some((char) => QUOTE_TRIGGERS.has(char));
-  if (!needsQuoting) return value;
+  if (!QUOTE_TRIGGER_PATTERN.test(value)) return value;
   return `"${value.replaceAll('"', '""')}"`;
 }
 
