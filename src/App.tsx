@@ -49,7 +49,7 @@ import {
   isSupportedPipelineRecord,
 } from './features/cleaning/persist';
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
-import { runExport } from './features/export/run';
+import { createDownloadSaver, runExport } from './features/export/run';
 import type { ExportScope } from './features/export/types';
 import {
   MAX_EDITS,
@@ -101,6 +101,14 @@ import {
   type CleaningPreset,
   type PresetColumn,
 } from './features/cleaning/presets';
+import {
+  MAX_PRESET_FILE_BYTES,
+  describeImport,
+  mergePresets,
+  parsePresetFile,
+  presetFileName,
+  serializePresetFile,
+} from './features/cleaning/preset-file';
 
 /**
  * Anything the grid can read cells from synchronously. The import path uses a
@@ -1066,6 +1074,81 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     [presets, persistPresets],
   );
 
+  /**
+   * Download every preset as a JSON file (ADR-033). Only configuration leaves
+   * the device — step types and column header names — and only because the
+   * user asked for it.
+   */
+  const exportPresets = useCallback(() => {
+    if (presets.length === 0) return;
+    const fileName = presetFileName();
+    const text = serializePresetFile(presets);
+    void (async () => {
+      try {
+        // A preset file is a few kilobytes, so the download saver is used
+        // directly: no streaming picker, and the blob gets the JSON type
+        // rather than the CSV default.
+        const saver = createDownloadSaver(fileName, MAX_PRESET_FILE_BYTES, {
+          mimeType: 'application/json;charset=utf-8',
+        });
+        await saver.write(text);
+        await saver.close();
+        setNotice({
+          variant: 'info',
+          message: `Exported ${presets.length} preset${presets.length === 1 ? '' : 's'} to ${fileName}.`,
+        });
+      } catch (error) {
+        if (error instanceof AppError && error.code === 'EXPORT_CANCELLED') return;
+        setNotice({
+          variant: 'error',
+          message: 'The preset file could not be saved.',
+        });
+      }
+    })();
+  }, [presets]);
+
+  /**
+   * Merge a chosen preset file into the list. Existing presets always win, so
+   * an import can never silently overwrite a recipe (ADR-033).
+   */
+  const importPresets = useCallback(
+    (file: File) => {
+      void (async () => {
+        try {
+          if (file.size > MAX_PRESET_FILE_BYTES) {
+            setNotice({
+              variant: 'error',
+              message: 'That file is too large to be a preset file.',
+            });
+            return;
+          }
+          const text = await file.text();
+          const parsed = parsePresetFile(text);
+          if (!parsed.ok) {
+            setNotice({ variant: 'error', message: parsed.message });
+            return;
+          }
+          const outcome = mergePresets(presets, parsed.presets, newPresetId);
+          if (outcome.added === 0) {
+            setNotice({ variant: 'warning', message: describeImport(outcome, parsed.dropped) });
+            return;
+          }
+          persistPresets(outcome.presets);
+          setNotice({
+            variant:
+              outcome.skippedByName > 0 || outcome.skippedByCap > 0 || parsed.dropped > 0
+                ? 'warning'
+                : 'info',
+            message: describeImport(outcome, parsed.dropped),
+          });
+        } catch {
+          setNotice({ variant: 'error', message: 'That file could not be read.' });
+        }
+      })();
+    },
+    [presets, persistPresets],
+  );
+
   /** Row indices for an export scope: the current view, or all records. */
   const exportIndices = useCallback(
     (scope: ExportScope): number[] => {
@@ -1409,6 +1492,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               onSavePreset={savePreset}
               onApplyPreset={applyPresetById}
               onDeletePreset={deletePreset}
+              onExportPresets={exportPresets}
+              onImportPresets={importPresets}
             />
             <div className="grid-region">
               {view.rowIndices.length === 0 && !view.queryBusy && view.search !== '' ? (

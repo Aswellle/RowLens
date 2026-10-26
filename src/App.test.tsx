@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from './App';
+import { DatasetRepository } from './features/dataset/repository';
 
 /**
  * Phase 1 interaction tests: empty state, sample load, live search with live
@@ -690,8 +691,11 @@ describe('App view persistence', () => {
  * were captured from and can be applied to a different file (ADR-032).
  */
 describe('App cleaning presets', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     window.localStorage.clear();
+    // Presets are global, so they survive into the next test in this file.
+    const repository = await DatasetRepository.open();
+    await repository.deletePresets();
   });
 
   async function loadSample(user: ReturnType<typeof userEvent.setup>, size: number): Promise<void> {
@@ -815,5 +819,151 @@ describe('App cleaning presets', () => {
     // The live pipeline is untouched by deleting the saved copy.
     expect(screen.getByText('Trim whitespace')).toBeInTheDocument();
     expect(screen.getByText(/Deleted preset “Temp”/)).toBeInTheDocument();
+  }, 40_000);
+});
+
+/**
+ * Preset files carry recipes between browsers (ADR-033). The round trip is the
+ * contract: what one browser exports, another can import, and an import never
+ * overwrites an existing recipe.
+ */
+describe('App preset files', () => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    // Presets are global (ADR-032), so they outlive a dataset and survive into
+    // the next test in this file. Clear the store so each case starts from a
+    // known, empty list.
+    const repository = await DatasetRepository.open();
+    await repository.deletePresets();
+  });
+
+  async function loadSampleWithPreset(
+    user: ReturnType<typeof userEvent.setup>,
+    name: string,
+  ): Promise<void> {
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(screen.getByText('Trim whitespace')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+    await user.click(screen.getByRole('button', { name: 'Save as preset…' }));
+    await user.type(screen.getByLabelText('Preset name'), name);
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: `Apply preset: ${name}` })).toBeVisible(),
+    );
+  }
+
+  it('exports the presets and imports them back into an empty list', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSampleWithPreset(user, 'Portable recipe');
+
+    // The export itself is covered end-to-end in `e2e/presets.spec.ts` (a real
+    // download is read back and re-imported). Here only the notice matters:
+    // jsdom has no download plumbing to assert against.
+    await user.click(screen.getByRole('button', { name: 'Export presets…' }));
+    await waitFor(() => expect(screen.getByText(/Exported 1 preset/)).toBeInTheDocument());
+
+    // A fresh list: drop the preset, then import a file carrying one.
+    await user.click(screen.getByRole('button', { name: 'Delete preset: Portable recipe' }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Apply preset: Portable recipe' }),
+      ).not.toBeInTheDocument(),
+    );
+
+    const file = new File(
+      [
+        JSON.stringify({
+          format: 1,
+          exportedAt: '2026-10-26T00:00:00.000Z',
+          presets: [
+            {
+              id: 'imported',
+              name: 'Portable recipe',
+              createdAt: 1,
+              updatedAt: 1,
+              steps: [{ type: 'trim', enabled: true, scope: { kind: 'all-columns' } }],
+            },
+          ],
+        }),
+      ],
+      'rowlens-presets.json',
+      { type: 'application/json' },
+    );
+    await user.upload(screen.getByTestId('preset-file-input'), file);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Apply preset: Portable recipe' })).toBeVisible(),
+    );
+    expect(screen.getByText(/Imported 1 preset/)).toBeInTheDocument();
+  }, 40_000);
+
+  it('does not overwrite an existing preset when the imported name collides', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSampleWithPreset(user, 'Weekly cleanup');
+
+    const file = new File(
+      [
+        JSON.stringify({
+          format: 1,
+          presets: [
+            {
+              id: 'other-id',
+              name: 'Weekly cleanup',
+              createdAt: 1,
+              updatedAt: 1,
+              steps: [{ type: 'select-columns', enabled: true, labels: ['Ticket'] }],
+            },
+          ],
+        }),
+      ],
+      'rowlens-presets.json',
+      { type: 'application/json' },
+    );
+    await user.upload(screen.getByTestId('preset-file-input'), file);
+
+    await waitFor(() => expect(screen.getByText(/Imported 0 presets/)).toBeInTheDocument());
+    expect(screen.getByText(/name is already in use/)).toBeInTheDocument();
+    // The local recipe still holds its trim step: it was not replaced by the
+    // incoming select-columns recipe.
+    const row = screen.getByRole('button', { name: 'Apply preset: Weekly cleanup' }).closest('li');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText('trim')).toBeInTheDocument();
+  }, 40_000);
+
+  it('reports an unreadable preset file without touching the list', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSampleWithPreset(user, 'Keep me');
+
+    const file = new File(['this is not json'], 'broken.json', { type: 'application/json' });
+    await user.upload(screen.getByTestId('preset-file-input'), file);
+
+    await waitFor(() => expect(screen.getByText(/not valid JSON/)).toBeInTheDocument());
+    // The existing preset survived the failed import.
+    expect(screen.getByRole('button', { name: 'Apply preset: Keep me' })).toBeVisible();
+  }, 40_000);
+
+  it('refuses a preset file that is far too large', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await loadSampleWithPreset(user, 'Untouched');
+
+    // A File reports whatever size it was constructed with; no 1 MiB string
+    // needs to exist to exercise the guard.
+    const file = new File(['{}'], 'huge.json', { type: 'application/json' });
+    Object.defineProperty(file, 'size', { value: 2 * 1024 * 1024 });
+    await user.upload(screen.getByTestId('preset-file-input'), file);
+
+    await waitFor(() =>
+      expect(screen.getByText(/too large to be a preset file/)).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: 'Apply preset: Untouched' })).toBeVisible();
   }, 40_000);
 });
