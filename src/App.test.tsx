@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { DatasetRepository } from './features/dataset/repository';
 
@@ -1155,5 +1155,60 @@ describe('App export selection', () => {
     const dialog = screen.getByRole('dialog', { name: 'Export CSV' });
     expect(within(dialog).queryByText(/Selected range/)).not.toBeInTheDocument();
     expect(within(dialog).getByLabelText(/^Filtered rows/)).toBeChecked();
+  }, 40_000);
+});
+
+/**
+ * Exporting a restored dataset must read stored rows through IndexedDB
+ * (ADR-037), never through the render cache whose unloaded chunks read as
+ * empty cells — the bug this regression test pins: rows beyond the restored
+ * prefetch window used to export blank.
+ */
+describe('App export from a restored dataset', () => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    const repository = await DatasetRepository.open();
+    await repository.deletePresets();
+  });
+
+  it('writes real cell values beyond the restored prefetch window', async () => {
+    const user = userEvent.setup();
+    const first = render(<App sampleSize={80} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    first.unmount();
+
+    // A fresh mount restores the dataset through the lazy chunk store.
+    render(<App sampleSize={80} />);
+    await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const blobs: Blob[] = [];
+    const spy = vi.spyOn(URL, 'createObjectURL').mockImplementation((blob: Blob | MediaSource) => {
+      blobs.push(blob as Blob);
+      return 'blob:mocked';
+    });
+    try {
+      await user.click(screen.getByRole('button', { name: 'Export' }));
+      const dialog = screen.getByRole('dialog', { name: 'Export CSV' });
+      await user.click(within(dialog).getByRole('radio', { name: /All rows/ }));
+      await user.click(within(dialog).getByRole('button', { name: /Export CSV/ }));
+      await waitFor(() => expect(screen.getByText(/80 rows exported/)).toBeInTheDocument(), {
+        timeout: 15_000,
+      });
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(blobs).toHaveLength(1);
+    const csv = await blobs[0]!.text();
+    const lines = csv.split('\r\n').filter((line) => line !== '');
+    expect(lines).toHaveLength(81); // header + 80 records
+    expect(lines[1]).toContain('T-00001');
+    // Row 60 sits two chunks past the restored prefetch window.
+    expect(lines[61]).toContain('T-00061');
   }, 40_000);
 });

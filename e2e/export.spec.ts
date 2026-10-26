@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { loadSample, resetSession } from './support';
 import { expect, test, type Page } from '@playwright/test';
 
 /**
@@ -159,4 +160,24 @@ test('a single focused cell offers no Selected-range scope', async ({ page }) =>
   await expect(dialog.getByRole('radio', { name: /Selected range/ })).toHaveCount(0);
   await expect(dialog.getByRole('radio', { name: /Filtered rows/ })).toBeChecked();
   await page.getByRole('button', { name: 'Cancel' }).click();
+});
+
+test('exporting a restored dataset writes real values beyond the restored window', async ({
+  page,
+}) => {
+  // Regression (ADR-037): after a reload the dataset is backed by the lazy
+  // chunk store; only the prefetched window is in memory. Exporting used to
+  // read the render cache and wrote empty cells for every unloaded chunk.
+  await resetSession(page);
+  await loadSample(page);
+  await page.reload();
+  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 30_000 });
+
+  const { content } = await exportCurrent(page, { scope: 'all' });
+  const lines = content.split('\r\n').filter((line) => line !== '');
+  expect(lines).toHaveLength(5_001); // header + 5,000 records
+  expect(lines[1]).toContain('T-00001');
+  // Chunk 6 (rows 3,000+) is far beyond the restored prefetch window.
+  expect(lines[3_001]).toContain('T-03001');
+  expect(lines[5_000]).toContain('T-05000');
 });
