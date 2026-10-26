@@ -23,7 +23,7 @@ async function importFixture(page: Page, path: string): Promise<void> {
 
 async function exportCurrent(
   page: Page,
-  options: { safety?: 'safe' | 'raw'; scope?: 'filtered' | 'all' } = {},
+  options: { safety?: 'safe' | 'raw'; scope?: 'filtered' | 'all' | 'selection' } = {},
 ): Promise<{ fileName: string; content: string }> {
   await page.getByRole('button', { name: 'Export', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Export CSV' });
@@ -31,6 +31,9 @@ async function exportCurrent(
 
   if (options.scope === 'all') {
     await dialog.getByRole('radio', { name: /All rows/ }).check();
+  }
+  if (options.scope === 'selection') {
+    await dialog.getByRole('radio', { name: /Selected range/ }).check();
   }
   if (options.safety === 'raw') {
     await dialog.getByRole('radio', { name: 'Raw CSV' }).check();
@@ -121,4 +124,39 @@ test('cancel closes the dialog without claiming a save', async ({ page }) => {
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Export CSV' })).toHaveCount(0);
   await expect(page.getByText(/rows exported/)).toHaveCount(0);
+});
+
+test('the selected range exports exactly the rectangle on screen', async ({ page }) => {
+  // Two columns of three rows: selecting the last two rows of both columns
+  // exercises row order, column order and the header row of the slice.
+  await importFixture(page, 'e2e/fixtures/preset-source.csv');
+  await expect(page.getByText('4 of 4 rows match')).toBeVisible({ timeout: 20_000 });
+
+  const cell = (row: number, column: number) => page.locator(`[data-cell="${row}-${column}"]`);
+  await expect(async () => {
+    await cell(1, 0).locator('.grid-cell__text').click();
+    await expect(cell(1, 0)).toBeFocused({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+  await page.keyboard.press('Shift+ArrowRight');
+  await page.keyboard.press('Shift+ArrowDown');
+  await page.keyboard.press('Shift+ArrowDown');
+  await expect(page.getByText('3 × 2 selected')).toBeVisible();
+
+  const { fileName, content } = await exportCurrent(page, { scope: 'selection' });
+  expect(fileName).toMatch(/\.csv$/);
+  const lines = content.split('\r\n').filter((line) => line !== '');
+  // Header + the three selected rows (records 2–4), both columns.
+  expect(lines).toEqual(['Ticket,Status', 'A-2,pending', 'A-2,pending', 'A-3,closed']);
+});
+
+test('a single focused cell offers no Selected-range scope', async ({ page }) => {
+  await importFixture(page, 'e2e/fixtures/duplicates.csv');
+  await expect(page.getByText('3 of 3 rows match')).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Export CSV' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('radio', { name: /Selected range/ })).toHaveCount(0);
+  await expect(dialog.getByRole('radio', { name: /Filtered rows/ })).toBeChecked();
+  await page.getByRole('button', { name: 'Cancel' }).click();
 });
