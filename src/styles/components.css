@@ -842,6 +842,17 @@
   margin: 0;
 }
 
+.cleaning-presets__transfer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cleaning-presets__transfer .btn {
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
 /* ---------- modal / export dialog ---------- */
 
 .modal-overlay {

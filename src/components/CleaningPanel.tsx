@@ -35,6 +35,10 @@ type CleaningPanelProps = {
   onSavePreset: (name: string, overwriteId?: string) => string | null;
   onApplyPreset: (presetId: string) => void;
   onDeletePreset: (presetId: string) => void;
+  /** Downloads every preset as a JSON file. */
+  onExportPresets: () => void;
+  /** Reads a chosen preset file and merges it into the list. */
+  onImportPresets: (file: File) => void;
 };
 
 const ADD_LABELS: { type: CleaningStepType; label: string }[] = [
@@ -225,9 +229,12 @@ export function CleaningPanel({
   onSavePreset,
   onApplyPreset,
   onDeletePreset,
+  onExportPresets,
+  onImportPresets,
 }: CleaningPanelProps) {
   const [confirmingReset, setConfirmingReset] = useState(false);
   const resetTimer = useRef<number | null>(null);
+  const presetFileInputRef = useRef<HTMLInputElement>(null);
 
   /** Preset name being saved; null when the form is closed. */
   const [presetName, setPresetName] = useState<string | null>(null);
@@ -442,6 +449,43 @@ export function CleaningPanel({
             {presetError}
           </p>
         )}
+        <div className="cleaning-presets__transfer">
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={onExportPresets}
+            disabled={presets.length === 0}
+            title={
+              presets.length === 0
+                ? 'Save a preset before exporting.'
+                : 'Download every preset as a JSON file'
+            }
+          >
+            Export presets…
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => presetFileInputRef.current?.click()}
+          >
+            Import presets…
+          </button>
+          <input
+            ref={presetFileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="visually-hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            data-testid="preset-file-input"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              // Reset first: choosing the same file twice must fire again.
+              event.target.value = '';
+              if (file) onImportPresets(file);
+            }}
+          />
+        </div>
         {presets.length > 0 && (
           <p className="cleaning-panel__note">
             Presets match columns by header name, so they work on other files with the same headers.

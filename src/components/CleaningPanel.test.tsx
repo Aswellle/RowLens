@@ -35,6 +35,8 @@ function setup(overrides: Partial<React.ComponentProps<typeof CleaningPanel>> = 
     onSavePreset: vi.fn(() => null as string | null),
     onApplyPreset: vi.fn(),
     onDeletePreset: vi.fn(),
+    onExportPresets: vi.fn(),
+    onImportPresets: vi.fn(),
   };
   render(
     <CleaningPanel
@@ -142,5 +144,44 @@ describe('CleaningPanel presets', () => {
   it('explains that presets match columns by header name', () => {
     setup({ presets: [preset()] });
     expect(screen.getByText(/match columns by header name/)).toBeInTheDocument();
+  });
+
+  it('disables exporting when there is nothing to export', () => {
+    setup({ presets: [] });
+    expect(screen.getByRole('button', { name: 'Export presets…' })).toBeDisabled();
+  });
+
+  it('exports the saved presets', async () => {
+    const user = userEvent.setup();
+    const handlers = setup({ presets: [preset()] });
+
+    await user.click(screen.getByRole('button', { name: 'Export presets…' }));
+    expect(handlers.onExportPresets).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands a chosen preset file to the import handler', async () => {
+    const user = userEvent.setup();
+    const handlers = setup();
+    const file = new File(['{"format":1,"presets":[]}'], 'presets.json', {
+      type: 'application/json',
+    });
+
+    // The input is visually hidden but still the element the button opens.
+    await user.upload(screen.getByTestId('preset-file-input'), file);
+
+    expect(handlers.onImportPresets).toHaveBeenCalledWith(file);
+  });
+
+  it('clears the input so the same file can be chosen again', async () => {
+    const user = userEvent.setup();
+    const handlers = setup();
+    const file = new File(['{}'], 'presets.json', { type: 'application/json' });
+    const input = screen.getByTestId('preset-file-input') as HTMLInputElement;
+
+    await user.upload(input, file);
+    expect(input.value).toBe('');
+
+    await user.upload(input, file);
+    expect(handlers.onImportPresets).toHaveBeenCalledTimes(2);
   });
 });
