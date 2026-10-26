@@ -37,10 +37,14 @@ view and Ctrl/Cmd+C copies the range as tab-separated text.
 Cells are editable in place: Enter, F2, a double-click or just typing opens an
 editor, Enter/Tab commits, Escape cancels, and Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z
 step back and forth. Pasting tab-separated text fills cells from the active
-cell (or tiles the block across a larger selection) as one undoable action. Edits are an **in-memory overlay** — the imported rows,
-the IndexedDB copy and the source file are never rewritten, search and sort see
-the edited values, exports write them, and reloading the page returns to the
-imported data. Up to 5,000 cells can be edited at once.
+cell (or tiles the block across a larger selection) as one undoable action.
+
+Edits are an **overlay stored apart from the imported rows**: the source file
+and the imported records are never rewritten, search and sort see the edited
+values, and exports write them. The overlay is saved to its own IndexedDB
+store, so reloading reopens the dataset you were viewing with its edits
+intact — a reloaded session starts without undo history, and **Reset edits**
+returns to the imported values. Up to 5,000 cells can be edited at once.
 
 ## Getting started
 
@@ -90,11 +94,12 @@ Playwright browser job (`.github/workflows/ci.yml`).
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
   refused rather than truncated — use Export CSV for extracts that large.
   There is no multi-range (Ctrl+click) selection.
-- Cell edits live in memory only: they are not written back to the imported
-  rows or to IndexedDB, and reloading the page discards them. Editing is
-  capped at 5,000 cells, and edits are not part of the undo history for
+- Cell edits persist in their own IndexedDB store but carry no undo history
+  across a reload, and cleaning-step changes are not persisted at all. Editing
+  is capped at 5,000 cells, and edits are not part of the undo history for
   cleaning steps. A paste that would run past the last visible row or column
-  is clipped and reported instead of writing to hidden records.
+  is clipped and reported instead of writing to hidden records. Two tabs
+  editing the same dataset do not coordinate: the last write wins.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via

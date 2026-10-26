@@ -94,6 +94,12 @@ clean → export, entirely in the browser.
   fill a larger selection. One paste is one undo entry. Anything that would
   land outside the visible rows or columns is clipped and reported rather
   than written to records you cannot see.
+- **Edits survive a reload**: cell edits are persisted in their own
+  IndexedDB store (`cellEdits`, database v2), separate from the imported
+  rows, and the app reopens the dataset you were last viewing. Imported rows
+  are still never rewritten — removing a dataset deletes its edits with it,
+  and a reloaded session starts without undo history, so `Reset edits` is the
+  way back to the imported values.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).

@@ -69,8 +69,14 @@
   证据：`edits.test.ts` 覆盖层用例（连续撤销沿历史回退、redo 分支丢弃、
   空字符串与无覆盖区分、重置可撤销）；App 与 E2E 均覆盖按钮与快捷键。
 - [x] 源数据只读：导入行、IndexedDB 与源文件均未被改写。
-  证据：`e2e/editing.spec.ts` 刷新页面后编辑消失并回到导入值；架构上编辑
-  为内存覆盖层，不存在回写路径。
+  证据：编辑存于独立的 `cellEdits` store（IDB v2），`deleteCellEdits` 只删
+  编辑不动行、`deleteDataset` 一并级联删除；`repository.test.ts` 两个 store
+  的独立性用例；`e2e/editing.spec.ts` 刷新后编辑恢复且 Reset edits 回到导
+  入值。
+- [x] 编辑跨刷新保留，且不伪造撤销历史。
+  证据：`persist.test.ts` 序列化往返与坏元组逐条丢弃；App 会话恢复用例
+  （重新挂载后恢复数据集与编辑、移除后不再恢复、指针失效回退空态）；
+  `e2e/editing.spec.ts` 刷新后恢复编辑且 Undo 为禁用。
 - [x] 编辑上限有明确拒绝而非静默丢弃。证据：`edits.test.ts` 上限用例；
   网格在拒绝时关闭编辑器并播报原因。
 - [x] 区域粘贴：单格向外铺开、多格平铺、越界裁剪并播报、一次撤销回退整块。
