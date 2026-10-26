@@ -36,6 +36,8 @@
   --header-bg: #f7f8fa;
   --row-stripe: #fbfcfd;
   --row-hover: #f1f4fa;
+  /* selected cells: distinct from hover and from the striped rows */
+  --selection-bg: #dce5fe;
 
   /* layout */
   --header-height: 48px;
@@ -73,6 +75,7 @@
   --header-bg: #161c25;
   --row-stripe: #1d242e;
   --row-hover: #243040;
+  --selection-bg: #24345c;
 
   --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 40%);

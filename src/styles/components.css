@@ -458,6 +458,48 @@
   z-index: 5;
 }
 
+/* ---------- selection ---------- */
+
+/*
+ * Selection uses the accent-soft fill plus a solid inset edge so it stays
+ * distinguishable from hover in both themes; the active anchor gets a firmer
+ * border. Colour is never the only cue — the selection bar states the size.
+ */
+.grid-cell--selected {
+  background: var(--selection-bg);
+}
+
+.grid-cell--selected.grid-cell--rownum {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.grid-cell--anchor {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.grid-scroll--dragging {
+  user-select: none;
+  cursor: cell;
+}
+
+.grid-selection-bar {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
 .grid-body-window {
   position: relative;
   width: max-content;
