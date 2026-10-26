@@ -17,21 +17,33 @@
  *   and repository windows), so they never depend on this cache.
  *
  * Memory therefore scales with what the user actually looks at, not with the
- * dataset size (ADR-028).
+ * dataset size (ADR-028). A least-recently-used cap keeps that true even after
+ * the user scrolls through the whole file: the window being rendered is
+ * pinned, everything else is evictable (ADR-029).
  */
 import type { ColumnDefinition, RowIndex, StoredRow } from './types';
 
 /** Rows per lazily loaded chunk. */
 export const STORE_CHUNK_ROWS = 500;
 
+/**
+ * Chunks kept in memory. 40 chunks × 500 rows = 20,000 rows, roughly 1.5× the
+ * rows a 95 MiB P3 file would need for a few screenfuls plus read-ahead, and
+ * small enough that scrolling the whole file does not accumulate it.
+ */
+export const STORE_MAX_CHUNKS = 40;
+
 export type ChunkLoader = (offset: number, limit: number) => Promise<readonly StoredRow[]>;
 
 export class LazyDatasetStore {
+  /** Insertion order is the LRU order: oldest first, refreshed on read. */
   private readonly chunks = new Map<number, (string | null)[][]>();
   private readonly pending = new Set<number>();
   /** Rows requested before their chunk arrived; used to prioritise loads. */
   private readonly misses = new Map<number, number>();
   private readonly idToIndex = new Map<string, number>();
+  /** Chunks the view is currently rendering; never evicted. */
+  private pinned = new Set<number>();
   private disposed = false;
 
   constructor(
@@ -40,6 +52,7 @@ export class LazyDatasetStore {
     private readonly loadChunk: ChunkLoader,
     /** Called after a chunk lands, so the view can re-render its window. */
     private readonly onChunkLoaded?: () => void,
+    private readonly maxChunks: number = STORE_MAX_CHUNKS,
   ) {
     columns.forEach((column, index) => this.idToIndex.set(column.id, index));
   }
@@ -73,6 +86,7 @@ export class LazyDatasetStore {
       this.requestChunk(chunkIndex);
       return null;
     }
+    this.touch(chunkIndex);
     const local = rowIndex - chunkIndex * STORE_CHUNK_ROWS;
     return chunk[local]?.[columnIndex] ?? null;
   }
@@ -93,7 +107,9 @@ export class LazyDatasetStore {
 
   /**
    * Warms a window of rows, e.g. the rows the grid is about to render, so the
-   * first paint after a scroll does not show blanks.
+   * first paint after a scroll does not show blanks. The window is also pinned
+   * for eviction purposes until the next call moves it, and any chunk already
+   * loaded for that window counts as recently used.
    */
   ensureRows(firstRow: RowIndex, lastRow: RowIndex): void {
     const first = Math.max(0, Math.floor(firstRow / STORE_CHUNK_ROWS));
@@ -101,9 +117,14 @@ export class LazyDatasetStore {
       Math.floor((this.rowCount - 1) / STORE_CHUNK_ROWS),
       Math.floor(Math.max(firstRow, lastRow) / STORE_CHUNK_ROWS),
     );
+    const pinned = new Set<number>();
     for (let chunkIndex = first; chunkIndex <= last; chunkIndex += 1) {
-      this.requestChunk(chunkIndex);
+      pinned.add(chunkIndex);
+      if (this.chunks.has(chunkIndex)) this.touch(chunkIndex);
+      else this.requestChunk(chunkIndex);
     }
+    this.pinned = pinned;
+    this.evict();
   }
 
   /** Drops everything held; the loader is not called again after this. */
@@ -112,12 +133,38 @@ export class LazyDatasetStore {
     this.chunks.clear();
     this.pending.clear();
     this.misses.clear();
+    this.pinned.clear();
   }
 
   private requestChunk(chunkIndex: number): void {
     if (this.disposed || this.chunks.has(chunkIndex) || this.pending.has(chunkIndex)) return;
     this.pending.add(chunkIndex);
     void this.fetchChunk(chunkIndex);
+  }
+
+  /** Marks a chunk as most recently used without changing its identity. */
+  private touch(chunkIndex: number): void {
+    const chunk = this.chunks.get(chunkIndex);
+    if (chunk === undefined) return;
+    this.chunks.delete(chunkIndex);
+    this.chunks.set(chunkIndex, chunk);
+  }
+
+  /**
+   * Drops least-recently-used chunks past the cap.
+   *
+   * Pinned chunks (the window the grid is rendering) are skipped: evicting one
+   * would blank rows that are on screen right now. A single window larger than
+   * the cap is therefore allowed to exceed it — correctness beats the bound,
+   * and the grid's window is a few dozen rows, far below the cap.
+   */
+  private evict(): void {
+    if (this.chunks.size <= this.maxChunks) return;
+    for (const chunkIndex of [...this.chunks.keys()]) {
+      if (this.chunks.size <= this.maxChunks) break;
+      if (this.pinned.has(chunkIndex)) continue;
+      this.chunks.delete(chunkIndex);
+    }
   }
 
   private async fetchChunk(chunkIndex: number): Promise<void> {
@@ -129,6 +176,7 @@ export class LazyDatasetStore {
         chunkIndex,
         rows.map((row) => this.toColumnArray(row)),
       );
+      this.evict();
       this.onChunkLoaded?.();
     } catch {
       // A failed read leaves the rows blank for this session; the grid shows

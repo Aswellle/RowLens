@@ -143,3 +143,97 @@ describe('LazyDatasetStore', () => {
     expect(store.getColumns()).toEqual(COLUMNS);
   });
 });
+
+describe('LazyDatasetStore eviction', () => {
+  it('keeps at most the configured number of chunks', async () => {
+    const { load } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 4);
+
+    // Walk the file chunk by chunk, as scrolling does.
+    for (let chunk = 0; chunk < 12; chunk += 1) {
+      store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 20);
+      await tick();
+    }
+    expect(store.loadedChunkCount).toBeLessThanOrEqual(4);
+  });
+
+  it('drops the least recently used chunk, not the newest', async () => {
+    const { load } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 3);
+
+    for (let chunk = 0; chunk < 3; chunk += 1) {
+      store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 1);
+      await tick();
+    }
+    // Re-read chunk 0 so it becomes the most recent, then load a fourth.
+    store.ensureRows(0, 1);
+    await tick();
+    store.ensureRows(3 * STORE_CHUNK_ROWS, 3 * STORE_CHUNK_ROWS + 1);
+    await tick();
+
+    expect(store.loadedChunkCount).toBe(3);
+    // Chunk 0 survived because it was touched; chunk 1 is the oldest now.
+    expect(store.hasRow(0)).toBe(true);
+    expect(store.hasRow(3 * STORE_CHUNK_ROWS)).toBe(true);
+    expect(store.hasRow(1 * STORE_CHUNK_ROWS)).toBe(false);
+  });
+
+  it('never evicts the window the grid is currently rendering', async () => {
+    const { load } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 2);
+
+    // Scrolling moves the pin: only the window reported last is protected,
+    // because the previous one is no longer on screen.
+    for (let chunk = 5; chunk < 12; chunk += 1) {
+      store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 1);
+      await tick();
+      // The window just asked for is always present.
+      expect(store.hasRow(chunk * STORE_CHUNK_ROWS)).toBe(true);
+      expect(store.loadedChunkCount).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('protects every chunk of a window wider than the cap', async () => {
+    const { load } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 2);
+
+    // A window spanning three chunks is pinned as a whole; eviction must not
+    // take one of them just because the cap is smaller.
+    store.ensureRows(0, 1200);
+    await tick();
+    expect(store.loadedChunkCount).toBe(3);
+    expect(store.hasRow(0)).toBe(true);
+    expect(store.hasRow(600)).toBe(true);
+    expect(store.hasRow(1100)).toBe(true);
+  });
+
+  it('allows a window larger than the cap rather than blanking the screen', async () => {
+    const { load } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 1);
+
+    // A window spanning three chunks is pinned as a whole.
+    store.ensureRows(0, 1200);
+    await tick();
+    expect(store.loadedChunkCount).toBe(3);
+    expect(store.getCell(1100, 0)).toBe('r1100');
+  });
+
+  it('reloads an evicted chunk when it is read again', async () => {
+    const { load, calls } = loaderFor(100_000);
+    const store = new LazyDatasetStore(COLUMNS, 100_000, load, undefined, 2);
+
+    store.ensureRows(0, 1);
+    await tick();
+    for (let chunk = 1; chunk < 4; chunk += 1) {
+      store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 1);
+      await tick();
+    }
+    expect(store.hasRow(0)).toBe(false);
+
+    store.ensureRows(0, 1);
+    await tick();
+    expect(store.getCell(0, 0)).toBe('r0');
+    // It was fetched twice: the eviction did not corrupt the cache.
+    expect(calls.filter(([offset]) => offset === 0)).toHaveLength(2);
+  });
+});
