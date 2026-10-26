@@ -55,6 +55,11 @@ export type GridColumn = {
 export type GridSort = {
   columnIndex: number;
   direction: SortDirection;
+  /**
+   * Explicit "treat values as numbers" mode (ADR-035). Never inferred: the
+   * toggle in the sorted column's header is the only thing that sets it.
+   */
+  numeric: boolean;
 };
 
 /** A committed cell edit, in view coordinates plus the underlying value. */
@@ -754,9 +759,9 @@ export function DataGrid({
               type="button"
               onClick={() => {
                 if (!isSorted) {
-                  onSortChange({ columnIndex, direction: 'asc' });
+                  onSortChange({ columnIndex, direction: 'asc', numeric: false });
                 } else if (sort.direction === 'asc') {
-                  onSortChange({ columnIndex, direction: 'desc' });
+                  onSortChange({ columnIndex, direction: 'desc', numeric: sort.numeric });
                 } else {
                   onSortChange(null);
                 }
@@ -768,6 +773,24 @@ export function DataGrid({
                 {arrow}
               </span>
             </button>
+            {isSorted && (
+              <button
+                type="button"
+                className="grid-sort-numeric"
+                aria-pressed={sort.numeric}
+                aria-label={`Treat ${column.label} values as numbers`}
+                title="Treat values as numbers when sorting"
+                onClick={() =>
+                  onSortChange({
+                    columnIndex,
+                    direction: sort.direction,
+                    numeric: !sort.numeric,
+                  })
+                }
+              >
+                123
+              </button>
+            )}
           </div>
         );
       }),
@@ -789,7 +812,7 @@ export function DataGrid({
         onCopy={onGridCopy}
         onPaste={onGridPaste}
       >
-        <div role="rowgroup" className="grid-table">
+        <div role="rowgroup" className="grid-table grid-head">
           <div role="row" style={{ display: 'flex', minWidth: 'max-content' }}>
             <div role="columnheader" aria-label="Record number" style={{ width: ROW_NUM_WIDTH }} />
             {headerCells}

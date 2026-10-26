@@ -72,7 +72,7 @@ describe('DataGrid', () => {
 
   it('exposes ascending/descending/none sort state via aria-sort', async () => {
     const user = userEvent.setup();
-    let sort: { columnIndex: number; direction: 'asc' | 'desc' } | null = null;
+    let sort: { columnIndex: number; direction: 'asc' | 'desc'; numeric: boolean } | null = null;
     const { rerender } = render(
       <DataGrid
         columns={columns}
@@ -116,6 +116,64 @@ describe('DataGrid', () => {
     await user.click(screen.getByRole('button', { name: 'Sort by Name' }));
     applySort();
     expect(nameHeader).toHaveAttribute('aria-sort', 'none');
+  });
+
+  it('offers the numeric toggle only while its column is sorted', async () => {
+    const user = userEvent.setup();
+    let sort: { columnIndex: number; direction: 'asc' | 'desc'; numeric: boolean } | null = null;
+    const { rerender } = render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={sort}
+        onSortChange={(next) => {
+          sort = next;
+        }}
+      />,
+    );
+    const applySort = () =>
+      rerender(
+        <DataGrid
+          columns={columns}
+          totalRowCount={4}
+          visibleIndices={[0, 1, 2, 3]}
+          valueAt={valueAt}
+          recordLabel={(i) => `Record ${i + 1}`}
+          sort={sort}
+          onSortChange={(next) => {
+            sort = next;
+          }}
+        />,
+      );
+
+    expect(
+      screen.queryByRole('button', { name: 'Treat Name values as numbers' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Sort by Name' }));
+    applySort();
+    const toggle = screen.getByRole('button', { name: 'Treat Name values as numbers' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    // The other column has no toggle.
+    expect(
+      screen.queryByRole('button', { name: 'Treat City values as numbers' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(toggle);
+    applySort();
+    expect(sort).toEqual({ columnIndex: 0, direction: 'asc', numeric: true });
+    expect(screen.getByRole('button', { name: 'Treat Name values as numbers' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    // Cycling the direction keeps the numeric mode.
+    await user.click(screen.getByRole('button', { name: 'Sort by Name' }));
+    applySort();
+    expect(sort).toEqual({ columnIndex: 0, direction: 'desc', numeric: true });
   });
 
   it('gives every column header a keyboard-reachable sort button', () => {
