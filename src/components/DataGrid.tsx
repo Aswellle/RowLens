@@ -12,7 +12,7 @@
  * sort state is exposed via aria-sort on the sorted column header.
  */
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RowIndex } from '../features/dataset/types';
 import type { SortDirection } from '../features/query/types';
 
@@ -80,6 +80,81 @@ export function DataGrid({
 
   const virtualRows = virtualizer.getVirtualItems();
 
+  /**
+   * Roving focus position over the *visible window* (row position, column
+   * index). Arrow keys move it, Home/End jump within a row, PageUp/PageDown
+   * by a screenful; the virtualizer scrolls the target row into view so the
+   * focused cell always exists in the DOM.
+   */
+  const [focusPos, setFocusPos] = useState<{ row: number; column: number }>({
+    row: 0,
+    column: 0,
+  });
+  const rowCount = visibleIndices.length;
+  const columnCount = columns.length;
+  const clampedFocus = {
+    row: Math.max(0, Math.min(focusPos.row, Math.max(0, rowCount - 1))),
+    column: Math.max(0, Math.min(focusPos.column, Math.max(0, columnCount - 1))),
+  };
+
+  /** Set when a keyboard move should focus the cell after the next render. */
+  const pendingFocusRef = useRef(false);
+
+  const moveFocus = (row: number, column: number): void => {
+    const nextRow = Math.max(0, Math.min(row, Math.max(0, rowCount - 1)));
+    const nextColumn = Math.max(0, Math.min(column, Math.max(0, columnCount - 1)));
+    if (nextRow === clampedFocus.row && nextColumn === clampedFocus.column) return;
+    pendingFocusRef.current = true;
+    setFocusPos({ row: nextRow, column: nextColumn });
+    virtualizer.scrollToIndex(nextRow, { align: 'auto' });
+  };
+
+  // Focus the roving cell once it exists in the rendered window.
+  useEffect(() => {
+    if (!pendingFocusRef.current) return;
+    const cell = scrollRef.current?.querySelector<HTMLElement>(
+      `[data-cell="${clampedFocus.row}-${clampedFocus.column}"]`,
+    );
+    if (cell) {
+      pendingFocusRef.current = false;
+      cell.focus();
+    }
+  });
+
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    const { row, column } = clampedFocus;
+    const page = Math.max(1, Math.floor((scrollRef.current?.clientHeight ?? 360) / 36) - 1);
+    switch (event.key) {
+      case 'ArrowDown':
+        moveFocus(row + 1, column);
+        break;
+      case 'ArrowUp':
+        moveFocus(row - 1, column);
+        break;
+      case 'ArrowRight':
+        moveFocus(row, column + 1);
+        break;
+      case 'ArrowLeft':
+        moveFocus(row, column - 1);
+        break;
+      case 'Home':
+        moveFocus(row, 0);
+        break;
+      case 'End':
+        moveFocus(row, columnCount - 1);
+        break;
+      case 'PageDown':
+        moveFocus(row + page, column);
+        break;
+      case 'PageUp':
+        moveFocus(row - page, column);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+  };
+
   const headerCells = useMemo(
     () =>
       columns.map((column, columnIndex) => {
@@ -131,6 +206,7 @@ export function DataGrid({
         aria-rowcount={totalRowCount}
         aria-colcount={columns.length + 1}
         tabIndex={0}
+        onKeyDown={onGridKeyDown}
       >
         <div role="rowgroup" className="grid-table">
           <div role="row" style={{ display: 'flex', minWidth: 'max-content' }}>
@@ -173,9 +249,26 @@ export function DataGrid({
                     <div
                       key={column.id}
                       role="gridcell"
+                      data-cell={`${virtualRow.index}-${columnIndex}`}
+                      tabIndex={
+                        virtualRow.index === clampedFocus.row && columnIndex === clampedFocus.column
+                          ? 0
+                          : -1
+                      }
                       className="grid-cell"
                       style={{ width: column.width }}
                       title={valueAt(rowIndex, columnIndex) ?? undefined}
+                      onMouseDown={(event) => {
+                        if (
+                          virtualRow.index !== clampedFocus.row ||
+                          columnIndex !== clampedFocus.column
+                        ) {
+                          setFocusPos({ row: virtualRow.index, column: columnIndex });
+                        }
+                        // Take focus synchronously: the grid container is also
+                        // focusable and would otherwise swallow the click.
+                        event.currentTarget.focus();
+                      }}
                     >
                       <span className="grid-cell__text truncate">{cellValue}</span>
                       <button

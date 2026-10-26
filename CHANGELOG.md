@@ -69,6 +69,12 @@ clean → export, entirely in the browser.
 - **Viewport coverage**: automated layout checks at 360/768/1280/1440 px
   (internal grid scrolling, no page-level horizontal overflow on narrow
   screens, feature buttons reachable).
+- **Keyboard grid navigation**: arrow keys, Home/End and PageUp/PageDown move
+  focus cell-by-cell with a roving tabindex (one tabbable cell), scrolling the
+  virtualized window as needed; clicking a cell makes it the focus target.
+- **Fixed**: cancelling a query left the busy marker and Cancel button on
+  screen permanently — the cancelled outcome now clears busy while preserving
+  the previous view (regression test in `reduce-outcome.test.ts`).
 
 ### Known limitations
 

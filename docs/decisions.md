@@ -199,3 +199,17 @@ Papa 许可证头在 bundle 中被换行拆分导致上下文正则不命中；�
 仍受 100 MiB 导入上限约束）。同时交付：查询取消按钮（StatusLine busy 时
 可取消，引擎批次间生效）、单元格 Copy 按钮（Clipboard API + 非安全上下文
 execCommand 回退，hover/键盘可达）、360–1440px 四档视口 E2E。
+
+## ADR-023：网格 roving tabindex 与查询结果归约纯函数
+
+（2026-10-26）网格采用 roving tabindex：任一时刻恰有一个单元格可 Tab 到达，
+方向键/Home/End/PageUp/PageDown 在可见窗口内移动焦点并经
+`scrollToIndex` 把目标行滚入虚拟窗口，点击单元格同步接管焦点（否则
+tabIndex=0 的 grid 容器会吞掉点击焦点）。行表头（记录号）暂不在漫游范围内，
+已在 README 记录。
+
+同时把查询结果到视图状态的映射抽成纯函数 `reduceQueryOutcome`：此前
+cancelled 分支直接返回原状态，`queryBusy` 永不清除——**取消后 Cancel 按钮
+会永久滞留**（真实缺陷，基准与手测均未覆盖，新增回归测试锁定）。归约函数
+统一 done/limit/failed/cancelled/superseded 五态规则并保持 superseded 时
+引用不变以避免无谓重渲染。

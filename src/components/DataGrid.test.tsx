@@ -134,4 +134,42 @@ describe('DataGrid', () => {
     expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInstanceOf(HTMLButtonElement);
     expect(screen.getByRole('button', { name: 'Sort by City' })).toBeInstanceOf(HTMLButtonElement);
   });
+  it('moves focus with arrow keys, Home and End (roving tabindex)', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataGrid
+        columns={columns}
+        totalRowCount={4}
+        visibleIndices={[0, 1, 2, 3]}
+        valueAt={valueAt}
+        recordLabel={(i) => `Record ${i + 1}`}
+        sort={null}
+        onSortChange={() => {}}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+
+    // Exactly one cell is tabbable at a time (roving tabindex).
+    expect(grid.querySelectorAll('[data-cell][tabindex="0"]')).toHaveLength(1);
+    expect(cell(0, 0)?.tabIndex).toBe(0);
+
+    cell(0, 0)?.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(cell(0, 1)).toHaveFocus();
+    await user.keyboard('{ArrowDown}');
+    expect(cell(1, 1)).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(cell(1, columns.length - 1)).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(cell(1, 0)).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(cell(1, 0)).toHaveFocus(); // clamped at the first column
+    await user.keyboard('{ArrowUp}{ArrowUp}');
+    expect(cell(0, 0)).toHaveFocus(); // clamped at the first row
+    // Only the focused cell is tabbable after moving.
+    expect(grid.querySelectorAll('[data-cell][tabindex="0"]')).toHaveLength(1);
+  });
 });

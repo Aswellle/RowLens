@@ -50,7 +50,8 @@
   证据：`e2e/viewport.spec.ts` 四档尺寸断言（搜索/计数可达、网格内滚、
   窄屏无页面级横向溢出、More 菜单、Export 可达）。
 - [x] 仅用键盘完成核心路径；焦点环可见；对比度检查通过。
-  证据：`e2e/app.spec.ts` 键盘全流程；axe WCAG AA 扫描零 critical/serious。
+  证据：`e2e/app.spec.ts` 键盘全流程；`e2e/keyboard.spec.ts` 网格内方向键/
+  Home/End/PageDown 导航与 roving tabindex；axe WCAG AA 扫描零 critical/serious。
 - [x] 无未使用的大型依赖（同上）；图标为内联 SVG/favicon。
 
 ## 清洗与导出

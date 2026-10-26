@@ -72,6 +72,8 @@ Playwright browser job (`.github/workflows/ci.yml`).
 - Memory holds a write-through mirror of the dataset (~6.5× file size at the
   95 MiB benchmark); bounded by the 100 MiB import cap but heavy on low-RAM
   devices.
+- Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown and a
+  roving tabindex; the row header is not yet reachable by keyboard.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via
