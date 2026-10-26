@@ -36,7 +36,8 @@ view and Ctrl/Cmd+C copies the range as tab-separated text.
 
 Cells are editable in place: Enter, F2, a double-click or just typing opens an
 editor, Enter/Tab commits, Escape cancels, and Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z
-step back and forth. Edits are an **in-memory overlay** — the imported rows,
+step back and forth. Pasting tab-separated text fills cells from the active
+cell (or tiles the block across a larger selection) as one undoable action. Edits are an **in-memory overlay** — the imported rows,
 the IndexedDB copy and the source file are never rewritten, search and sort see
 the edited values, exports write them, and reloading the page returns to the
 imported data. Up to 5,000 cells can be edited at once.
@@ -91,8 +92,9 @@ Playwright browser job (`.github/workflows/ci.yml`).
   There is no multi-range (Ctrl+click) selection.
 - Cell edits live in memory only: they are not written back to the imported
   rows or to IndexedDB, and reloading the page discards them. Editing is
-  capped at 5,000 cells, there is no paste-a-block-into-cells, and edits are
-  not part of the undo history for cleaning steps.
+  capped at 5,000 cells, and edits are not part of the undo history for
+  cleaning steps. A paste that would run past the last visible row or column
+  is clipped and reported instead of writing to hidden records.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via

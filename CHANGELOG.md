@@ -89,6 +89,11 @@ clean → export, entirely in the browser.
   the source file are never rewritten, search/filter/sort run against the
   edited values, exports write them, and reloading discards them. Editing is
   capped at 5,000 cells with an explanation instead of a silent drop.
+- **Block paste**: pasting tab-separated text (quoted fields with tabs and
+  newlines included) fills cells from the active cell, or tiles the block to
+  fill a larger selection. One paste is one undo entry. Anything that would
+  land outside the visible rows or columns is clipped and reported rather
+  than written to records you cannot see.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).
