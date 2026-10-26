@@ -83,6 +83,7 @@ import {
   type QueryRequestSpec,
   type QueryRun,
 } from './features/query/client';
+import type { SelectionBounds } from './features/grid/selection';
 import { parseSearchQuery } from './features/query/search';
 import {
   deserializeView,
@@ -253,12 +254,26 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     open: boolean;
     busy: boolean;
     error: string | null;
+    /** Size of the grid selection at open time; null when it is a single cell. */
+    selection: { rows: number; columns: number } | null;
   }>({
     open: false,
     busy: false,
     error: null,
+    selection: null,
   });
   const exportCancelRef = useRef<{ aborted: boolean } | null>(null);
+  /**
+   * The selection captured when the export dialog opened: dataset row indices
+   * in view order plus the selected dataset column indexes. A snapshot, not a
+   * live mapping — a query finishing under the modal must not silently change
+   * what an export writes (ADR-036).
+   */
+  const selectionSnapshotRef = useRef<{ rowIndices: number[]; columnIndexes: number[] } | null>(
+    null,
+  );
+  /** Latest grid selection bounds, kept without re-rendering on every drag frame. */
+  const selectionBoundsRef = useRef<SelectionBounds | null>(null);
   const sampleRef = useRef<SampleDataset | null>(null);
   /** Set once startup restoration ran, so it never fights a user action. */
   const restoreAttemptedRef = useRef(false);
@@ -1174,6 +1189,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const exportIndices = useCallback(
     (scope: ExportScope): number[] => {
       if (view.kind !== 'ready') return [];
+      if (scope === 'selection') return selectionSnapshotRef.current?.rowIndices ?? [];
       return scope === 'filtered'
         ? view.rowIndices
         : Array.from({ length: view.data.meta.rowCount }, (_, i) => i);
@@ -1186,10 +1202,14 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       if (view.kind !== 'ready') return 0;
       const { store, meta } = view.data;
       const indices = exportIndices(scope);
-      if (indices.length * meta.columns.length > 3_000_000) return -1;
+      const columnIndexes =
+        scope === 'selection'
+          ? (selectionSnapshotRef.current?.columnIndexes ?? [])
+          : meta.columns.map((_, index) => index);
+      if (indices.length * columnIndexes.length > 3_000_000) return -1;
       let count = 0;
       for (const rowIndex of indices) {
-        for (let columnIndex = 0; columnIndex < meta.columns.length; columnIndex++) {
+        for (const columnIndex of columnIndexes) {
           // The estimate must describe what will actually be written, so an
           // edited cell counts with its edited value.
           const stored = store.getCell(rowIndex, columnIndex);
@@ -1206,12 +1226,39 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     [view, exportIndices],
   );
 
+  /**
+   * Opens the export dialog with a snapshot of the current selection. A single
+   * focused cell offers no Selected-range scope — extracting one cell is what
+   * the cell Copy button is for.
+   */
+  const openExportDialog = useCallback(() => {
+    if (view.kind !== 'ready') return;
+    const bounds = selectionBoundsRef.current;
+    const columns = bounds === null ? 1 : bounds.right - bounds.left + 1;
+    const rows = bounds === null ? 1 : bounds.bottom - bounds.top + 1;
+    const isRange = bounds !== null && (rows > 1 || columns > 1);
+    if (isRange) {
+      selectionSnapshotRef.current = {
+        rowIndices: view.rowIndices.slice(bounds.top, bounds.bottom + 1),
+        columnIndexes: effectiveDatasetIndexes.slice(bounds.left, bounds.right + 1),
+      };
+    } else {
+      selectionSnapshotRef.current = null;
+    }
+    setExportState((current) => ({
+      ...current,
+      open: true,
+      error: null,
+      selection: isRange ? { rows, columns } : null,
+    }));
+  }, [view, effectiveDatasetIndexes]);
+
   const handleExportConfirm = useCallback(
     async (request: ExportRequest) => {
       if (view.kind !== 'ready') return;
       const cancelFlag = { aborted: false };
       exportCancelRef.current = cancelFlag;
-      setExportState({ open: true, busy: true, error: null });
+      setExportState((current) => ({ ...current, open: true, busy: true, error: null }));
 
       const { store, meta } = view.data;
       // Captured for the row generator: narrowing does not survive into a
@@ -1221,7 +1268,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const transform = view.cleaningSteps.length
         ? createCleaningTransform(view.cleaningSteps, allColumnIds)
         : null;
-      const columnIndexes = view.kind === 'ready' ? effectiveDatasetIndexes : ([] as number[]);
+      const columnIndexes =
+        request.scope === 'selection'
+          ? (selectionSnapshotRef.current?.columnIndexes ?? [])
+          : view.kind === 'ready'
+            ? effectiveDatasetIndexes
+            : ([] as number[]);
       const exportIds = columnIndexes.map((index) => allColumnIds[index]!);
       const indices = exportIndices(request.scope);
 
@@ -1253,11 +1305,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           isCancelled: () => cancelFlag.aborted,
         });
         if (result.status === 'cancelled') {
-          setExportState({ open: false, busy: false, error: null });
+          setExportState({ open: false, busy: false, error: null, selection: null });
           setNotice({ variant: 'info', message: 'Export cancelled.' });
           return;
         }
-        setExportState({ open: false, busy: false, error: null });
+        setExportState({ open: false, busy: false, error: null, selection: null });
         setNotice({
           variant: 'success',
           message: `${result.stats.rows.toLocaleString('en-US')} rows exported${
@@ -1269,10 +1321,15 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       } catch (error) {
         const appError = toAppError(error) as AppError;
         if (appError.code === 'EXPORT_CANCELLED') {
-          setExportState({ open: false, busy: false, error: null });
+          setExportState({ open: false, busy: false, error: null, selection: null });
           return; // save picker dismissed, nothing to report
         }
-        setExportState({ open: true, busy: false, error: appError.message });
+        setExportState((current) => ({
+          ...current,
+          open: true,
+          busy: false,
+          error: appError.message,
+        }));
       } finally {
         exportCancelRef.current = null;
       }
@@ -1444,7 +1501,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   : [...view.hiddenColumns, columnId],
               })
             }
-            onExport={() => setExportState((current) => ({ ...current, open: true, error: null }))}
+            onExport={openExportDialog}
           />
           {exportState.open && (
             <ExportDialog
@@ -1453,6 +1510,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               totalCount={view.data.meta.rowCount}
               exportColumnCount={effectiveDatasetIndexes.length}
               totalColumnCount={view.data.meta.columns.length}
+              selection={exportState.selection}
               countRiskCells={countRiskCells}
               busy={exportState.busy}
               error={exportState.error}
@@ -1462,7 +1520,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   if (exportCancelRef.current) exportCancelRef.current.aborted = true;
                   return;
                 }
-                setExportState({ open: false, busy: false, error: null });
+                setExportState({ open: false, busy: false, error: null, selection: null });
               }}
             />
           )}
@@ -1566,6 +1624,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   // and fight the user), and warmRows prefetches the rows
                   // about to be scrolled into view.
                   dataVersion={chunkRevision}
+                  onSelectionBoundsChange={(bounds) => {
+                    selectionBoundsRef.current = bounds;
+                  }}
                   {...(lazyStoreRef.current === null
                     ? {}
                     : {

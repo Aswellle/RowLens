@@ -1098,3 +1098,62 @@ describe('App preset files', () => {
     expect(screen.getByRole('button', { name: 'Apply preset: Untouched' })).toBeVisible();
   }, 40_000);
 });
+
+/**
+ * Exporting the selected rectangle (ADR-036): the dialog offers the
+ * Selected-range scope exactly when the grid holds a multi-cell selection, and
+ * confirming it exports that rectangle through the normal streaming path.
+ */
+describe('App export selection', () => {
+  beforeEach(async () => {
+    window.localStorage.clear();
+    const repository = await DatasetRepository.open();
+    await repository.deletePresets();
+  });
+
+  it('exports the selected range and reports its row count', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard('{Escape}');
+    await user.keyboard('{Shift>}{ArrowRight}{/Shift}');
+    await user.keyboard('{Shift>}{ArrowDown}{/Shift}');
+    expect(screen.getByText('2 × 2 selected')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+    const dialog = screen.getByRole('dialog', { name: 'Export CSV' });
+    expect(within(dialog).getByText(/Selected range \(2 rows × 2 columns\)/)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/Selected range/)).toBeChecked();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Export CSV' }));
+    await waitFor(() => expect(screen.getByText(/2 rows exported/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+  }, 40_000);
+
+  it('offers no selection scope for a single focused cell', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={60} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard('{Escape}');
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+    const dialog = screen.getByRole('dialog', { name: 'Export CSV' });
+    expect(within(dialog).queryByText(/Selected range/)).not.toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^Filtered rows/)).toBeChecked();
+  }, 40_000);
+});
