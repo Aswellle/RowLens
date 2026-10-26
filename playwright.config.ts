@@ -16,6 +16,22 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4173',
     trace: 'retain-on-failure',
     ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
+    /**
+     * Session restore makes a page load open the last dataset instead of the
+     * empty state. Most tests assert a state reached from a clean start, so a
+     * leftover pointer from an earlier test in the same worker would silently
+     * change their starting point. Clearing it here keeps every test
+     * independent; the restore tests set the pointer themselves.
+     */
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: 'http://127.0.0.1:4173',
+          localStorage: [],
+        },
+      ],
+    },
   },
   webServer: {
     // Bind IPv4 loopback explicitly: default binding may resolve to IPv6-only

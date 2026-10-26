@@ -329,3 +329,22 @@ test('evicted chunks reload correctly when the user scrolls back', async ({ page
   // And the far end still resolves.
   await jumpTo(59_000);
 });
+
+test('the cleaning pipeline survives a reload with the dataset', async ({ page }) => {
+  await loadSample(page);
+  await page.getByRole('button', { name: '+ Remove duplicates' }).click();
+  await expect(page.getByText(/rows? removed/)).toBeVisible({ timeout: 20_000 });
+  // The step name and the "+ Remove duplicates" button share their text.
+  await expect(page.getByText('Remove duplicates', { exact: true })).toBeVisible();
+
+  // Let the debounced pipeline write land, then reload.
+  await page.waitForTimeout(1_000);
+  await page.reload();
+
+  // The dataset reopens with its pipeline already applied, not just listed.
+  await expect(page.getByText('Remove duplicates', { exact: true })).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(page.getByText(/rows? removed/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/Restored your previous session with 1 cleaning step/)).toBeVisible();
+});

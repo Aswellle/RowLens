@@ -254,3 +254,27 @@ test('an oversized selection is refused with an explanation, not truncated', asy
   // The selection survives so the user can narrow it instead of starting over.
   await expect(page.getByText('400 × 300 selected')).toBeVisible();
 });
+
+test('a fast key burst does not drop the last move', async ({ page }) => {
+  await loadSample(page);
+  const cell = (row: number, column: number) => page.locator(`[data-cell="${row}-${column}"]`);
+
+  await expect(async () => {
+    await cell(0, 0).locator('.grid-cell__text').click();
+    await expect(cell(0, 0)).toBeFocused({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+
+  // Keys pressed faster than React commits. Handlers must read the position
+  // the previous press wrote, not the last rendered one; reading state used to
+  // drop the final move under load.
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('End');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowUp');
+
+  // Right, down, End, Home, up from (0,0) ends at (0,0); the row must be back
+  // at the top rather than stuck on row 1.
+  await expect(cell(0, 0)).toBeFocused();
+  await expect(cell(1, 0)).not.toBeFocused();
+});
