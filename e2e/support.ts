@@ -15,15 +15,14 @@ import type { Page } from '@playwright/test';
  */
 export const SAMPLE_READY = '5,000 of 5,000 rows match';
 
-/** Clears the session pointer and IndexedDB so the next visit starts empty. */
+/**
+ * Clears the session pointer and IndexedDB so the next visit starts empty.
+ *
+ * The pointer is cleared by evaluating in the page *after* navigating, not by
+ * `addInitScript`: an init script would re-run on every later navigation and
+ * silently wipe the pointer on the reload a restore test depends on.
+ */
 export async function resetSession(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    try {
-      window.localStorage.removeItem('rowlens:last-dataset');
-    } catch {
-      // Storage may be blocked; the empty state is the fallback anyway.
-    }
-  });
   await page.goto('/');
   await page.evaluate(async () => {
     try {
