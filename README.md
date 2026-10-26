@@ -86,9 +86,14 @@ Playwright browser job (`.github/workflows/ci.yml`).
   repeat searches much faster than the first (measured in
   [docs/performance-results.md](docs/performance-results.md)): P2 repeat
   ~2.6 s vs ~10–17 s before, P3 first search ~35 s (was ~65 s).
-- Memory holds a write-through mirror of the dataset (~6.5× file size at the
-  95 MiB benchmark); bounded by the 100 MiB import cap but heavy on low-RAM
-  devices.
+- Memory holds a write-through mirror of the dataset during import (~6.5×
+  file size at the 95 MiB benchmark); bounded by the 100 MiB import cap but
+  heavy on low-RAM devices. A restored dataset is read on demand in 500-row
+  chunks, so memory grows with what you look at rather than with the file.
+- Restoring reads chunks as you scroll; a chunk that has not arrived yet shows
+  blank cells for a frame. Scrolling to a row always triggers its chunk, so a
+  blank is transient, but a read failure leaves that region blank for the
+  session.
 - Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown, the record
   header and rectangular range selection (Shift+arrows, drag with edge
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are

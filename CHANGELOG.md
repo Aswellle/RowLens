@@ -100,6 +100,11 @@ clean → export, entirely in the browser.
   are still never rewritten — removing a dataset deletes its edits with it,
   and a reloaded session starts without undo history, so `Reset edits` is the
   way back to the imported values.
+- **Faster reload**: a restored dataset is read from IndexedDB in 500-row
+  chunks on demand instead of all at once, so reopening no longer waits on
+  transactions for rows the grid will never show. Measured restore time went
+  from 1.0/2.7/6.9 s to 0.28/0.39/0.38 s at 20k/100k/250k rows — flat in
+  dataset size (`docs/performance-results.md`).
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).

@@ -73,6 +73,11 @@
   编辑不动行、`deleteDataset` 一并级联删除；`repository.test.ts` 两个 store
   的独立性用例；`e2e/editing.spec.ts` 刷新后编辑恢复且 Reset edits 回到导
   入值。
+- [x] 刷新恢复耗时不随数据量增长。
+  证据：`e2e/bench/restore.spec.ts`（PERF=1）P1/P2/P3 恢复 282/394/381ms，
+  优化前为 1,045/2,691/6,931ms；`lazy-store.test.ts` 覆盖按需分块、不重复
+  加载、越界不触发、失败重试、dispose；`e2e/editing.spec.ts` 恢复后滚到末行
+  仍显示 T-05000 且首列无空白。
 - [x] 编辑跨刷新保留，且不伪造撤销历史。
   证据：`persist.test.ts` 序列化往返与坏元组逐条丢弃；App 会话恢复用例
   （重新挂载后恢复数据集与编辑、移除后不再恢复、指针失效回退空态）；

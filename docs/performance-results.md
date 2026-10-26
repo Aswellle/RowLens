@@ -65,6 +65,26 @@
 专项对比用例：`e2e/bench/search-cache.spec.ts`（PERF=1，P2 连续两次相同
 搜索，断言结果一致）。导入/排序/导出数值与首测一致（波动属正常噪声）。
 
+## 启动恢复优化复测（2026-10-26 追加）
+
+编辑持久化后，刷新会重建内存 store。首次实现按 500 行窗口逐次读取整份数据
+（250k 行 = 500 次事务），实测：
+
+| 配置 | 行×列 | 恢复(ms，逐窗全量) | 恢复(ms，按需分块) | 提速 |
+|---|---|---|---|---|
+| P1 | 20,000×20 | 1,045 | **282** | 3.7× |
+| P2 | 100,000×30 | 2,691 | **394** | 6.8× |
+| P3 | 250,000×40 | 6,931 | **381** | 18.2× |
+
+方法：`e2e/bench/restore.spec.ts`（PERF=1）。导入 → 等待会话写入落盘 →
+`page.reload()` → 等到状态行显示全量计数且首个单元格可见，用 epoch 时间计
+（`performance.now()` 在重载后归零，不可用于跨文档计时）。同一份 `.bench`
+夹具、同机、同浏览器。
+
+**结论**：恢复耗时不再随数据量增长（282/394/381 ms），因为只读网格实际需要
+的 500 行分块。优化前 P3 的 6.9s 里绝大部分是它永远不会渲染的 249,500 行。
+数据量越大收益越大，这正是分块懒加载与"先读全部"的本质差别。
+
 ## 与验收目标对照（测试文档 §4）
 
 - P2 不出现 UI 长时间冻结、任务可取消：导入/查询均在 worker；查询自动
@@ -83,6 +103,8 @@
 
 ```bash
 npm run build
-PERF=1 npx playwright test e2e/performance.spec.ts   # 本机 Chromium 系
+PERF=1 npx playwright test e2e/performance.spec.ts   # 导入/查询/排序/导出
+PERF=1 npx playwright test e2e/bench/restore.spec.ts # 启动恢复
+PERF=1 npx playwright test e2e/bench/search-cache.spec.ts  # 搜索缓存专项
 # 结果输出至 test-results/bench/results.json 与控制台表格
 ```
