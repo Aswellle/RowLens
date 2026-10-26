@@ -12,7 +12,7 @@ import { AppError, toAppError } from './app/app-error';
 import { reduceQueryOutcome } from './features/query/reduce-outcome';
 import { AppHeader } from './components/AppHeader';
 import { CleaningPanel } from './components/CleaningPanel';
-import { DataGrid, type GridSort } from './components/DataGrid';
+import { DataGrid, type GridCellEdit, type GridSort } from './components/DataGrid';
 import { DropZone } from './components/DropZone';
 import { EmptyState } from './components/EmptyState';
 import { FileInfoBar } from './components/FileInfoBar';
@@ -45,6 +45,22 @@ import { trimmedColumnSet } from './features/cleaning/display';
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
 import { runExport } from './features/export/run';
 import type { ExportScope } from './features/export/types';
+import {
+  MAX_EDITS,
+  applyEdits,
+  canRedo,
+  canUndo,
+  clearEdits,
+  editCount,
+  editedValue,
+  emptyEditState,
+  overridesForQuery,
+  redoEdits,
+  undoEdits,
+  wouldExceedCap,
+  type EditInput,
+  type EditState,
+} from './features/editing/edits';
 import {
   QueryClient,
   createQueryWorkerTransport,
@@ -87,6 +103,8 @@ type View =
       stepSummaries: StepSummary[];
       rowIndices: number[];
       queryBusy: boolean;
+      /** In-memory cell edits; the stored rows are never modified. */
+      edits: EditState;
     };
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -257,6 +275,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             stepSummaries: [],
             rowIndices: [],
             queryBusy: true,
+            edits: emptyEditState(),
           });
           if (outcome.metadata.parseErrorCount > 0) {
             setNotice({
@@ -325,6 +344,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         stepSummaries: [],
         rowIndices: [],
         queryBusy: true,
+        edits: emptyEditState(),
       });
     } catch {
       setView({ kind: 'empty' });
@@ -367,6 +387,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}`
     : '';
   const cleaningKey = queryDeps ? JSON.stringify(queryDeps.cleaningSteps) : '';
+  // The revision, not the overlay itself: an edit bumps it, so edits re-run
+  // the query without the dep list holding a large Map.
+  const editsKey = queryDeps?.edits.revision ?? 0;
 
   useEffect(() => {
     if (view.kind !== 'ready') return;
@@ -388,6 +411,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         };
       }
       if (current.cleaningSteps.length > 0) spec.cleaning = current.cleaningSteps;
+      const overrides = overridesForQuery(current.edits);
+      if (overrides.length > 0) spec.edits = overrides;
       const run = runner.run(spec);
       activeQueryRef.current = run;
       const outcome: QueryOutcome = await run.done;
@@ -408,7 +433,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
-  }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, ensureQueryRunner]);
+  }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, editsKey, ensureQueryRunner]);
 
   const readyGridSort: GridSort | null = useMemo(() => {
     if (view.kind !== 'ready' || view.sort === null) return null;
@@ -556,7 +581,14 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       let count = 0;
       for (const rowIndex of indices) {
         for (let columnIndex = 0; columnIndex < meta.columns.length; columnIndex++) {
-          const cell = store.getCell(rowIndex, columnIndex);
+          // The estimate must describe what will actually be written, so an
+          // edited cell counts with its edited value.
+          const stored = store.getCell(rowIndex, columnIndex);
+          const columnId = meta.columns[columnIndex]?.id;
+          const cell =
+            columnId === undefined
+              ? stored
+              : (editedValue(view.edits, rowIndex, columnId) ?? stored);
           if (cell !== null && hasFormulaRisk(cell)) count += 1;
         }
       }
@@ -573,6 +605,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       setExportState({ open: true, busy: true, error: null });
 
       const { store, meta } = view.data;
+      // Captured for the row generator: narrowing does not survive into a
+      // nested function, and the export must read the same overlay.
+      const edits = view.edits;
       const allColumnIds = meta.columns.map((column) => column.id);
       const transform = view.cleaningSteps.length
         ? createCleaningTransform(view.cleaningSteps, allColumnIds)
@@ -585,7 +620,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         for (const rowIndex of indices) {
           const record: Record<string, string | null> = {};
           for (let d = 0; d < allColumnIds.length; d++) {
-            record[allColumnIds[d]!] = store.getCell(rowIndex, d);
+            const columnId = allColumnIds[d]!;
+            // Edits are part of the data the user sees, so exports include
+            // them; cleaning then runs on top of the edited values.
+            record[columnId] = editedValue(edits, rowIndex, columnId) ?? store.getCell(rowIndex, d);
           }
           const out = transform
             ? transform.process({ rowIndex, values: record })
@@ -637,6 +675,77 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const cancelQuery = useCallback(() => {
     activeQueryRef.current?.cancel();
   }, []);
+
+  /**
+   * Commit one cell edit into the overlay. Returns a refusal message when the
+   * overlay cap is reached, so the grid can explain instead of silently
+   * dropping the draft.
+   */
+  const editCell = useCallback(
+    (edit: GridCellEdit): string | null => {
+      const input: EditInput = {
+        rowIndex: edit.rowIndex,
+        columnId: edit.columnId,
+        displayed: edit.displayed,
+        stored: edit.stored,
+        after: edit.value,
+      };
+      let refusal: string | null = null;
+      patchReady((current) => {
+        if (wouldExceedCap(current.edits, [input])) {
+          refusal = `Cell edits are limited to ${MAX_EDITS.toLocaleString('en-US')} cells. Reset edits or use a cleaning step for bulk changes.`;
+          return current;
+        }
+        const edits = applyEdits(current.edits, [input]);
+        if (edits === current.edits) return current;
+        return { ...current, edits, queryBusy: true };
+      });
+      return refusal;
+    },
+    [patchReady],
+  );
+
+  const undoEdit = useCallback(() => {
+    patchReady((current) => {
+      const edits = undoEdits(current.edits);
+      return edits === current.edits ? current : { ...current, edits, queryBusy: true };
+    });
+  }, [patchReady]);
+
+  const redoEdit = useCallback(() => {
+    patchReady((current) => {
+      const edits = redoEdits(current.edits);
+      return edits === current.edits ? current : { ...current, edits, queryBusy: true };
+    });
+  }, [patchReady]);
+
+  const resetEdits = useCallback(() => {
+    patchReady((current) => {
+      const edits = clearEdits(current.edits);
+      return edits === current.edits ? current : { ...current, edits, queryBusy: true };
+    });
+  }, [patchReady]);
+
+  /**
+   * Undo/redo at the document level, so the shortcut works wherever focus is
+   * (grid, toolbar, after a click). Text fields keep their native undo: the
+   * handler bails out while the event target is an input or a textarea.
+   */
+  useEffect(() => {
+    if (view.kind !== 'ready') return;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      if (event.key.toLowerCase() !== 'z' && event.key.toLowerCase() !== 'y') return;
+      const target = event.target as HTMLElement | null;
+      if (target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+      const redo = event.key.toLowerCase() === 'y' || event.shiftKey;
+      event.preventDefault();
+      if (redo) redoEdit();
+      else undoEdit();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [view.kind, undoEdit, redoEdit]);
 
   const activeFilterCount =
     view.kind === 'ready'
@@ -753,6 +862,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             filterCount={activeFilterCount}
             busy={view.queryBusy}
             onCancelQuery={cancelQuery}
+            editedCount={editCount(view.edits)}
+            canUndoEdit={canUndo(view.edits)}
+            canRedoEdit={canRedo(view.edits)}
+            onUndoEdit={undoEdit}
+            onRedoEdit={redoEdit}
+            onResetEdits={resetEdits}
           />
           <div className="workspace">
             <CleaningPanel
@@ -783,13 +898,34 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   visibleIndices={view.rowIndices}
                   valueAt={(rowIndex, gridColumnIndex) => {
                     const datasetIndex = effectiveDatasetIndexes[gridColumnIndex] ?? -1;
-                    const raw = view.data.store.getCell(rowIndex, datasetIndex);
                     const columnId = view.data.meta.columns[datasetIndex]?.id;
+                    const stored = view.data.store.getCell(rowIndex, datasetIndex);
+                    // An edit replaces the stored value; trimming still applies
+                    // to it so the grid keeps showing what an export would.
+                    const raw =
+                      columnId === undefined
+                        ? stored
+                        : (editedValue(view.edits, rowIndex, columnId) ?? stored);
                     if (raw === null || columnId === undefined || !trimmedColumns.has(columnId)) {
                       return raw;
                     }
                     return raw.trim();
                   }}
+                  storedValueAt={(rowIndex, gridColumnIndex) =>
+                    view.data.store.getCell(
+                      rowIndex,
+                      effectiveDatasetIndexes[gridColumnIndex] ?? -1,
+                    )
+                  }
+                  isEdited={(rowIndex, gridColumnIndex) => {
+                    const columnId =
+                      view.data.meta.columns[effectiveDatasetIndexes[gridColumnIndex] ?? -1]?.id;
+                    return (
+                      columnId !== undefined &&
+                      editedValue(view.edits, rowIndex, columnId) !== undefined
+                    );
+                  }}
+                  onEditCell={editCell}
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
                   sort={readyGridSort}
                   onSortChange={(gridSort) =>

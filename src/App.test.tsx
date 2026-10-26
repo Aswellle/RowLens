@@ -160,3 +160,131 @@ describe('App shell (synthetic data)', () => {
     expect(document.querySelector('[title="  padded note  "]')).toBeNull();
   }, 20_000);
 });
+
+/**
+ * Cell editing through the real shell: the grid reports a commit, the overlay
+ * holds it, and everything downstream (query, counts, undo) follows.
+ */
+describe('App cell editing', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  async function loadReady(user: ReturnType<typeof userEvent.setup>) {
+    render(<App sampleSize={60} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+  }
+
+  it('edits a cell, marks it, and reflects the new value in the grid', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = grid.querySelector<HTMLElement>('[data-cell="0-0"]');
+    expect(cell).not.toBeNull();
+    const original = cell!.querySelector('.grid-cell__text')?.textContent ?? '';
+
+    cell!.focus();
+    await user.keyboard('{Enter}');
+    const editor = screen.getByRole('textbox', { name: /Edit Ticket in Record 1/ });
+    await user.clear(editor);
+    await user.type(editor, 'EDITED-1');
+    await user.keyboard('{Enter}');
+
+    await waitFor(() =>
+      expect(grid.querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent).toBe(
+        'EDITED-1',
+      ),
+    );
+    expect(grid.querySelector('[data-cell="0-0"]')).toHaveClass('grid-cell--edited');
+    expect(screen.getByText('1 cell edited')).toBeInTheDocument();
+    // The original text is no longer what the first record shows.
+    if (original !== 'EDITED-1') {
+      expect(grid.querySelector('[data-cell="0-0"]')?.textContent).not.toBe(original);
+    }
+  }, 30_000);
+
+  it('undoes and redoes an edit, and resets every edit at once', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = () => grid.querySelector<HTMLElement>('[data-cell="0-0"]');
+    const text = () => cell()?.querySelector('.grid-cell__text')?.textContent ?? '';
+    const before = text();
+
+    cell()?.focus();
+    await user.keyboard('{Enter}');
+    await user.clear(screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }));
+    await user.type(screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }), 'TEMP');
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(text()).toBe('TEMP'));
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(text()).toBe(before));
+    expect(screen.queryByText(/cell edited/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Redo' }));
+    await waitFor(() => expect(text()).toBe('TEMP'));
+
+    await user.click(screen.getByRole('button', { name: 'Reset edits' }));
+    await waitFor(() => expect(text()).toBe(before));
+    // Reset is itself undoable, so the edited value can come back.
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(text()).toBe('TEMP'));
+  }, 30_000);
+
+  it('finds an edited value through search', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.clear(screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }));
+    await user.type(
+      screen.getByRole('textbox', { name: /^Edit Ticket in Record 1/ }),
+      'zebra-unique-token',
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(grid.querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent).toBe(
+        'zebra-unique-token',
+      ),
+    );
+
+    // The edited value is what the query engine sees, so the row matches.
+    await user.type(screen.getByLabelText('Search all columns'), 'zebra-unique-token');
+    await waitFor(() => expect(screen.getByText('1 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+  }, 30_000);
+
+  it('keeps the source rows intact: removing the edit restores the original', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = () => grid.querySelector<HTMLElement>('[data-cell="0-1"]');
+    const before = cell()?.querySelector('.grid-cell__text')?.textContent ?? '';
+
+    cell()?.focus();
+    await user.keyboard('{Enter}');
+    await user.clear(screen.getByRole('textbox', { name: /^Edit Status in Record 1/ }));
+    await user.type(screen.getByRole('textbox', { name: /^Edit Status in Record 1/ }), 'changed');
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(cell()?.querySelector('.grid-cell__text')?.textContent).toBe('changed'),
+    );
+
+    // Undo drops the overlay entry; the value comes back from the store, which
+    // proves the edit never touched the stored rows.
+    await user.keyboard('{Control>}z{/Control}');
+    await waitFor(() =>
+      expect(cell()?.querySelector('.grid-cell__text')?.textContent).toBe(before),
+    );
+  }, 30_000);
+});
