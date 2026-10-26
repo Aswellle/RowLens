@@ -92,6 +92,17 @@ type DataGridProps = {
   onPasteCells?: (edits: GridCellEdit[]) => string | null;
   /** True when the cell currently holds an unsaved overlay value. */
   isEdited?: (rowIndex: RowIndex, columnIndex: number) => boolean;
+  /**
+   * Notified with the view rows the virtualizer is about to render, so a
+   * lazily loaded dataset can fetch them before they are painted (ADR-028).
+   */
+  warmRows?: (firstRow: number, lastRow: number) => void;
+  /**
+   * Bumped by the data source when the values behind already-rendered rows
+   * changed (a lazy chunk landed). Re-renders the window without remounting,
+   * so the scroll position and focus survive.
+   */
+  dataVersion?: number;
 };
 
 const ROW_NUM_WIDTH = 110;
@@ -118,6 +129,8 @@ export function DataGrid({
   onEditCell,
   onPasteCells,
   isEdited,
+  warmRows,
+  dataVersion = 0,
 }: DataGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -129,6 +142,32 @@ export function DataGrid({
   });
 
   const virtualRows = virtualizer.getVirtualItems();
+
+  /**
+   * Re-render when the data source says the values behind the rendered rows
+   * changed (a lazy chunk landed). Cells read through `valueAt` during render,
+   * so bumping a local epoch is enough; remounting the grid would reset the
+   * scroll position instead.
+   */
+  const [, setDataEpoch] = useState(0);
+  const lastDataVersionRef = useRef(dataVersion);
+  if (lastDataVersionRef.current !== dataVersion) {
+    lastDataVersionRef.current = dataVersion;
+    setDataEpoch((epoch) => epoch + 1);
+  }
+
+  // Tell the data source which rows are about to be rendered. A lazily loaded
+  // dataset uses this to fetch exactly those chunks; a fully in-memory store
+  // ignores it. Runs after every window change, which is exactly when new rows
+  // can appear.
+  const warmRowsRef = useRef(warmRows);
+  warmRowsRef.current = warmRows;
+  const firstVirtualIndex = virtualRows[0]?.index;
+  const lastVirtualIndex = virtualRows.at(-1)?.index;
+  useEffect(() => {
+    if (firstVirtualIndex === undefined || lastVirtualIndex === undefined) return;
+    warmRowsRef.current?.(firstVirtualIndex, lastVirtualIndex);
+  }, [firstVirtualIndex, lastVirtualIndex, dataVersion]);
 
   /**
    * Roving focus position over the *visible window* (row position, column

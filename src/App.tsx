@@ -32,6 +32,7 @@ import { createImportWorkerTransport } from './features/import/worker-transport'
 import { validateForImport } from './features/import/validate';
 import { DatasetRepository } from './features/dataset/repository';
 import { InMemoryDataset } from './features/dataset/store';
+import { LazyDatasetStore } from './features/dataset/lazy-store';
 import type {
   ColumnDefinition,
   ColumnId,
@@ -69,7 +70,6 @@ import {
   serializeEdits,
 } from './features/editing/persist';
 import { readLastDatasetId, rememberLastDataset } from './features/dataset/session';
-import { ROW_WRITE_BATCH_SIZE } from './features/dataset/constants';
 import {
   QueryClient,
   createQueryWorkerTransport,
@@ -79,9 +79,19 @@ import {
   type QueryRun,
 } from './features/query/client';
 
+/**
+ * Anything the grid can read cells from synchronously. The import path uses a
+ * write-through in-memory store (the rows are already streaming past), while a
+ * restored dataset uses a chunked lazy store so a reload does not read the
+ * whole dataset before the first paint (ADR-028).
+ */
+type CellSource = {
+  getCell(rowIndex: number, columnIndex: number): string | null;
+};
+
 type ReadyData = {
   meta: DatasetMetadata;
-  store: InMemoryDataset;
+  store: CellSource;
 };
 
 type AppQueryRunner = {
@@ -217,6 +227,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const activeImportRef = useRef<ActiveImport | null>(null);
   const activeQueryRef = useRef<QueryRun | null>(null);
   const storeRef = useRef<InMemoryDataset>(new InMemoryDataset());
+  /** Set when the ready view is backed by a lazily loaded restored dataset. */
+  const lazyStoreRef = useRef<LazyDatasetStore | null>(null);
+  /** Bumped when a lazy chunk lands, so the grid re-reads visible cells. */
+  const [chunkRevision, setChunkRevision] = useState(0);
 
   const handleProgress = useCallback((progress: ImportProgressInfo) => {
     setView((current) =>
@@ -265,6 +279,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           onBatch: (batch) => storeRef.current.appendBatch(batch.schemaAppend, batch.rows),
         });
 
+        lazyStoreRef.current?.dispose();
+        lazyStoreRef.current = null;
         storeRef.current.reset();
         const active = await coordinatorRef.current.start(file, {
           format: options.format,
@@ -348,6 +364,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const repository = await ensureRepository();
       const sample = (sampleRef.current ??= createSampleDataset(sampleSize));
       await seedSampleDataset(repository, sample);
+      lazyStoreRef.current?.dispose();
+      lazyStoreRef.current = null;
       storeRef.current = buildSampleStore(sample);
       rememberLastDataset(sample.metadata.id);
       setView({
@@ -374,6 +392,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     if (view.kind !== 'ready') return;
     const datasetId = view.data.meta.id;
     storeRef.current = new InMemoryDataset();
+    lazyStoreRef.current?.dispose();
+    lazyStoreRef.current = null;
     rememberLastDataset(null);
     setView({ kind: 'empty' });
     try {
@@ -455,16 +475,22 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         // A user action may have started while IndexedDB was opening.
         if (viewRef.current.kind !== 'empty') return;
 
-        const store = new InMemoryDataset();
-        const batchSize = ROW_WRITE_BATCH_SIZE;
-        for (let offset = 0; offset < meta.rowCount; offset += batchSize) {
-          const rows = await repository.readRows(datasetId, offset, batchSize);
-          if (rows.length === 0) break;
-          store.appendBatch(
-            offset === 0 ? meta.columns : undefined,
-            rows.map((row) => ({ rowIndex: row.rowIndex, values: row.values })),
-          );
-        }
+        // Rows are read on demand (500-row chunks) instead of all up front:
+        // a reload used to issue one transaction per 500 rows before showing
+        // anything, which cost seconds on a large dataset for rows the grid
+        // would never render (ADR-028). A landed chunk bumps a counter so the
+        // grid re-reads the cells it is already showing.
+        let chunksLoaded = 0;
+        const store = new LazyDatasetStore(
+          meta.columns,
+          meta.rowCount,
+          (offset, limit) => repository.readRows(datasetId, offset, limit),
+          () => {
+            chunksLoaded += 1;
+            setChunkRevision(chunksLoaded);
+          },
+        );
+        store.ensureRows(0, 40);
 
         const record = await repository.getCellEdits(datasetId);
         const restoredEdits = isSupportedEditRecord(record)
@@ -476,7 +502,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           : emptyEditState();
         persistedRevisionRef.current = restoredEdits.revision;
 
-        storeRef.current = store;
+        lazyStoreRef.current = store;
         setView({
           kind: 'ready',
           data: { meta, store },
@@ -1060,6 +1086,18 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                   }}
                   onEditCell={editCell}
                   onPasteCells={commitEdits}
+                  // A lazily restored dataset fills chunks after the first
+                  // paint. `dataVersion` re-renders the visible window when a
+                  // chunk lands (remounting here would reset scroll position
+                  // and fight the user), and warmRows prefetches the rows
+                  // about to be scrolled into view.
+                  dataVersion={chunkRevision}
+                  {...(lazyStoreRef.current === null
+                    ? {}
+                    : {
+                        warmRows: (first: number, last: number) =>
+                          lazyStoreRef.current?.ensureRows(first, last),
+                      })}
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
                   sort={readyGridSort}
                   onSortChange={(gridSort) =>
