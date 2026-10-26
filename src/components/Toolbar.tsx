@@ -1,9 +1,10 @@
 /**
- * Toolbar: global search, column-filter and column-visibility popovers, and
- * a narrow-viewport "More" menu holding the still-upcoming features (which
- * stay visibly disabled rather than pretending to work).
+ * Toolbar: global search (with the opt-in `column:value` syntax hint), the
+ * column-filter and column-visibility popovers, and Export. On narrow
+ * viewports the sections wrap instead of hiding behind a menu, so every tool
+ * stays visible and reachable at any width.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useState } from 'react';
 import { Popover } from './Popover';
 
 export type ToolbarColumn = { id: string; label: string };
@@ -20,10 +21,6 @@ type ToolbarProps = {
   onExport: () => void;
 };
 
-const PENDING_FEATURES = [
-  { key: 'clean', label: 'Clean steps', note: 'Cleaning steps arrive in a later update.' },
-];
-
 export function Toolbar({
   searchTerm,
   onSearchChange,
@@ -35,21 +32,8 @@ export function Toolbar({
   onToggleColumn,
   onExport,
 }: ToolbarProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [columnsOpen, setColumnsOpen] = useState(false);
-  const moreButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!moreOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Element && !event.target.closest('.toolbar__more')) {
-        setMoreOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [moreOpen]);
 
   const activeFilterCount = Object.values(columnFilters).filter((value) => value !== '').length;
 
@@ -147,42 +131,6 @@ export function Toolbar({
         <button type="button" className="btn btn--primary" onClick={onExport}>
           Export
         </button>
-      </div>
-
-      <div className="toolbar__more">
-        <button
-          ref={moreButtonRef}
-          type="button"
-          className="btn"
-          aria-haspopup="true"
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen((open) => !open)}
-        >
-          More ▾
-        </button>
-        <div
-          className="toolbar__actions"
-          data-open={moreOpen}
-          onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
-            if (event.key === 'Escape') {
-              setMoreOpen(false);
-              moreButtonRef.current?.focus();
-            }
-          }}
-        >
-          {PENDING_FEATURES.map((feature) => (
-            <button
-              key={feature.key}
-              type="button"
-              className="btn"
-              disabled
-              aria-disabled="true"
-              title={feature.note}
-            >
-              {feature.label}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

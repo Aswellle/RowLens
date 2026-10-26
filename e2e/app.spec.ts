@@ -79,19 +79,23 @@ test('sorting cycles ascending → descending → off on a column header', async
   await expect(header).toHaveAttribute('aria-sort', 'none');
 });
 
-test('narrow viewport collapses feature buttons behind the More menu', async ({ page }) => {
+test('narrow viewport keeps every data tool visible without horizontal scroll', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 375, height: 720 });
   await page.goto('/');
   await loadSample(page);
 
-  const more = page.getByRole('button', { name: 'More ▾' });
-  await expect(more).toBeVisible();
-  await more.click();
-  await expect(more).toHaveAttribute('aria-expanded', 'true');
-  // Disabled placeholders are present and honest about their phase.
-  await expect(page.getByRole('button', { name: 'Clean steps' })).toBeDisabled();
-  await page.keyboard.press('Escape');
-  await expect(more).toBeFocused();
+  // Nothing hides behind a menu: search, both popovers and Export are all
+  // directly reachable at phone width.
+  await expect(page.getByRole('toolbar', { name: 'Data tools' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Filter', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Columns', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export', exact: true })).toBeVisible();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(overflow).toBe(false);
 });
 
 test('dark theme toggle switches tokens and persists', async ({ page }) => {

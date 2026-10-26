@@ -243,37 +243,8 @@
   flex-wrap: wrap;
 }
 
-.toolbar__more {
-  display: none;
-}
-
-/* Narrow viewports: collapse secondary actions behind a "More" menu. */
+/* Narrow viewports: the toolbar sections wrap; nothing hides behind a menu. */
 @media (max-width: 699px) {
-  .toolbar__actions {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 100%;
-    right: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-panel);
-    padding: 8px;
-    z-index: 30;
-    min-width: 160px;
-  }
-
-  .toolbar__actions[data-open='true'] {
-    display: flex;
-  }
-
-  .toolbar__more {
-    display: inline-flex;
-    position: relative;
-    margin-left: auto;
-  }
-
   .toolbar__search {
     flex-basis: 100%;
   }

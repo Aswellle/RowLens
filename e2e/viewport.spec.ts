@@ -61,10 +61,9 @@ test('360px keeps search and export reachable without horizontal page scroll', a
   );
   expect(pageOverflow).toBe(false);
 
-  // Feature buttons live behind the More menu; Export stays reachable there.
-  const more = page.getByRole('button', { name: 'More ▾' });
-  await more.click();
-  await expect(more).toHaveAttribute('aria-expanded', 'true');
+  // Every feature button is directly reachable, no menu in between.
+  await expect(page.getByRole('button', { name: 'Filter', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export', exact: true })).toBeVisible();
 });
 
 test('768px and 1440px keep the direct Export button visible', async ({ page }) => {
