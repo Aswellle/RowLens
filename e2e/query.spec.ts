@@ -82,3 +82,26 @@ test('sample dataset answers search through the worker path', async ({ page }) =
   await expect(status).not.toContainText('5,000 of 5,000', { timeout: 10_000 });
   await expect(status).toContainText(/[1-4],\d{3} of 5,000/);
 });
+
+test('column:value search targets one column and ANDs with plain terms', async ({ page }) => {
+  // duplicates.csv: columns id,name — "1" appears in id only (2 of 3 rows).
+  await importFixture(page, 'e2e/fixtures/duplicates.csv');
+  await expect(page.getByText('3 of 3 rows match')).toBeVisible({ timeout: 10_000 });
+
+  const search = page.getByLabel('Search all columns');
+
+  await search.fill('id:1');
+  await expect(page.getByText('2 of 3 rows match')).toBeVisible({ timeout: 10_000 });
+
+  // The same text scoped to a column that cannot hold it matches nothing.
+  await search.fill('name:1');
+  await expect(page.getByText(/No rows match/)).toBeVisible({ timeout: 10_000 });
+
+  // A plain term ANDs with the scoped one: id 2 is the only row named B.
+  await search.fill('id:2 B');
+  await expect(page.getByText('1 of 3 rows match')).toBeVisible({ timeout: 10_000 });
+
+  // A misspelled header stays an ordinary substring across every column.
+  await search.fill('namee:B');
+  await expect(page.getByText(/No rows match/)).toBeVisible({ timeout: 10_000 });
+});
