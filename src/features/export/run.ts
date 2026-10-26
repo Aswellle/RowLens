@@ -64,6 +64,9 @@ export function createDownloadSaver(
   hooks?: DownloadSaverHooks,
 ): ExportSaver {
   const parts: string[] = [];
+  // Counted in UTF-8 bytes, matching what the Blob will actually hold —
+  // chunk.length would undercount non-ASCII data by up to 3x.
+  const encoder = new TextEncoder();
   let bytes = 0;
   let closed = false;
   let objectUrl: string | null = null;
@@ -71,7 +74,7 @@ export function createDownloadSaver(
   return {
     async write(chunk: string): Promise<void> {
       if (closed) throw new AppError('EXPORT_FAILED', 'The export already finished.');
-      bytes += chunk.length;
+      bytes += encoder.encode(chunk).length;
       if (bytes > maxBytes) {
         parts.length = 0; // release what we had before refusing
         throw new AppError(

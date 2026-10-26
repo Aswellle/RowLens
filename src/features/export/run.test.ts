@@ -125,6 +125,16 @@ describe('createDownloadSaver', () => {
     expect(downloads).toHaveLength(1); // URL string captured; revoke is fire-and-forget
   });
 
+  it('counts multi-byte characters toward the byte cap', async () => {
+    // 6 emoji are 24 UTF-8 bytes but length 6: the cap must refuse them.
+    const saver = createDownloadSaver('emoji.csv', 12);
+    await saver.write('\u{1F680}\u{1F680}\u{1F680}'); // 12 UTF-8 bytes
+    await expect(saver.write('\u{1F680}')).rejects.toMatchObject({
+      code: 'EXPORT_TOO_LARGE_FOR_FALLBACK',
+    });
+    await saver.close();
+  });
+
   it('still downloads when hooks only supply a MIME type', async () => {
     // Regression guard: suppressing the click whenever *any* hook is present
     // would silently break a caller that only overrides the blob type.
