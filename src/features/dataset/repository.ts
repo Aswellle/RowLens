@@ -248,12 +248,12 @@ export class DatasetRepository {
         .objectStore(IDB_STORE_IMPORT_ERRORS)
         .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));
       const rows = txn.objectStore(IDB_STORE_ROWS);
-      // Only a finalized dataset's rowCount describes the stored key range;
-      // an in-flight or partial one falls back to the cursor sweep.
-      if (meta?.status === 'ready') {
-        for (let rowIndex = 0; rowIndex < meta.rowCount; rowIndex++) {
-          rows.delete([datasetId, rowIndex]);
-        }
+      // Only a finalized dataset's rowCount describes the stored key range; a
+      // single ranged delete covers it — one request instead of one per row.
+      // Zero-row and in-flight or partial datasets fall back to the cursor
+      // sweep (a bound ending at -1 would be an invalid key).
+      if (meta?.status === 'ready' && meta.rowCount > 0) {
+        rows.delete(IDBKeyRange.bound([datasetId, 0], [datasetId, meta.rowCount - 1]));
       } else {
         const request = rows.index('byDataset').openKeyCursor(IDBKeyRange.only(datasetId));
         request.onsuccess = () => {
