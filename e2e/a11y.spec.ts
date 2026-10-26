@@ -73,3 +73,28 @@ test('a grid range selection and its toolbar have no critical or serious violati
   const violations = await scan(page);
   expect(violations.map((v) => `${v.id}: ${v.help}`).join('\n') || 'none').toBe('none');
 });
+
+test('the cell editor and edit controls have no critical or serious violations', async ({
+  page,
+}) => {
+  await loadSample(page);
+  const cell = page.locator('[data-cell="0-0"]');
+  await expect(async () => {
+    await cell.locator('.grid-cell__text').click();
+    await expect(cell).toBeFocused({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+
+  // The open editor is a labelled input inside a gridcell, and the status line
+  // gains Undo/Redo/Reset edits buttons: both are new ARIA surface.
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('textbox', { name: /Edit Ticket in Record 1/ })).toBeFocused();
+  let violations = await scan(page);
+  expect(violations.map((v) => `${v.id}: ${v.help}`).join('\n') || 'none').toBe('none');
+
+  // An edited cell carries a visual marker plus the edited count.
+  await page.keyboard.type('EDITED');
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('1 cell edited')).toBeVisible();
+  violations = await scan(page);
+  expect(violations.map((v) => `${v.id}: ${v.help}`).join('\n') || 'none').toBe('none');
+});
