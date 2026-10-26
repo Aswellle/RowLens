@@ -24,17 +24,21 @@ export const IDB_NAME = 'rowlens-local';
 /**
  * v2 adds `cellEdits`: user edits persisted separately from imported rows, so
  * the "imported rows are never rewritten" boundary holds across reloads too
- * (docs/decisions.md ADR-027). The upgrade creates the missing store and
- * leaves every existing record untouched.
+ * (docs/decisions.md ADR-027).
+ * v3 adds `pipelines`: the configured cleaning steps, so reopening a dataset
+ * does not lose the pipeline (ADR-030).
+ * Every upgrade only creates missing stores and leaves existing records alone.
  */
-export const IDB_VERSION = 2;
+export const IDB_VERSION = 3;
 
 /** Object store names inside IDB_NAME. */
 export const IDB_STORE_DATASETS = 'datasets';
 export const IDB_STORE_ROWS = 'rows';
 export const IDB_STORE_IMPORT_ERRORS = 'importErrors';
-/** One record per dataset: { datasetId, updatedAt, edits: [rowIndex, columnId, value][] }. */
+/** One record per dataset: { datasetId, updatedAt, format, cells: [rowIndex, columnId, value][] }. */
 export const IDB_STORE_CELL_EDITS = 'cellEdits';
+/** One record per dataset: { datasetId, updatedAt, format, steps: CleaningStep[] }. */
+export const IDB_STORE_PIPELINES = 'pipelines';
 
 /** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
 export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;

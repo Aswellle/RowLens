@@ -7,11 +7,13 @@
 import { toAppError } from '../../app/app-error';
 import type { ImportJobId } from '../import/protocol';
 import type { StoredEditRecord } from '../editing/persist';
+import type { StoredPipelineRecord } from '../cleaning/persist';
 import { openDatabase } from './idb';
 import {
   DATASET_TTL_MS,
   IDB_STORE_CELL_EDITS,
   IDB_STORE_DATASETS,
+  IDB_STORE_PIPELINES,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
 } from './constants';
@@ -136,6 +138,30 @@ export class DatasetRepository {
   }
 
   /**
+   * Persist the configured cleaning pipeline. Configuration only — the stored
+   * rows are never touched, and applying the pipeline stays a view-time
+   * projection (ADR-030).
+   */
+  async putPipeline(record: StoredPipelineRecord): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_PIPELINES, 'readwrite');
+    txn.objectStore(IDB_STORE_PIPELINES).put(record);
+    await txnDone(txn);
+  }
+
+  async getPipeline(datasetId: DatasetId): Promise<unknown> {
+    const txn = this.db.transaction(IDB_STORE_PIPELINES, 'readonly');
+    return requestToPromise(
+      txn.objectStore(IDB_STORE_PIPELINES).get(datasetId) as IDBRequest<unknown>,
+    );
+  }
+
+  async deletePipeline(datasetId: DatasetId): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_PIPELINES, 'readwrite');
+    txn.objectStore(IDB_STORE_PIPELINES).delete(datasetId);
+    await txnDone(txn);
+  }
+
+  /**
    * Remove the dataset and every stored row, import error and edit record.
    *
    * Row keys are the compound [datasetId, rowIndex] with rowIndex < rowCount,
@@ -148,11 +174,18 @@ export class DatasetRepository {
     const meta = await this.getDataset(datasetId);
     await new Promise<void>((resolve, reject) => {
       const txn = this.db.transaction(
-        [IDB_STORE_DATASETS, IDB_STORE_ROWS, IDB_STORE_IMPORT_ERRORS, IDB_STORE_CELL_EDITS],
+        [
+          IDB_STORE_DATASETS,
+          IDB_STORE_ROWS,
+          IDB_STORE_IMPORT_ERRORS,
+          IDB_STORE_CELL_EDITS,
+          IDB_STORE_PIPELINES,
+        ],
         'readwrite',
       );
       txn.objectStore(IDB_STORE_DATASETS).delete(datasetId);
       txn.objectStore(IDB_STORE_CELL_EDITS).delete(datasetId);
+      txn.objectStore(IDB_STORE_PIPELINES).delete(datasetId);
       txn
         .objectStore(IDB_STORE_IMPORT_ERRORS)
         .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));

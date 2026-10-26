@@ -256,3 +256,72 @@ describe('DatasetRepository cell edits (fake IndexedDB)', () => {
     expect(await repository.countRows('ds-1')).toBe(1);
   });
 });
+
+describe('DatasetRepository pipelines (fake IndexedDB)', () => {
+  let repository: DatasetRepository;
+
+  beforeEach(async () => {
+    repository = await DatasetRepository.open(new IDBFactory());
+  });
+
+  const step = {
+    id: 's1',
+    type: 'trim' as const,
+    enabled: true,
+    scope: { kind: 'all-columns' as const },
+  };
+
+  it('stores one pipeline record per dataset and reads it back', async () => {
+    await repository.putPipeline({
+      datasetId: 'ds-1',
+      updatedAt: 7,
+      format: 1,
+      steps: [step],
+    });
+    const record = (await repository.getPipeline('ds-1')) as { steps: unknown[] };
+    expect(record.steps).toEqual([step]);
+  });
+
+  it('overwrites the record instead of appending', async () => {
+    await repository.putPipeline({ datasetId: 'ds-1', updatedAt: 1, format: 1, steps: [step] });
+    await repository.putPipeline({ datasetId: 'ds-1', updatedAt: 2, format: 1, steps: [] });
+    const record = (await repository.getPipeline('ds-1')) as {
+      updatedAt: number;
+      steps: unknown[];
+    };
+    expect(record.updatedAt).toBe(2);
+    expect(record.steps).toEqual([]);
+  });
+
+  it('keeps pipelines separate per dataset', async () => {
+    await repository.putPipeline({ datasetId: 'ds-1', updatedAt: 1, format: 1, steps: [step] });
+    expect(((await repository.getPipeline('ds-1')) as { steps: unknown[] }).steps).toHaveLength(1);
+    expect(await repository.getPipeline('ds-2')).toBeUndefined();
+  });
+
+  it('deleting the dataset removes its pipeline too', async () => {
+    await repository.insertDataset(makeMeta({ status: 'ready', rowCount: 1 }));
+    await repository.putPipeline({ datasetId: 'ds-1', updatedAt: 1, format: 1, steps: [step] });
+
+    await repository.deleteDataset('ds-1');
+
+    expect(await repository.getPipeline('ds-1')).toBeUndefined();
+  });
+
+  it('deletes a pipeline without touching rows or edits', async () => {
+    await repository.putRows('ds-1', [makeRow('ds-1', 0, ['kept'])]);
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'x']],
+    });
+    await repository.putPipeline({ datasetId: 'ds-1', updatedAt: 1, format: 1, steps: [step] });
+
+    await repository.deletePipeline('ds-1');
+
+    expect(await repository.getPipeline('ds-1')).toBeUndefined();
+    expect(await repository.countRows('ds-1')).toBe(1);
+    expect(await repository.getCellEdits('ds-1')).toBeDefined();
+  });
+});
