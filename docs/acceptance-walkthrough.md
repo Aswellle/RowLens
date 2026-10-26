@@ -40,6 +40,13 @@
 
 - [x] 搜索、列过滤、稳定排序、清除条件、隐藏列工作正确。
   证据：`engine.test.ts`、`client.test.ts`、E2E query.spec。
+- [x] `列名:值` 定向搜索保持字面语义，歧义与拼错表头不静默降级。
+  证据：`search.test.ts`（AND 分词、精确表头匹配、含空格表头需引号、引号在
+  其他位置按字面、未知前缀仍为普通子串、URL/时间不受影响、重复表头搜索全部
+  同名列、空值 term 丢弃）；`engine.test.ts`（定向列命中、跨列 AND、折叠器
+  只读目标列）；App 用例（Priority:P1 收窄、Status:P1 无结果并给出清除
+  入口、双 term AND）；`e2e/query.spec.ts` 真实 worker 下 id:1 / name:1 /
+  id:2 B / 拼错表头四段断言。
 - [x] 虚拟化验证：DOM 行数与 viewport 相关而非总记录数。
   证据：组件测试（5000 行 <60 节点）+ `e2e/app.spec.ts` DOM 断言 + 滚动
   重渲染用例。

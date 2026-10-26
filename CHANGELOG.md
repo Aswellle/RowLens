@@ -30,6 +30,13 @@ clean → export, entirely in the browser.
   values last), column show/hide; all executed in a second worker over
   windowed dataset scans. The newest query supersedes older ones; results
   above the verified 200,000-row match limit are reported, never truncated.
+- **Targeted search**: a search term of the form `column:value` restricts that
+  one term to the named column (`Status:open`), with quoted headers for names
+  containing spaces (`"First response (h)":14`). Whitespace-separated terms
+  must all match. A prefix that names no column stays an ordinary substring —
+  URLs, times and typos are unaffected — and a header shared by several
+  columns searches all of them rather than silently picking one. Everything
+  remains a literal substring; there is no regex or wildcard syntax.
 - **Cleaning pipeline** — serializable steps (trim whitespace, remove empty
   rows, remove duplicates with exact or trimmed comparison over whole rows or
   key columns, select columns) added, edited, enabled/disabled, removed and

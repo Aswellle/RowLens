@@ -17,7 +17,8 @@
 
 **Import** CSV, TSV and JSONL/NDJSON (≤ 100 MiB) through a Web Worker in
 bounded batches with explicit backpressure; cancellation removes all partial
-data. **Query** with literal case-insensitive search, per-column filters,
+data. **Query** with literal case-insensitive search (`Status:open` targets one
+column, whitespace-separated terms must all match), per-column filters,
 stable string sort and column show/hide — run in a second worker over windowed
 dataset scans, where the newest query always wins. **Clean** with serializable
 steps (trim whitespace, remove empty rows, remove duplicates, select columns),
