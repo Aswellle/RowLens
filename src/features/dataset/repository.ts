@@ -8,6 +8,7 @@ import { toAppError } from '../../app/app-error';
 import type { ImportJobId } from '../import/protocol';
 import type { StoredEditRecord } from '../editing/persist';
 import type { StoredPipelineRecord } from '../cleaning/persist';
+import type { StoredPresetRecord } from '../cleaning/presets';
 import type { StoredViewRecord } from '../query/persist';
 import { openDatabase } from './idb';
 import {
@@ -15,9 +16,11 @@ import {
   IDB_STORE_CELL_EDITS,
   IDB_STORE_DATASETS,
   IDB_STORE_PIPELINES,
+  IDB_STORE_PRESETS,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
   IDB_STORE_VIEWS,
+  PRESETS_RECORD_KEY,
 } from './constants';
 import type { DatasetId, DatasetMetadata, StoredRow } from './types';
 
@@ -182,6 +185,34 @@ export class DatasetRepository {
   async deleteView(datasetId: DatasetId): Promise<void> {
     const txn = this.db.transaction(IDB_STORE_VIEWS, 'readwrite');
     txn.objectStore(IDB_STORE_VIEWS).delete(datasetId);
+    await txnDone(txn);
+  }
+
+  /**
+   * Replace the global preset list (ADR-032). One record holds every preset:
+   * presets are a small, hand-curated list, and a single record makes
+   * "save/rename/delete" one atomic write instead of a partial update.
+   *
+   * Deliberately *not* part of `deleteDataset`: a preset is a recipe meant to be
+   * reused on other files, so removing the dataset it was captured from must not
+   * destroy it.
+   */
+  async putPresets(record: StoredPresetRecord): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_PRESETS, 'readwrite');
+    txn.objectStore(IDB_STORE_PRESETS).put({ id: PRESETS_RECORD_KEY, ...record });
+    await txnDone(txn);
+  }
+
+  async getPresets(): Promise<unknown> {
+    const txn = this.db.transaction(IDB_STORE_PRESETS, 'readonly');
+    return requestToPromise(
+      txn.objectStore(IDB_STORE_PRESETS).get(PRESETS_RECORD_KEY) as IDBRequest<unknown>,
+    );
+  }
+
+  async deletePresets(): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_PRESETS, 'readwrite');
+    txn.objectStore(IDB_STORE_PRESETS).delete(PRESETS_RECORD_KEY);
     await txnDone(txn);
   }
 

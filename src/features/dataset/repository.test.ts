@@ -397,3 +397,54 @@ describe('DatasetRepository views (fake IndexedDB)', () => {
     expect(await repository.getPipeline('ds-1')).toBeDefined();
   });
 });
+
+describe('DatasetRepository presets (fake IndexedDB)', () => {
+  let repository: DatasetRepository;
+
+  beforeEach(async () => {
+    repository = await DatasetRepository.open(new IDBFactory());
+  });
+
+  const recipe = {
+    id: 'p1',
+    name: 'Weekly cleanup',
+    createdAt: 1,
+    updatedAt: 1,
+    steps: [{ type: 'trim' as const, enabled: true, scope: { kind: 'all-columns' as const } }],
+  };
+
+  it('stores the preset list in one record and reads it back', async () => {
+    await repository.putPresets({ format: 1, presets: [recipe] });
+    // The record carries its key so the store can find it again.
+    expect(await repository.getPresets()).toEqual({ id: 'all', format: 1, presets: [recipe] });
+  });
+
+  it('overwrites the list instead of appending', async () => {
+    await repository.putPresets({ format: 1, presets: [recipe] });
+    await repository.putPresets({ format: 1, presets: [] });
+    expect(await repository.getPresets()).toEqual({ id: 'all', format: 1, presets: [] });
+  });
+
+  it('keeps presets when the dataset they came from is deleted', async () => {
+    // The point of a preset is reuse on another file, so removing the source
+    // dataset must not destroy the recipe (ADR-032).
+    await repository.insertDataset(makeMeta({ status: 'ready', rowCount: 1 }));
+    await repository.putPresets({ format: 1, presets: [recipe] });
+
+    await repository.deleteDataset('ds-1');
+
+    expect(await repository.getDataset('ds-1')).toBeUndefined();
+    expect(await repository.getPresets()).toEqual({ id: 'all', format: 1, presets: [recipe] });
+  });
+
+  it('deletes presets without touching any dataset data', async () => {
+    await repository.insertDataset(makeMeta({ status: 'ready', rowCount: 1 }));
+    await repository.putRows('ds-1', [makeRow('ds-1', 0, ['kept'])]);
+    await repository.putPresets({ format: 1, presets: [recipe] });
+
+    await repository.deletePresets();
+
+    expect(await repository.getPresets()).toBeUndefined();
+    expect(await repository.countRows('ds-1')).toBe(1);
+  });
+});

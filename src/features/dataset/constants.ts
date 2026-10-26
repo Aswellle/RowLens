@@ -30,9 +30,11 @@ export const IDB_NAME = 'rowlens-local';
  * v4 adds `views`: the last query view (search, filters, sort, hidden
  * columns), so reopening a dataset returns to what the user was looking at
  * (ADR-031).
+ * v5 adds `presets`: named cleaning recipes that outlive a dataset, so a
+ * pipeline can be reused on a different file (ADR-032).
  * Every upgrade only creates missing stores and leaves existing records alone.
  */
-export const IDB_VERSION = 4;
+export const IDB_VERSION = 5;
 
 /** Object store names inside IDB_NAME. */
 export const IDB_STORE_DATASETS = 'datasets';
@@ -44,6 +46,14 @@ export const IDB_STORE_CELL_EDITS = 'cellEdits';
 export const IDB_STORE_PIPELINES = 'pipelines';
 /** One record per dataset: { datasetId, updatedAt, format, search, columnFilters, sort, hiddenColumns }. */
 export const IDB_STORE_VIEWS = 'views';
+/**
+ * A single global record, not one per dataset: a preset is a recipe meant to be
+ * applied to files you have not opened yet, so it must outlive any dataset
+ * (ADR-032). Keyed by the constant below.
+ */
+export const IDB_STORE_PRESETS = 'presets';
+/** Fixed key of the one record in IDB_STORE_PRESETS. */
+export const PRESETS_RECORD_KEY = 'all';
 
 /** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
 export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;

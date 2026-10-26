@@ -8,6 +8,7 @@
  *   cellEdits    keyPath 'datasetId' (v2; user edits, never mixed into rows)
  *   pipelines    keyPath 'datasetId' (v3; configured cleaning steps)
  *   views        keyPath 'datasetId' (v4; last query view per dataset)
+ *   presets      keyPath 'id' (v5; one global record holding every preset)
  *
  * The upgrade only creates stores that are missing, so a v1 database keeps all
  * of its imported rows and gains an empty edit store.
@@ -18,6 +19,7 @@ import {
   IDB_STORE_CELL_EDITS,
   IDB_STORE_DATASETS,
   IDB_STORE_PIPELINES,
+  IDB_STORE_PRESETS,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
   IDB_STORE_VIEWS,
@@ -58,6 +60,11 @@ function openWith(factory: IDBFactory): Promise<IDBDatabase> {
       // the user was reading through is part of "where I left off".
       if (!db.objectStoreNames.contains(IDB_STORE_VIEWS)) {
         db.createObjectStore(IDB_STORE_VIEWS, { keyPath: 'datasetId' });
+      }
+      // v5: named cleaning recipes. Deliberately *not* keyed by dataset — a
+      // preset exists to be applied to files not opened yet.
+      if (!db.objectStoreNames.contains(IDB_STORE_PRESETS)) {
+        db.createObjectStore(IDB_STORE_PRESETS, { keyPath: 'id' });
       }
     };
     request.onsuccess = () => resolve(request.result);
