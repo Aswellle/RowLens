@@ -191,12 +191,26 @@ export function DataGrid({
     column: Math.max(HEADER_COLUMN, Math.min(pos.column, Math.max(HEADER_COLUMN, columnCount - 1))),
   });
   const clampedFocus = clampPos(focusPos);
+  /**
+   * Authoritative focus position for event handlers.
+   *
+   * `clampedFocus` is what the last render used; a keypress can arrive before
+   * the render that follows the previous keypress commits, so reading it from
+   * an event handler loses steps when keys repeat quickly (a burst of
+   * ArrowRight then ArrowUp used to drop the last move). Every writer updates
+   * this ref synchronously and the render keeps it in sync.
+   */
   const focusRef = useRef(clampedFocus);
   focusRef.current = clampedFocus;
 
+  const setFocus = (pos: CellPos): void => {
+    focusRef.current = pos;
+    setFocusPos(pos);
+  };
+
   /** Adopt a focus that arrived from the DOM (pointer, Tab, programmatic). */
   const adoptFocus = (pos: CellPos): void => {
-    if (!samePos(focusRef.current, pos)) setFocusPos(pos);
+    if (!samePos(focusRef.current, pos)) setFocus(pos);
   };
 
   const [selection, setSelection] = useState<GridSelection>(() => collapsed(clampedFocus));
@@ -287,7 +301,7 @@ export function DataGrid({
     commitEditor();
     if (moveTo) {
       pendingFocusRef.current = true;
-      setFocusPos(moveTo);
+      setFocus(moveTo);
       setSelection(collapsed(moveTo));
       virtualizer.scrollToIndex(moveTo.row, { align: 'auto' });
     } else if (active) {
@@ -312,9 +326,9 @@ export function DataGrid({
 
   const moveFocus = (row: number, column: number, extend: boolean): void => {
     const next = clampPos({ row, column });
-    if (samePos(next, clampedFocus) && !extend) return;
+    if (samePos(next, focusRef.current) && !extend) return;
     pendingFocusRef.current = true;
-    setFocusPos(next);
+    setFocus(next);
     setSelection((current) => (extend ? { anchor: current.anchor, focus: next } : collapsed(next)));
     virtualizer.scrollToIndex(next.row, { align: 'auto' });
   };
@@ -690,7 +704,7 @@ export function DataGrid({
     // collapse the selection the user is about to copy.
     if ((event.target as Element).closest('button') !== null) return;
     const next = clampPos(pos);
-    setFocusPos(next);
+    setFocus(next);
     // Seed the pointer position here: the auto-scroll loop starts from the
     // press point even if the next mousemove never reaches the grid (e.g. the
     // pointer is parked on the scrollbar).
@@ -715,7 +729,7 @@ export function DataGrid({
   const extendTo = (pos: CellPos): void => {
     if (!draggingRef.current) return;
     const next = clampPos(pos);
-    setFocusPos(next);
+    setFocus(next);
     setSelection((current) => rangeBetween(current.anchor, next));
   };
 

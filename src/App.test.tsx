@@ -486,3 +486,74 @@ describe('App session restore', () => {
     expect(grid.querySelector('[data-cell="0-0"]')).not.toHaveClass('grid-cell--edited');
   }, 30_000);
 });
+
+/**
+ * The cleaning pipeline is configuration, so it is restored with the dataset
+ * (ADR-030) — the same way cell edits are.
+ */
+describe('App pipeline persistence', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('restores the cleaning pipeline after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={60} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    await user.click(screen.getByRole('button', { name: '+ Remove duplicates' }));
+    await waitFor(() => expect(screen.getByText(/rows? removed/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    // The step exists in the panel before the reload.
+    expect(screen.getByText('Remove duplicates')).toBeInTheDocument();
+
+    // Let the debounced pipeline write land, then remount as a reload would.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={60} />);
+    await waitFor(() => expect(screen.getByText('Remove duplicates')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    // The pipeline actually ran again: the summary is present, not just the step.
+    await waitFor(() => expect(screen.getByText(/rows? removed/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(
+      screen.getByText(/Restored your previous session with 1 cleaning step/),
+    ).toBeInTheDocument();
+  }, 40_000);
+
+  it('does not restore a pipeline the user reset', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={60} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    await user.click(screen.getByRole('button', { name: '+ Trim whitespace' }));
+    await waitFor(() => expect(screen.getByText('Trim whitespace')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+    // Reset is a two-step confirmation, so the second click confirms it.
+    await user.click(screen.getByRole('button', { name: 'Reset all steps' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm reset' }));
+    await waitFor(() => expect(screen.getByText('No cleaning steps yet.')).toBeInTheDocument(), {
+      timeout: 10_000,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={60} />);
+    await waitFor(() => expect(screen.getByText('60 of 60 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    expect(screen.getByText('No cleaning steps yet.')).toBeInTheDocument();
+  }, 40_000);
+});

@@ -43,6 +43,11 @@ import { createSampleDataset, type SampleDataset } from './features/dataset/samp
 import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
 import { createCleaningTransform } from './features/cleaning/transform';
 import { trimmedColumnSet } from './features/cleaning/display';
+import {
+  PIPELINE_RECORD_FORMAT,
+  deserializePipeline,
+  isSupportedPipelineRecord,
+} from './features/cleaning/persist';
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
 import { runExport } from './features/export/run';
 import type { ExportScope } from './features/export/types';
@@ -454,6 +459,43 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   }, [view, ensureRepository]);
 
   /**
+   * Persist the cleaning pipeline whenever its configuration changes
+   * (ADR-030). Steps are configuration, not data: saving them never touches
+   * the stored rows, and applying them stays a view-time projection. An empty
+   * pipeline deletes the record so a reset really resets.
+   */
+  const persistedPipelineRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (view.kind !== 'ready') return;
+    const { id } = view.data.meta;
+    const steps = view.cleaningSteps;
+    const signature = JSON.stringify(steps);
+    if (persistedPipelineRef.current === signature) return;
+    const timer = window.setTimeout(() => {
+      persistedPipelineRef.current = signature;
+      void (async () => {
+        try {
+          const repository = await ensureRepository();
+          if (steps.length === 0) {
+            await repository.deletePipeline(id);
+            return;
+          }
+          await repository.putPipeline({
+            datasetId: id,
+            updatedAt: Date.now(),
+            format: PIPELINE_RECORD_FORMAT,
+            steps: [...steps],
+          });
+        } catch {
+          // Storage full or blocked: the session keeps its pipeline in memory.
+          persistedPipelineRef.current = null;
+        }
+      })();
+    }, EDIT_PERSIST_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [view, ensureRepository]);
+
+  /**
    * Restore the dataset the user was last looking at, together with its saved
    * edits. Runs once; any user action (import, sample, removal) supersedes it,
    * and a dataset that no longer exists simply leaves the empty state in place.
@@ -502,6 +544,16 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           : emptyEditState();
         persistedRevisionRef.current = restoredEdits.revision;
 
+        // The cleaning pipeline is configuration, so it is restored together
+        // with the dataset: reopening a file should not make the user rebuild
+        // the steps they already defined (ADR-030).
+        const pipelineRecord = await repository.getPipeline(datasetId);
+        const validColumns = new Set(meta.columns.map((column) => column.id));
+        const restoredSteps = isSupportedPipelineRecord(pipelineRecord)
+          ? deserializePipeline(pipelineRecord, validColumns)
+          : [];
+        persistedPipelineRef.current = JSON.stringify(restoredSteps);
+
         lazyStoreRef.current = store;
         setView({
           kind: 'ready',
@@ -511,16 +563,28 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           columnFilters: {},
           sort: null,
           hiddenColumns: [],
-          cleaningSteps: [],
+          cleaningSteps: restoredSteps,
           stepSummaries: [],
           rowIndices: [],
           queryBusy: true,
           edits: restoredEdits,
         });
-        if (editCount(restoredEdits) > 0) {
+        const editCountRestored = editCount(restoredEdits);
+        if (editCountRestored > 0 || restoredSteps.length > 0) {
+          const parts: string[] = [];
+          if (editCountRestored > 0) {
+            parts.push(
+              `${editCountRestored.toLocaleString('en-US')} cell edit${editCountRestored === 1 ? '' : 's'}`,
+            );
+          }
+          if (restoredSteps.length > 0) {
+            parts.push(
+              `${restoredSteps.length} cleaning step${restoredSteps.length === 1 ? '' : 's'}`,
+            );
+          }
           setNotice({
             variant: 'info',
-            message: `Restored your previous session with ${editCount(restoredEdits).toLocaleString('en-US')} cell edit${editCount(restoredEdits) === 1 ? '' : 's'}.`,
+            message: `Restored your previous session with ${parts.join(' and ')}.`,
           });
         }
       } catch {
