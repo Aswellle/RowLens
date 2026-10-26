@@ -116,6 +116,19 @@ clean → export, entirely in the browser.
   Scrolling a whole 250k-row file now leaves 48 MB of JS heap instead of
   accumulating every chunk it passed; an evicted chunk is simply re-read from
   IndexedDB when it comes back into view.
+- **Query view survives a reload**: the search term, column filters, sort and
+  hidden columns are saved per dataset and restored with it, so reopening a
+  file returns to the view you were reading rather than the full table. The
+  view is stored by column id, so a re-import that reorders columns still sorts
+  the same column. Parts that no longer apply (a filter on a deleted column) are
+  dropped individually instead of discarding the whole view; a view that would
+  hide every column is ignored, since it would leave no grid to interact with.
+  `Reset` now clears all four and deletes the saved record, and the status line
+  reports hidden columns so that state is visible.
+- **Fixed**: the debounced save effects for edits and the cleaning pipeline
+  depended on the whole view object, so every query result restarted the timer
+  and a slow query could postpone the write indefinitely. They now depend on a
+  derived signature, and the same fix applies to the new view save.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).

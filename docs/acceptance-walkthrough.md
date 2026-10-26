@@ -78,6 +78,12 @@
   整步丢弃、部分失效收窄、重复 id 拒绝、默认值）；`repository.test.ts` 管线
   与行/编辑三个 store 的独立性；App 恢复用例（重新挂载后步骤仍在且已生效、
   重置后不再恢复）；`e2e/editing.spec.ts` 刷新后管线仍在且已应用。
+- [x] 查询视图（搜索/筛选/排序/隐藏列）跨刷新保留，Reset 真正清空。
+  证据：`query/persist.test.ts`（往返、按列 id 存排序、失效字段逐项丢弃、
+  隐藏全部列不恢复、`__proto__` 构造键被丢弃、超长搜索词视为损坏、签名
+  稳定）；`repository.test.ts` 视图 store 与行/编辑/管线四者独立；App 恢复
+  用例（搜索词与结果数、排序方向、隐藏列、重置后不恢复）；`e2e/view-
+  persistence.spec.ts` 真实刷新后筛选与排序仍在、隐藏列仍在且 Reset 恢复。
 - [x] 浏览全表时内存有界（分块淘汰）。
   证据：`lazy-store.test.ts` 淘汰组（上限、LRU 顺序、窗口固定、窗口超上限
   时优先正确性、淘汰后重读）；`e2e/bench/scroll-memory.spec.ts` P3 跳遍全

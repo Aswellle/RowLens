@@ -51,6 +51,11 @@ a reload does not lose the steps you configured. It stays configuration:
 nothing is written back to the stored rows, and the view is always a projection
 of the imported data through the current pipeline.
 
+The query view is restored too — the search term, column filters, sort and
+hidden columns. Reopening a dataset therefore returns to what you were looking
+at rather than the unfiltered table; **Reset** clears all four and deletes the
+saved view. Like the pipeline, it is configuration: no stored row changes.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -105,9 +110,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
   refused rather than truncated — use Export CSV for extracts that large.
   There is no multi-range (Ctrl+click) selection.
-- Cell edits and the cleaning pipeline persist in their own IndexedDB stores,
-  but neither carries undo history across a reload. Filters, sort order and
-  hidden columns are not persisted. Editing is capped at 5,000 cells, and edits
+- Cell edits, the cleaning pipeline and the query view (search, filters, sort,
+  hidden columns) persist in their own IndexedDB stores, but none of them
+  carries undo history across a reload. A restored view that hides every
+  column is ignored, since it would leave no grid to interact with. Editing is
+  capped at 5,000 cells, and edits
   are not part of the undo history for cleaning steps. A paste that would run past the last visible row or column
   is clipped and reported instead of writing to hidden records. Two tabs
   editing the same dataset do not coordinate: the last write wins.
