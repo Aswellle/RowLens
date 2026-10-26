@@ -135,6 +135,15 @@ clean → export, entirely in the browser.
   explanation instead of applying silently. Presets are stored globally, so
   removing the dataset they were captured from does not delete them; saving over
   an existing name asks for confirmation first.
+- **Preset files**: the saved presets can be exported as a JSON file and
+  imported again — on another browser or machine — so a cleanup recipe survives
+  beyond the installation that created it. A preset file contains configuration
+  only: step types, enabled flags and column header names, never cell values or
+  file names. Import treats the file as untrusted input (size-capped,
+  defensively parsed, every entry validated) and **never overwrites** an
+  existing recipe: a name collision is skipped and reported, so the user can
+  rename and retry. The merge outcome is announced in full — how many were
+  imported, skipped, or unreadable.
 - **Fixed**: the debounced save effects for edits and the cleaning pipeline
   depended on the whole view object, so every query result restarted the timer
   and a slow query could postpone the write indefinitely. They now depend on a

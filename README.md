@@ -64,6 +64,12 @@ several columns is never guessed at — that step or column is skipped and
 reported. Presets are stored globally and outlive the dataset they were
 captured from.
 
+Presets can also be **exported to a JSON file and imported again** — on another
+browser or machine. A preset file contains configuration only (step types and
+column header names; never cell values or file names), import validates every
+entry and never overwrites a recipe you already have: a name collision is
+skipped and reported, so you can rename and retry.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -129,8 +135,9 @@ Playwright browser job (`.github/workflows/ci.yml`).
 - Cleaning presets match columns by header name, so they only apply cleanly to
   files whose headers match; a step whose columns are missing is skipped and
   reported rather than widened to every column. Applying a preset replaces the
-  current pipeline instead of appending to it, and presets cannot be exported
-  to another browser (up to 50 are kept).
+  current pipeline instead of appending to it (up to 50 are kept). Preset
+  files are unencrypted JSON, so the column header names they reference are
+  readable by anyone who gets the file.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via
