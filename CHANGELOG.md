@@ -60,6 +60,28 @@ clean → export, entirely in the browser.
   rule (background, sticky position, borders, arrow visibility) silently
   matched nothing, leaving the header transparent and scrolling away with the
   body. The selectors now target the roles.
+- **Fixed**: exporting a restored dataset read through the render cache, whose
+  unloaded chunks return "not loaded yet" — the file had the right row count
+  but empty cells for everything the user had not scrolled through. Exports and
+  the formula-risk estimate now read stored rows through IndexedDB windows
+  (ADR-037), and the risk estimate is computed once per scope instead of once
+  per render.
+- **Fixed**: a search or sort committed while a previous scan was still running
+  could be silently dropped by the query worker's single-slot gate, leaving
+  "Searching…" on screen permanently with a Cancel button that did nothing.
+  The worker now queues the newest query until the active scan unwinds, and
+  worker-level failures (script errors, failed loads) settle the pending
+  import or query as an explicit error instead of waiting forever.
+- **Fixed**: a batch of smaller review findings — Cancel Query stayed dead
+  after a superseded run; search and filter scans showed no busy marker; the
+  formula-risk estimate restarted on every render; the folded-value cache kept
+  one folded copy of every dataset ever queried; dataset deletion issued one
+  IndexedDB request per row; view updaters called `setNotice` (a side effect
+  in a function React may re-run); the cleaning transform copied the column
+  order per scanned row; CSV quoting allocated a code-point array per cell;
+  the download-fallback byte cap counted UTF-16 units instead of bytes;
+  deserialized cell edits had no cap; the search debounce restarted on every
+  view change; each rendered cell read its value twice.
 - **Cleaning pipeline** — serializable steps (trim whitespace, remove empty
   rows, remove duplicates with exact or trimmed comparison over whole rows or
   key columns, select columns) added, edited, enabled/disabled, removed and

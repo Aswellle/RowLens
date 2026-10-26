@@ -120,6 +120,14 @@ More 菜单移除、干净安装复验）；发布/tag 等外部动作仍需维�
   （导出播报、导入往返、重名不覆盖且原配方保留、坏文件与超大文件不动现有
   列表）；`e2e/presets.spec.ts` 真实下载→读取文件→干净会话导入→应用并验证
   命中正确列。
+- [x] 发布前全量代码评审（双线）的两项 HIGH 均已修复并有回归测试。
+  证据：导出走 `export/rows.ts` 总行源（连续游程分组、窗口读、去重），
+  `rows.test.ts` 六例；恢复后导出在 App 层（捕获 blob 断言 80 行全非空，
+  含超出预取窗口的 T-00061）与 `e2e/export.spec.ts`（真实下载断言 5,001 行
+  含 T-03001/T-05000）双重锁定；查询 worker 的 CANCEL+START 背靠背竞态由
+  `query.worker.test.ts` 四例覆盖（排队运行、只留最新、可撤队、正常路径）；
+  worker 失败落定为类型化错误（import/query 两侧 scripted 测试）；其余
+  MEDIUM/LOW 修复见 CHANGELOG 同名条目与 ADR-037。
 - [x] 浏览全表时内存有界（分块淘汰）。
   证据：`lazy-store.test.ts` 淘汰组（上限、LRU 顺序、窗口固定、窗口超上限
   时优先正确性、淘汰后重读）；`e2e/bench/scroll-memory.spec.ts` P3 跳遍全
