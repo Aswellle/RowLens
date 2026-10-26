@@ -48,6 +48,13 @@ clean → export, entirely in the browser.
   directions, only comparisons inside a partition reverse. The mode persists
   with the rest of the view, composes with cleaning and edits (they feed the
   sort keys), and the direction cycle keeps it.
+- **Selected-range export**: the Export dialog gains a third scope —
+  "Selected range (N rows × M columns)" — that streams exactly the rectangle
+  on screen, in view order, with the same values Copy would put on the
+  clipboard but without the copy cell cap. It appears (and defaults) only when
+  the grid holds a multi-cell selection; a single focused cell keeps the
+  two-scope dialog. The rectangle is snapshotted when the dialog opens, so a
+  query finishing under the modal cannot silently change what gets written.
 - **Fixed**: the grid header's CSS had targeted `th` elements since the first
   release while the grid renders `div[role='columnheader']` — every header
   rule (background, sticky position, borders, arrow visibility) silently

@@ -153,6 +153,12 @@
   视图）；架构上清洗为内存投影，无任何回写路径。
 - [x] Filtered vs All 导出范围有明确区分。证据：ExportDialog 双选+实时计数；
   E2E export.spec 范围用例。
+- [x] Selected range 范围导出所选矩形：视图序、网格列序、显示值（编辑+trim），
+  打开对话框即快照。
+  证据：`ExportDialog.test.tsx`（有选区时默认选中并显示 N×M、切范围换估算、
+  按范围计数风险格、提交携带 scope、无选区时不出现该选项）；App 用例
+  （2×2 选区导出成功并报 2 rows、单格无该范围）；`e2e/export.spec.ts`
+  真实下载断言文件逐行等于所选矩形（表头 + 3 行 × 2 列）且单格不出现选项。
 - [x] CSV quoting 和 CRLF 正确；独立解析回读结果与预期一致。
   证据：`serializer.test.ts` 全部文档经 Papa 独立回读；E2E 直接断言下载
   文件字节。

@@ -25,7 +25,7 @@ column show/hide — run in a second worker over windowed
 dataset scans, where the newest query always wins. **Clean** with serializable
 steps (trim whitespace, remove empty rows, remove duplicates, select columns),
 each showing its impact, never touching the stored file. **Export** CSV as the
-filtered view or the cleaned dataset, streamed to a File System Access save
+filtered view, the cleaned dataset, or the selected rectangle, streamed to a File System Access save
 picker when available (capped in-browser download otherwise), with
 spreadsheet-safe formula protection by default and an explicit raw mode.
 
@@ -130,8 +130,8 @@ Playwright browser job (`.github/workflows/ci.yml`).
 - Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown, the record
   header and rectangular range selection (Shift+arrows, drag with edge
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
-  refused rather than truncated — use Export CSV for extracts that large.
-  There is no multi-range (Ctrl+click) selection.
+  refused rather than truncated — the Export dialog's Selected-range scope
+  streams any size. There is no multi-range (Ctrl+click) selection.
 - Cell edits, the cleaning pipeline and the query view (search, filters, sort,
   hidden columns) persist in their own IndexedDB stores, but none of them
   carries undo history across a reload. A restored view that hides every
