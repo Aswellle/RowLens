@@ -366,3 +366,222 @@ describe('DataGrid', () => {
     expect(screen.getByText('60,000 × 2 selected')).toBeInTheDocument();
   });
 });
+
+describe('DataGrid cell editing', () => {
+  const editableProps = {
+    columns,
+    totalRowCount: 4,
+    visibleIndices: [0, 1, 2, 3],
+    recordLabel: (i: number) => `Record ${i + 1}`,
+    sort: null,
+    onSortChange: () => {},
+  };
+
+  it('stays read-only when no edit handler is provided', async () => {
+    const user = userEvent.setup();
+    render(<DataGrid {...editableProps} valueAt={valueAt} />);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    // Typing does not start an edit either; the grid keeps its own shortcuts.
+    await user.keyboard('x');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('opens on Enter with the current value selected and commits on Enter', async () => {
+    const user = userEvent.setup();
+    const edits: Array<{ rowIndex: number; columnId: string; value: string }> = [];
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={valueAt}
+        onEditCell={(edit) => {
+          edits.push({ rowIndex: edit.rowIndex, columnId: edit.columnId, value: edit.value });
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="1-0"]')?.focus();
+    await user.keyboard('{Enter}');
+
+    const editor = screen.getByRole('textbox', { name: /Edit Name in Record 2/ });
+    expect(editor).toHaveValue('alpha');
+    expect(editor).toHaveFocus();
+
+    await user.clear(editor);
+    await user.type(editor, 'edited');
+    await user.keyboard('{Enter}');
+
+    expect(edits).toEqual([{ rowIndex: 1, columnId: 'c0', value: 'edited' }]);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('starts a fresh edit when typing a printable character', async () => {
+    const user = userEvent.setup();
+    const edits: string[] = [];
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={valueAt}
+        onEditCell={(edit) => {
+          edits.push(edit.value);
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-1"]')?.focus();
+    await user.keyboard('Z');
+
+    const editor = screen.getByRole('textbox', { name: /Edit City in Record 1/ });
+    // The typed character replaces the value rather than appending to it.
+    expect(editor).toHaveValue('Z');
+    await user.type(editor, 'urich');
+    await user.keyboard('{Enter}');
+    expect(edits).toEqual(['Zurich']);
+  });
+
+  it('cancels with Escape without reporting an edit', async () => {
+    const user = userEvent.setup();
+    let commits = 0;
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={valueAt}
+        onEditCell={() => {
+          commits += 1;
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = grid.querySelector<HTMLElement>('[data-cell="0-0"]');
+    cell?.focus();
+    await user.keyboard('{Enter}');
+    await user.type(screen.getByRole('textbox'), 'discarded');
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(commits).toBe(0);
+    expect(cell).toHaveFocus();
+  });
+
+  it('opens on F2 and on double-click', async () => {
+    const user = userEvent.setup();
+    render(<DataGrid {...editableProps} valueAt={valueAt} onEditCell={() => null} />);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="2-1"]')?.focus();
+    await user.keyboard('{F2}');
+    expect(screen.getByRole('textbox', { name: /Edit City in Record 3/ })).toHaveValue('Auckland');
+    await user.keyboard('{Escape}');
+
+    await user.dblClick(
+      within(grid).getByText('Berlin', { selector: '[data-cell="0-1"] .grid-cell__text' }),
+    );
+    expect(screen.getByRole('textbox', { name: /Edit City in Record 1/ })).toHaveValue('Berlin');
+  });
+
+  it('commits and moves to the next cell on Tab', async () => {
+    const user = userEvent.setup();
+    const commits: Array<{ rowIndex: number; columnIndex: number }> = [];
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={valueAt}
+        onEditCell={(edit) => {
+          commits.push({ rowIndex: edit.rowIndex, columnIndex: edit.columnIndex });
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+    cell(0, 0)?.focus();
+    await user.keyboard('{Enter}');
+    await user.type(screen.getByRole('textbox'), '!');
+    await user.keyboard('{Tab}');
+
+    expect(commits).toEqual([{ rowIndex: 0, columnIndex: 0 }]);
+    expect(cell(0, 1)).toHaveFocus();
+  });
+
+  it('wraps to the next row when tabbing past the last column', async () => {
+    const user = userEvent.setup();
+    render(<DataGrid {...editableProps} valueAt={valueAt} onEditCell={() => null} />);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const cell = (row: number, column: number) =>
+      grid.querySelector<HTMLElement>(`[data-cell="${row}-${column}"]`);
+    cell(0, 1)?.focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard('{Tab}');
+    expect(cell(1, 0)).toHaveFocus();
+  });
+
+  it('commits when focus leaves the editor by clicking another cell', async () => {
+    const user = userEvent.setup();
+    const commits: string[] = [];
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={valueAt}
+        onEditCell={(edit) => {
+          commits.push(edit.value);
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.type(screen.getByRole('textbox'), '-typed');
+    // Clicking a different cell steals focus, which commits the draft.
+    await user.click(
+      within(grid).getByText('gamma', { selector: '[data-cell="3-0"] .grid-cell__text' }),
+    );
+
+    expect(commits).toEqual(['beta-typed']);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('closes the editor and announces a refused commit', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataGrid {...editableProps} valueAt={valueAt} onEditCell={() => 'Edit limit reached.'} />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByText('Edit limit reached.')).toBeInTheDocument();
+  });
+
+  it('marks edited cells so the overlay state is visible', () => {
+    render(
+      <DataGrid
+        {...editableProps}
+        valueAt={(row, column) => (row === 1 && column === 0 ? 'overlay' : valueAt(row, column))}
+        storedValueAt={valueAt}
+        onEditCell={() => null}
+        isEdited={(row, column) => row === 1 && column === 0}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    expect(grid.querySelector('[data-cell="1-0"]')).toHaveClass('grid-cell--edited');
+    expect(grid.querySelector('[data-cell="1-1"]')).not.toHaveClass('grid-cell--edited');
+  });
+});

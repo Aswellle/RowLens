@@ -16,6 +16,12 @@
  * selects the whole view; Ctrl/Cmd+C copies the selection as TSV. Selection is
  * view-position based and clamped on read, so a shrinking result set can never
  * make copy read past what is displayed (ADR-024).
+ *
+ * Editing (ADR-025): Enter, F2, double-click or typing a printable character
+ * opens an in-cell editor over the value; Enter/Tab commit, Escape cancels,
+ * and moving the focus elsewhere commits. The grid never writes to the store —
+ * it reports the requested value through onEditCell and re-renders from
+ * valueAt, so the parent's overlay stays the single source of truth.
  */
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -49,6 +55,18 @@ export type GridSort = {
   direction: SortDirection;
 };
 
+/** A committed cell edit, in view coordinates plus the underlying value. */
+export type GridCellEdit = {
+  rowIndex: RowIndex;
+  columnIndex: number;
+  columnId: string;
+  /** Value the user was looking at before editing (store plus overlay). */
+  displayed: string | null;
+  /** Value in the store, so the parent can drop a no-op override. */
+  stored: string | null;
+  value: string;
+};
+
 type DataGridProps = {
   columns: GridColumn[];
   /** Total records in the dataset (aria-rowcount), not the visible subset. */
@@ -56,11 +74,17 @@ type DataGridProps = {
   /** Row indices currently visible (already searched/filtered/sorted). */
   visibleIndices: readonly RowIndex[];
   valueAt: (rowIndex: RowIndex, columnIndex: number) => string | null;
+  /** Stored value under the overlay, used to detect no-op edits. */
+  storedValueAt?: (rowIndex: RowIndex, columnIndex: number) => string | null;
   /** Stable record label for the leading cell, e.g. "Record 12". */
   recordLabel: (rowIndex: RowIndex) => string;
   sort: GridSort | null;
   /** Cycle: click asc → desc → off; null clears the sort. */
   onSortChange: (sort: GridSort | null) => void;
+  /** Commits an edited cell; absent means the grid is read-only. */
+  onEditCell?: (edit: GridCellEdit) => string | null;
+  /** True when the cell currently holds an unsaved overlay value. */
+  isEdited?: (rowIndex: RowIndex, columnIndex: number) => boolean;
 };
 
 const ROW_NUM_WIDTH = 110;
@@ -80,9 +104,12 @@ export function DataGrid({
   totalRowCount,
   visibleIndices,
   valueAt,
+  storedValueAt,
   recordLabel,
   sort,
   onSortChange,
+  onEditCell,
+  isEdited,
 }: DataGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +166,94 @@ export function DataGrid({
     },
     [],
   );
+
+  /**
+   * In-cell editor state. `row`/`column` are view positions; `draft` is the
+   * text being typed. Editing is only offered when the parent supplies
+   * onEditCell, so the grid stays a pure renderer for read-only hosts.
+   */
+  const editable = onEditCell !== undefined;
+  const [editor, setEditor] = useState<{
+    row: number;
+    column: number;
+    draft: string;
+    /** Select-all on open (Enter/F2) vs caret at end (typing replaces). */
+    selectAll: boolean;
+  } | null>(null);
+  const editorRef = useRef<HTMLInputElement>(null);
+  /** Incremented when an editor opens; drives focus/selection, not keystrokes. */
+  const [editorSeq, setEditorSeq] = useState(0);
+  /** Set while a commit is running so blur does not commit twice. */
+  const committingRef = useRef(false);
+
+  const openEditor = (pos: CellPos, initial: string, selectAll: boolean): void => {
+    if (!editable || pos.column === HEADER_COLUMN) return;
+    const rowIndex = visibleIndices[pos.row];
+    if (rowIndex === undefined) return;
+    setEditor({ row: pos.row, column: pos.column, draft: initial, selectAll });
+    setEditorSeq((seq) => seq + 1);
+  };
+
+  const closeEditor = (): void => {
+    setEditor(null);
+  };
+
+  const commitEditor = (): void => {
+    const active = editor;
+    if (!active || committingRef.current) return;
+    const rowIndex = visibleIndices[active.row];
+    const column = columns[active.column];
+    if (rowIndex === undefined || column === undefined) {
+      closeEditor();
+      return;
+    }
+    committingRef.current = true;
+    try {
+      const refusal = onEditCell?.({
+        rowIndex,
+        columnIndex: active.column,
+        columnId: column.id,
+        displayed: valueAt(rowIndex, active.column),
+        stored: storedValueAt?.(rowIndex, active.column) ?? null,
+        value: active.draft,
+      });
+      // A refusal (e.g. the edit cap) is reported here so the editor closes
+      // with an explanation instead of silently keeping the draft.
+      if (refusal) announce(refusal);
+    } finally {
+      committingRef.current = false;
+      closeEditor();
+    }
+  };
+
+  /** Commit the open editor and put focus back on its cell. */
+  const finishEditing = (moveTo?: CellPos): void => {
+    const active = editor;
+    commitEditor();
+    if (moveTo) {
+      pendingFocusRef.current = true;
+      setFocusPos(moveTo);
+      setSelection(collapsed(moveTo));
+      virtualizer.scrollToIndex(moveTo.row, { align: 'auto' });
+    } else if (active) {
+      pendingFocusRef.current = true;
+    }
+  };
+
+  // Focus and select inside the editor when it opens. Keyed on the open
+  // counter, not on the draft: re-running on every keystroke would reset the
+  // caret and re-select the text.
+  useEffect(() => {
+    const input = editorRef.current;
+    if (editorSeq === 0 || !input) return;
+    input.focus();
+    if (editor?.selectAll) {
+      input.select();
+    } else {
+      const end = input.value.length;
+      input.setSelectionRange(end, end);
+    }
+  }, [editorSeq, editor?.selectAll]);
 
   const moveFocus = (row: number, column: number, extend: boolean): void => {
     const next = clampPos({ row, column });
@@ -314,6 +429,8 @@ export function DataGrid({
   };
 
   const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    // Keys typed inside the editor belong to the input, not the grid.
+    if (editor) return;
     const { row, column } = clampedFocus;
     const page = Math.max(1, Math.floor((scrollRef.current?.clientHeight ?? 360) / 36) - 1);
     const extend = event.shiftKey;
@@ -324,6 +441,27 @@ export function DataGrid({
       setSelection(selectAllRows(rowCount, columnCount));
       event.preventDefault();
       return;
+    }
+    // Enter and F2 open the editor on the current value; a printable
+    // character starts a fresh edit with that character, like a spreadsheet.
+    if (editable && column !== HEADER_COLUMN) {
+      const rowIndex = visibleIndices[row];
+      if (rowIndex !== undefined && (event.key === 'Enter' || event.key === 'F2')) {
+        openEditor({ row, column }, valueAt(rowIndex, column) ?? '', true);
+        event.preventDefault();
+        return;
+      }
+      if (
+        event.key.length === 1 &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        event.key !== ' '
+      ) {
+        openEditor({ row, column }, event.key, false);
+        event.preventDefault();
+        return;
+      }
     }
     // Space on the record header (and Shift+Space anywhere) selects the whole
     // row — the keyboard equivalent of clicking the row header.
@@ -547,6 +685,11 @@ export function DataGrid({
                   const isAnchor =
                     selection.anchor.row === virtualRow.index &&
                     selection.anchor.column === columnIndex;
+                  const editing =
+                    editor !== null &&
+                    editor.row === virtualRow.index &&
+                    editor.column === columnIndex;
+                  const edited = isEdited?.(rowIndex, columnIndex) ?? false;
                   return (
                     <div
                       key={column.id}
@@ -560,10 +703,16 @@ export function DataGrid({
                       }
                       className={`grid-cell${selected ? ' grid-cell--selected' : ''}${
                         isAnchor && hasRange ? ' grid-cell--anchor' : ''
-                      }`}
+                      }${edited ? ' grid-cell--edited' : ''}`}
                       style={{ width: column.width }}
                       title={valueAt(rowIndex, columnIndex) ?? undefined}
                       onMouseDown={(event) => {
+                        // A click inside the open editor belongs to the input:
+                        // stealing focus here would blur (and commit) the draft
+                        // mid-edit.
+                        if ((event.target as Element).closest('.grid-cell__editor') !== null) {
+                          return;
+                        }
                         beginPointerSelection(
                           { row: virtualRow.index, column: columnIndex },
                           event,
@@ -572,28 +721,90 @@ export function DataGrid({
                         // focusable and would otherwise swallow the click.
                         event.currentTarget.focus();
                       }}
+                      onDoubleClick={() => {
+                        if (!editable) return;
+                        openEditor({ row: virtualRow.index, column: columnIndex }, cellValue, true);
+                      }}
                       // Any focus (pointer, Tab, programmatic) becomes the
                       // roving position so the next arrow key starts here.
                       onFocus={() => adoptFocus({ row: virtualRow.index, column: columnIndex })}
                       onMouseEnter={() => extendTo({ row: virtualRow.index, column: columnIndex })}
                     >
-                      <span className="grid-cell__text truncate">{cellValue}</span>
-                      <button
-                        type="button"
-                        className="grid-cell__copy"
-                        aria-label={`Copy value of ${column.label} in ${recordLabel(rowIndex)}`}
-                        onClick={() => {
-                          void copyText(cellValue).then((copied) => {
-                            announce(
-                              copied
-                                ? `Copied ${column.label} for ${recordLabel(rowIndex)}.`
-                                : 'Copy failed — the clipboard is not available in this browser context.',
-                            );
-                          });
-                        }}
-                      >
-                        Copy
-                      </button>
+                      {editing ? (
+                        <input
+                          ref={editorRef}
+                          className="grid-cell__editor"
+                          value={editor.draft}
+                          aria-label={`Edit ${column.label} in ${recordLabel(rowIndex)}`}
+                          onChange={(event) =>
+                            setEditor((current) =>
+                              current === null
+                                ? current
+                                : { ...current, draft: event.target.value },
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            // Stop grid navigation and shortcuts while typing.
+                            event.stopPropagation();
+                            if (event.key === 'Enter') {
+                              event.preventDefault();
+                              finishEditing({
+                                row: virtualRow.index,
+                                column: columnIndex,
+                              });
+                              return;
+                            }
+                            if (event.key === 'Escape') {
+                              event.preventDefault();
+                              closeEditor();
+                              pendingFocusRef.current = true;
+                              return;
+                            }
+                            if (event.key === 'Tab') {
+                              // Commit and let the browser move focus; the grid
+                              // re-adopts it through onFocus.
+                              event.preventDefault();
+                              const nextColumn = event.shiftKey ? columnIndex - 1 : columnIndex + 1;
+                              const next =
+                                nextColumn < 0 || nextColumn >= columnCount
+                                  ? {
+                                      row: event.shiftKey
+                                        ? virtualRow.index - 1
+                                        : virtualRow.index + 1,
+                                      column:
+                                        nextColumn < 0 ? columnCount - 1 : nextColumn % columnCount,
+                                    }
+                                  : { row: virtualRow.index, column: nextColumn };
+                              finishEditing(clampPos(next));
+                            }
+                          }}
+                          onBlur={() => {
+                            // Clicking another cell or leaving the grid commits
+                            // the draft; a refused commit already closed it.
+                            if (editor) commitEditor();
+                          }}
+                        />
+                      ) : (
+                        <span className="grid-cell__text truncate">{cellValue}</span>
+                      )}
+                      {!editing && (
+                        <button
+                          type="button"
+                          className="grid-cell__copy"
+                          aria-label={`Copy value of ${column.label} in ${recordLabel(rowIndex)}`}
+                          onClick={() => {
+                            void copyText(cellValue).then((copied) => {
+                              announce(
+                                copied
+                                  ? `Copied ${column.label} for ${recordLabel(rowIndex)}.`
+                                  : 'Copy failed — the clipboard is not available in this browser context.',
+                              );
+                            });
+                          }}
+                        >
+                          Copy
+                        </button>
+                      )}
                     </div>
                   );
                 })}

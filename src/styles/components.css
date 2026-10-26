@@ -294,6 +294,11 @@
   flex-wrap: wrap;
 }
 
+.status-line__edited {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* ---------- workspace ---------- */
 
 .workspace {
@@ -472,6 +477,32 @@
 .grid-cell--selected.grid-cell--rownum {
   color: var(--text-primary);
   font-weight: 600;
+}
+
+/*
+ * Edited cells get a marker independent of the selection fill: a small accent
+ * bar on the leading edge, so "changed since import" stays visible while the
+ * cell is also selected (colour alone would be ambiguous).
+ */
+.grid-cell--edited {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.grid-cell--edited .grid-cell__text {
+  font-style: italic;
+}
+
+.grid-cell__editor {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0 2px;
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  outline: none;
 }
 
 .grid-cell--anchor {
