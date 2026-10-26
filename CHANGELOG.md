@@ -105,6 +105,12 @@ clean → export, entirely in the browser.
   transactions for rows the grid will never show. Measured restore time went
   from 1.0/2.7/6.9 s to 0.28/0.39/0.38 s at 20k/100k/250k rows — flat in
   dataset size (`docs/performance-results.md`).
+- **Cleaning pipeline survives a reload**: the configured steps are saved in
+  their own IndexedDB store and restored with the dataset, so reopening a file
+  no longer means rebuilding the pipeline. Steps are still configuration only —
+  the stored rows are never modified, and resetting the steps deletes the saved
+  record rather than writing anything back. Steps whose columns no longer exist
+  after a re-import are dropped instead of silently widening to every column.
 - **Bounded chunk cache**: at most 40 chunks (20,000 rows) stay in memory, with
   the window currently on screen pinned so it is never evicted mid-render.
   Scrolling a whole 250k-row file now leaves 48 MB of JS heap instead of

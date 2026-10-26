@@ -73,6 +73,11 @@
   编辑不动行、`deleteDataset` 一并级联删除；`repository.test.ts` 两个 store
   的独立性用例；`e2e/editing.spec.ts` 刷新后编辑恢复且 Reset edits 回到导
   入值。
+- [x] 清洗管线跨刷新保留，且仍是配置而非数据。
+  证据：`cleaning/persist.test.ts` 逐条校验（未知类型、缺失 id、列清单失效
+  整步丢弃、部分失效收窄、重复 id 拒绝、默认值）；`repository.test.ts` 管线
+  与行/编辑三个 store 的独立性；App 恢复用例（重新挂载后步骤仍在且已生效、
+  重置后不再恢复）；`e2e/editing.spec.ts` 刷新后管线仍在且已应用。
 - [x] 浏览全表时内存有界（分块淘汰）。
   证据：`lazy-store.test.ts` 淘汰组（上限、LRU 顺序、窗口固定、窗口超上限
   时优先正确性、淘汰后重读）；`e2e/bench/scroll-memory.spec.ts` P3 跳遍全

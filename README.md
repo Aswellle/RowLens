@@ -46,6 +46,11 @@ store, so reloading reopens the dataset you were viewing with its edits
 intact — a reloaded session starts without undo history, and **Reset edits**
 returns to the imported values. Up to 5,000 cells can be edited at once.
 
+The cleaning pipeline is saved the same way and restored with the dataset, so
+a reload does not lose the steps you configured. It stays configuration:
+nothing is written back to the stored rows, and the view is always a projection
+of the imported data through the current pipeline.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -100,10 +105,10 @@ Playwright browser job (`.github/workflows/ci.yml`).
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
   refused rather than truncated — use Export CSV for extracts that large.
   There is no multi-range (Ctrl+click) selection.
-- Cell edits persist in their own IndexedDB store but carry no undo history
-  across a reload, and cleaning-step changes are not persisted at all. Editing
-  is capped at 5,000 cells, and edits are not part of the undo history for
-  cleaning steps. A paste that would run past the last visible row or column
+- Cell edits and the cleaning pipeline persist in their own IndexedDB stores,
+  but neither carries undo history across a reload. Filters, sort order and
+  hidden columns are not persisted. Editing is capped at 5,000 cells, and edits
+  are not part of the undo history for cleaning steps. A paste that would run past the last visible row or column
   is clipped and reported instead of writing to hidden records. Two tabs
   editing the same dataset do not coordinate: the last write wins.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
