@@ -19,6 +19,11 @@ import type {
 export interface WorkerTransport {
   post(message: MainToImportWorker): void;
   onMessage: ((message: ImportWorkerToMain) => void) | null;
+  /**
+   * Set when the worker itself fails (script error, failed to load) — the
+   * pending import must settle as failed instead of waiting forever.
+   */
+  onWorkerError: ((error: Error) => void) | null;
   terminate(): void;
 }
 
@@ -135,6 +140,19 @@ export class ImportCoordinator {
       outcome,
     };
 
+    // A worker-level failure (uncaught script error, failed to load) posts no
+    // message of its own — surface it as a failed import instead of waiting
+    // forever. Kept generic: raw error text never carries file content.
+    transport.onWorkerError = () => {
+      if (settled) return;
+      void (async () => {
+        await cleanup();
+        settle({
+          kind: 'failed',
+          error: new AppError('PARSE_FAILED', 'The import worker failed unexpectedly.'),
+        });
+      })();
+    };
     transport.onMessage = (message: ImportWorkerToMain) => {
       if (message.jobId !== jobId || settled) return; // stale or post-terminal
       void (async () => {

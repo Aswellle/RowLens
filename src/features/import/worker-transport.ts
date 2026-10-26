@@ -10,8 +10,12 @@ export function createImportWorkerTransport(): WorkerTransport {
     type: 'module',
   });
   let handler: ((message: ImportWorkerToMain) => void) | null = null;
+  let workerError: ((error: Error) => void) | null = null;
   worker.onmessage = (event: MessageEvent<ImportWorkerToMain>) => {
     handler?.(event.data);
+  };
+  worker.onerror = (event: ErrorEvent) => {
+    workerError?.(new Error(event.message || 'Import worker failed.'));
   };
   return {
     post(message: MainToImportWorker): void {
@@ -22,6 +26,12 @@ export function createImportWorkerTransport(): WorkerTransport {
     },
     set onMessage(next: ((message: ImportWorkerToMain) => void) | null) {
       handler = next;
+    },
+    get onWorkerError(): ((error: Error) => void) | null {
+      return workerError;
+    },
+    set onWorkerError(next: ((error: Error) => void) | null) {
+      workerError = next;
     },
     terminate(): void {
       worker.terminate();

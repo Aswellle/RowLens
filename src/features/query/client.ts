@@ -31,6 +31,11 @@ export type QueryOutcome =
 export interface QueryTransport {
   post(message: MainToQueryWorker): void;
   onMessage: ((message: QueryWorkerToMain) => void) | null;
+  /**
+   * Set when the worker itself fails (script error, failed to load) — the
+   * pending query must settle as failed instead of waiting forever.
+   */
+  onWorkerError: ((error: Error) => void) | null;
   terminate(): void;
 }
 
@@ -83,6 +88,14 @@ export class QueryClient {
       resolveOutcome(outcome);
     };
 
+    // A worker-level failure posts no message of its own: settle the current
+    // run as failed so the UI leaves the busy state. Detail stays generic.
+    transport.onWorkerError = () => {
+      settle({
+        kind: 'failed',
+        error: new AppError('QUERY_FAILED', 'The query worker failed unexpectedly.'),
+      });
+    };
     transport.onMessage = (message: QueryWorkerToMain) => {
       if (message.queryId !== this.currentId) return; // stale
       switch (message.type) {
@@ -143,8 +156,12 @@ export function createQueryWorkerTransport(): QueryTransport {
     type: 'module',
   });
   let handler: ((message: QueryWorkerToMain) => void) | null = null;
+  let workerError: ((error: Error) => void) | null = null;
   worker.onmessage = (event: MessageEvent<QueryWorkerToMain>) => {
     handler?.(event.data);
+  };
+  worker.onerror = (event: ErrorEvent) => {
+    workerError?.(new Error(event.message || 'Query worker failed.'));
   };
   return {
     post(message: MainToQueryWorker): void {
@@ -155,6 +172,12 @@ export function createQueryWorkerTransport(): QueryTransport {
     },
     set onMessage(next: ((message: QueryWorkerToMain) => void) | null) {
       handler = next;
+    },
+    get onWorkerError(): ((error: Error) => void) | null {
+      return workerError;
+    },
+    set onWorkerError(next: ((error: Error) => void) | null) {
+      workerError = next;
     },
     terminate(): void {
       worker.terminate();

@@ -21,6 +21,13 @@ class ScriptedTransport implements WorkerTransport {
     this.handler = handler;
   }
 
+  onWorkerError: ((error: Error) => void) | null = null;
+
+  /** Simulates the worker script failing at the browser level. */
+  failWorker(): void {
+    this.onWorkerError?.(new Error('worker exploded'));
+  }
+
   emit(message: ImportWorkerToMain): void {
     this.handler?.(message);
   }
@@ -135,6 +142,26 @@ describe('ImportCoordinator', () => {
     expect(calls.finalized[0]?.status).toBe('ready');
     expect(calls.deleted).toEqual([]);
     expect(transport.terminated).toBe(1);
+    expect(coordinator.hasActiveJob).toBe(false);
+  });
+
+  it('fails the import when the worker itself errors out', async () => {
+    const { repository } = makeRepository();
+    const transport = new ScriptedTransport();
+    const coordinator = new ImportCoordinator({
+      repository,
+      createTransport: () => transport,
+      generateId: () => 'job-1',
+    });
+
+    const active = await coordinator.start(new File(['a\n'], 'x.csv'), OPTIONS);
+    transport.failWorker();
+
+    const outcome = await active.outcome;
+    expect(outcome.kind).toBe('failed');
+    if (outcome.kind === 'failed') {
+      expect(outcome.error.code).toBe('PARSE_FAILED');
+    }
     expect(coordinator.hasActiveJob).toBe(false);
   });
 

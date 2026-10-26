@@ -28,6 +28,13 @@ class ScriptedQueryTransport implements QueryTransport {
     this.handler = next;
   }
 
+  onWorkerError: ((error: Error) => void) | null = null;
+
+  /** Simulates the worker script failing at the browser level. */
+  failWorker(): void {
+    this.onWorkerError?.(new Error('worker exploded'));
+  }
+
   emit(message: QueryWorkerToMain): void {
     this.handler?.(message);
   }
@@ -79,6 +86,27 @@ describe('QueryClient (scripted worker transport)', () => {
       matched: 2,
       totalRows: 3,
     });
+  });
+
+  it('settles the current run as failed when the worker errors out', async () => {
+    const { client, transport } = makeClient();
+    const run = client.run(SPEC);
+    transport.failWorker();
+
+    await expect(run.done).resolves.toMatchObject({
+      kind: 'failed',
+      error: { code: 'QUERY_FAILED' },
+    });
+    // A later run on the same client works: the failure released the slot.
+    const next = client.run(SPEC);
+    transport.emit({
+      type: 'QUERY_DONE',
+      queryId: 'q-1',
+      rowIndices: [],
+      matched: 0,
+      totalRows: 0,
+    });
+    await expect(next.done).resolves.toMatchObject({ kind: 'done' });
   });
 
   it('ignores results carrying a stale queryId', async () => {
