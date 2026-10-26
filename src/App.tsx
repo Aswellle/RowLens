@@ -148,7 +148,7 @@ type View =
       searchInput: string;
       search: string;
       columnFilters: Record<ColumnId, string>;
-      sort: { datasetIndex: number; direction: 'asc' | 'desc' } | null;
+      sort: { datasetIndex: number; direction: 'asc' | 'desc'; numeric: boolean } | null;
       hiddenColumns: ColumnId[];
       cleaningSteps: CleaningStep[];
       stepSummaries: StepSummary[];
@@ -585,7 +585,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       sort:
         sortColumnId === null || view.sort === null
           ? null
-          : { columnId: sortColumnId, direction: view.sort.direction },
+          : {
+              columnId: sortColumnId,
+              direction: view.sort.direction,
+              numeric: view.sort.numeric,
+            },
       hiddenColumns: view.hiddenColumns,
     };
     // Scoped by dataset id: an identical-looking view on a different dataset
@@ -726,7 +730,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           sort:
             restoredSortIndex === -1 || restoredView.sort === null
               ? null
-              : { datasetIndex: restoredSortIndex, direction: restoredView.sort.direction },
+              : {
+                  datasetIndex: restoredSortIndex,
+                  direction: restoredView.sort.direction,
+                  numeric: restoredView.sort.numeric,
+                },
           hiddenColumns: restoredView.hiddenColumns,
           cleaningSteps: restoredSteps,
           stepSummaries: [],
@@ -768,8 +776,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const datasetIdKey = queryDeps?.data.meta.id ?? '';
   const searchKey = queryDeps?.search ?? '';
   const filtersKey = queryDeps ? JSON.stringify(queryDeps.columnFilters) : '';
+  // The numeric flag is part of the sort identity: toggling it must re-run
+  // the query even though column and direction are unchanged (ADR-035).
   const sortKey = queryDeps?.sort
-    ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}`
+    ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}:${queryDeps.sort.numeric}`
     : '';
   const cleaningKey = queryDeps ? JSON.stringify(queryDeps.cleaningSteps) : '';
   // The revision, not the overlay itself: an edit bumps it, so edits re-run
@@ -798,6 +808,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         spec.sort = {
           columnIndex: current.sort.datasetIndex,
           direction: current.sort.direction,
+          numeric: current.sort.numeric,
         };
       }
       if (current.cleaningSteps.length > 0) spec.cleaning = current.cleaningSteps;
@@ -838,7 +849,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     const effective = kept ? visible.filter(({ column }) => kept.has(column.id)) : visible;
     const gridIndex = effective.findIndex(({ index }) => index === view.sort?.datasetIndex);
     if (gridIndex === -1 || view.sort === null) return null;
-    return { columnIndex: gridIndex, direction: view.sort.direction };
+    return {
+      columnIndex: gridIndex,
+      direction: view.sort.direction,
+      numeric: view.sort.numeric,
+    };
   }, [view]);
 
   const visibleDatasetIndexes = useMemo(() => {
@@ -1568,6 +1583,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                           : {
                               datasetIndex: effectiveDatasetIndexes[gridSort.columnIndex] ?? 0,
                               direction: gridSort.direction,
+                              numeric: gridSort.numeric,
                             },
                       queryBusy: true,
                     })

@@ -22,7 +22,7 @@ describe('view record round trip', () => {
     const original = view({
       search: 'north',
       columnFilters: { c0: 'T-0', c2: 'open' },
-      sort: { columnId: 'c1', direction: 'desc' },
+      sort: { columnId: 'c1', direction: 'desc', numeric: false },
       hiddenColumns: ['c2'],
     });
     const record = serializeView(original, 'ds-1', 1234);
@@ -33,8 +33,27 @@ describe('view record round trip', () => {
   });
 
   it('stores the sort by column id, not by position', () => {
-    const record = serializeView(view({ sort: { columnId: 'c2', direction: 'asc' } }), 'ds-1', 1);
-    expect(record.sort).toEqual({ columnId: 'c2', direction: 'asc' });
+    const record = serializeView(
+      view({ sort: { columnId: 'c2', direction: 'asc', numeric: false } }),
+      'ds-1',
+      1,
+    );
+    expect(record.sort).toEqual({ columnId: 'c2', direction: 'asc', numeric: false });
+  });
+
+  it('round-trips the numeric sort mode', () => {
+    const original = view({ sort: { columnId: 'c1', direction: 'asc', numeric: true } });
+    expect(deserializeView(serializeView(original, 'ds-1', 1), COLUMNS)).toEqual(original);
+  });
+
+  it('reads a record written before numeric sort existed as string sort', () => {
+    // Older records carry no `numeric` field; the record format is unchanged
+    // because an absent field means the same thing as `false`.
+    const restored = deserializeView(
+      { format: VIEW_RECORD_FORMAT, sort: { columnId: 'c1', direction: 'desc' } },
+      COLUMNS,
+    );
+    expect(restored.sort).toEqual({ columnId: 'c1', direction: 'desc', numeric: false });
   });
 
   it('omits empty filter values so "no restriction" is not stored', () => {
@@ -76,7 +95,10 @@ describe('view record validation', () => {
   it('drops a sort on a column that no longer exists', () => {
     expect(
       deserializeView(
-        { format: VIEW_RECORD_FORMAT, sort: { columnId: 'gone', direction: 'asc' } },
+        {
+          format: VIEW_RECORD_FORMAT,
+          sort: { columnId: 'gone', direction: 'asc', numeric: false },
+        },
         COLUMNS,
       ).sort,
     ).toBeNull();
@@ -85,7 +107,10 @@ describe('view record validation', () => {
   it('drops a sort with an unknown direction', () => {
     expect(
       deserializeView(
-        { format: VIEW_RECORD_FORMAT, sort: { columnId: 'c0', direction: 'sideways' } },
+        {
+          format: VIEW_RECORD_FORMAT,
+          sort: { columnId: 'c0', direction: 'sideways', numeric: true },
+        },
         COLUMNS,
       ).sort,
     ).toBeNull();
@@ -127,11 +152,13 @@ describe('view record validation', () => {
         format: VIEW_RECORD_FORMAT,
         search: 'kept',
         columnFilters: 'not-an-object',
-        sort: { columnId: 'c1', direction: 'asc' },
+        sort: { columnId: 'c1', direction: 'asc', numeric: false },
       },
       COLUMNS,
     );
-    expect(restored).toEqual(view({ search: 'kept', sort: { columnId: 'c1', direction: 'asc' } }));
+    expect(restored).toEqual(
+      view({ search: 'kept', sort: { columnId: 'c1', direction: 'asc', numeric: false } }),
+    );
   });
 
   it('accepts only the known record format', () => {
@@ -150,7 +177,9 @@ describe('view activity and pruning', () => {
   it('reports each kind of restriction as active', () => {
     expect(isActiveView(view({ search: 'q' }))).toBe(true);
     expect(isActiveView(view({ columnFilters: { c0: 'x' } }))).toBe(true);
-    expect(isActiveView(view({ sort: { columnId: 'c0', direction: 'asc' } }))).toBe(true);
+    expect(isActiveView(view({ sort: { columnId: 'c0', direction: 'asc', numeric: false } }))).toBe(
+      true,
+    );
     expect(isActiveView(view({ hiddenColumns: ['c0'] }))).toBe(true);
   });
 
@@ -163,7 +192,7 @@ describe('view activity and pruning', () => {
     const current = view({
       search: 'q',
       columnFilters: { c0: 'x', gone: 'y' },
-      sort: { columnId: 'gone', direction: 'asc' },
+      sort: { columnId: 'gone', direction: 'asc', numeric: false },
       hiddenColumns: ['c1'],
     });
     expect(pruneView(current, COLUMNS)).toEqual(

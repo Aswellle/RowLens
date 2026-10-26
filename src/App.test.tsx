@@ -66,6 +66,42 @@ describe('App shell (synthetic data)', () => {
     expect(document.activeElement).toBe(search);
   }, 20_000);
 
+  it('the numeric toggle reorders a numeric column; string order does not', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={300} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const readColumn = () =>
+      Array.from({ length: 14 }, (_, rowIndex) =>
+        Number(
+          document.querySelector(`[data-cell="${rowIndex}-6"] .grid-cell__text`)?.textContent ?? '',
+        ),
+      );
+
+    // "First response (h)" holds plain integers 0–71. The default string sort
+    // interleaves ("0", "1", "10", …), so the first window already contains
+    // two-digit values; numeric order puts every single digit first.
+    await user.click(screen.getByRole('button', { name: 'Sort by First response (h)' }));
+    await waitFor(() =>
+      expect(screen.getByRole('columnheader', { name: /^First response/ })).toHaveAttribute(
+        'aria-sort',
+        'ascending',
+      ),
+    );
+    expect(readColumn().some((value) => value >= 10)).toBe(true);
+
+    // Turning the toggle on re-runs the query numerically.
+    await user.click(
+      screen.getByRole('button', { name: 'Treat First response (h) values as numbers' }),
+    );
+    await waitFor(() => expect(readColumn().every((value) => value < 10)).toBe(true), {
+      timeout: 15_000,
+    });
+  }, 30_000);
+
   it('a column:value term searches only that column', async () => {
     const user = userEvent.setup();
     render(<App sampleSize={300} />);
@@ -695,6 +731,32 @@ describe('App view persistence', () => {
           'aria-sort',
           'ascending',
         ),
+      { timeout: 15_000 },
+    );
+  }, 40_000);
+
+  it('restores the numeric sort mode after a remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={80} />);
+    await loadSample(user, 80);
+
+    await user.click(screen.getByRole('button', { name: 'Sort by Status' }));
+    await user.click(screen.getByRole('button', { name: 'Treat Status values as numbers' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Treat Status values as numbers' }),
+      ).toHaveAttribute('aria-pressed', 'true'),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    unmount();
+
+    render(<App sampleSize={80} />);
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole('button', { name: 'Treat Status values as numbers' }),
+        ).toHaveAttribute('aria-pressed', 'true'),
       { timeout: 15_000 },
     );
   }, 40_000);

@@ -34,11 +34,14 @@ const MAX_STORED_SEARCH_LENGTH = 2_000;
 
 /**
  * The sort as stored: by column id, not by dataset index. Ids survive a
- * re-import that reorders columns, which a position does not.
+ * re-import that reorders columns, which a position does not. `numeric` is the
+ * explicit "treat as numbers" mode (ADR-035); older records without the field
+ * read as plain string sort, which is why the record format stays 1.
  */
 export type StoredSort = {
   columnId: ColumnId;
   direction: 'asc' | 'desc';
+  numeric: boolean;
 };
 
 export type StoredViewRecord = {
@@ -90,7 +93,9 @@ function pruneSort(value: unknown, validColumnIds: ReadonlySet<ColumnId>): Store
   const { columnId, direction } = value;
   if (typeof columnId !== 'string' || !validColumnIds.has(columnId)) return null;
   if (direction !== 'asc' && direction !== 'desc') return null;
-  return { columnId, direction };
+  // Absent on records written before numeric sort existed: plain string sort.
+  const numeric = typeof value.numeric === 'boolean' ? value.numeric : false;
+  return { columnId, direction, numeric };
 }
 
 /**

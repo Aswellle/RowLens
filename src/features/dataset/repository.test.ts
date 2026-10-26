@@ -340,7 +340,7 @@ describe('DatasetRepository views (fake IndexedDB)', () => {
       format: 1,
       search: 'north',
       columnFilters: { c0: 'T-0' },
-      sort: { columnId: 'c1' as const, direction: 'asc' as const },
+      sort: { columnId: 'c1' as const, direction: 'asc' as const, numeric: false },
       hiddenColumns: ['c1'],
     };
   }
