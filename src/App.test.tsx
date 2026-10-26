@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from './App';
@@ -286,5 +286,74 @@ describe('App cell editing', () => {
     await waitFor(() =>
       expect(cell()?.querySelector('.grid-cell__text')?.textContent).toBe(before),
     );
+  }, 30_000);
+});
+
+describe('App paste', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  async function loadReady(user: ReturnType<typeof userEvent.setup>) {
+    render(<App sampleSize={40} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+  }
+
+  function pasteEvent(text: string) {
+    return {
+      clipboardData: {
+        getData: (type: string) => (type === 'text/plain' ? text : ''),
+        setData: () => {},
+      },
+    };
+  }
+
+  it('pastes a block into cells and undoes the whole block at once', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    const text = (row: number, column: number) =>
+      grid.querySelector(`[data-cell="${row}-${column}"] .grid-cell__text`)?.textContent ?? '';
+    const before = [text(0, 0), text(0, 1), text(1, 0), text(1, 1)];
+
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent('P1\tP2\r\nP3\tP4'));
+
+    await waitFor(() => expect(text(0, 0)).toBe('P1'));
+    expect(text(0, 1)).toBe('P2');
+    expect(text(1, 0)).toBe('P3');
+    expect(text(1, 1)).toBe('P4');
+    expect(screen.getByText('4 cells edited')).toBeInTheDocument();
+    expect(screen.getByText('Pasted 4 cells.')).toBeInTheDocument();
+
+    // One paste is one undo entry, so a single undo restores all four cells.
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(text(0, 0)).toBe(before[0]));
+    expect([text(0, 0), text(0, 1), text(1, 0), text(1, 1)]).toEqual(before);
+    expect(screen.queryByText(/cell edited|cells edited/)).not.toBeInTheDocument();
+  }, 30_000);
+
+  it('makes pasted values findable by search', async () => {
+    const user = userEvent.setup();
+    await loadReady(user);
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent('unique-paste-token'));
+
+    await waitFor(() =>
+      expect(grid.querySelector('[data-cell="0-0"] .grid-cell__text')?.textContent).toBe(
+        'unique-paste-token',
+      ),
+    );
+
+    await user.type(screen.getByLabelText('Search all columns'), 'unique-paste-token');
+    await waitFor(() => expect(screen.getByText('1 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
   }, 30_000);
 });

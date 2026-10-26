@@ -585,3 +585,160 @@ describe('DataGrid cell editing', () => {
     expect(grid.querySelector('[data-cell="1-1"]')).not.toHaveClass('grid-cell--edited');
   });
 });
+
+describe('DataGrid paste', () => {
+  const pasteProps = {
+    columns,
+    totalRowCount: 4,
+    visibleIndices: [0, 1, 2, 3],
+    recordLabel: (i: number) => `Record ${i + 1}`,
+    sort: null,
+    onSortChange: () => {},
+  };
+
+  /** Synthetic clipboard payload; jsdom has no real clipboard. */
+  function pasteEvent(text: string) {
+    return {
+      clipboardData: {
+        data: {} as Record<string, string>,
+        getData(type: string) {
+          return type === 'text/plain' ? text : '';
+        },
+        setData() {},
+      },
+    };
+  }
+
+  it('pastes a block starting at the active cell, spilling right and down', () => {
+    const batches: string[][] = [];
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={(edits) => {
+          batches.push(edits.map((edit) => `${edit.rowIndex}:${edit.columnIndex}=${edit.value}`));
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="1-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent('x\ty\r\nz\tw'));
+
+    // One batch, so one undo covers the whole paste.
+    expect(batches).toHaveLength(1);
+    expect(batches[0]).toEqual(['1:0=x', '1:1=y', '2:0=z', '2:1=w']);
+    expect(screen.getByText('Pasted 4 cells.')).toBeInTheDocument();
+  });
+
+  it('fills a multi-cell selection by repeating the block', async () => {
+    const user = userEvent.setup();
+    const values: string[] = [];
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={(edits) => {
+          values.push(...edits.map((edit) => edit.value));
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Shift>}{ArrowRight}{ArrowDown}{/Shift}');
+    fireEvent.paste(grid, pasteEvent('fill'));
+
+    expect(values).toEqual(['fill', 'fill', 'fill', 'fill']);
+    expect(screen.getByText('Pasted 4 cells.')).toBeInTheDocument();
+  });
+
+  it('clips a block at the last row and says what was dropped', () => {
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={() => null}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="3-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent('a\r\nb'));
+
+    expect(screen.getByText(/1 row\(s\) outside the view was not pasted/)).toBeInTheDocument();
+  });
+
+  it('does not intercept a paste while the editor is open', async () => {
+    const user = userEvent.setup();
+    let pastes = 0;
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={() => {
+          pastes += 1;
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    await user.keyboard('{Enter}');
+    fireEvent.paste(screen.getByRole('textbox'), pasteEvent('into the field'));
+    expect(pastes).toBe(0);
+  });
+
+  it('reports a refused paste without changing the view', () => {
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={() => 'Edit limit reached.'}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent('a\tb'));
+
+    expect(screen.getByText('Edit limit reached.')).toBeInTheDocument();
+  });
+
+  it('ignores an empty clipboard payload', () => {
+    let pastes = 0;
+    render(
+      <DataGrid
+        {...pasteProps}
+        valueAt={valueAt}
+        onEditCell={() => null}
+        onPasteCells={() => {
+          pastes += 1;
+          return null;
+        }}
+      />,
+    );
+
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    fireEvent.paste(grid, pasteEvent(''));
+    expect(pastes).toBe(0);
+  });
+
+  it('stays read-only when no paste handler is provided', () => {
+    render(<DataGrid {...pasteProps} valueAt={valueAt} />);
+    const grid = screen.getByRole('grid', { name: 'Data grid' });
+    grid.querySelector<HTMLElement>('[data-cell="0-0"]')?.focus();
+    // No handler means the event is left alone (browser default applies).
+    fireEvent.paste(grid, pasteEvent('a\tb'));
+    expect(screen.queryByText(/Pasted/)).not.toBeInTheDocument();
+  });
+});

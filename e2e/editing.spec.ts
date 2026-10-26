@@ -157,3 +157,87 @@ test('reloading the page discards edits: the stored dataset is untouched', async
   await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText(before);
   await expect(page.getByText(/cell edited/)).toHaveCount(0);
 });
+
+/**
+ * Paste is exercised through the real clipboard: Playwright writes text and
+ * the page reads it back through the same `paste` event a user produces.
+ * (Ctrl+V needs an OS-level key chord, so the event is dispatched with the
+ * clipboard payload the browser would deliver.)
+ */
+async function pasteIntoGrid(page: Page, row: number, column: number, text: string): Promise<void> {
+  // Focus the cell directly (no click): after a programmatic scroll the row
+  // node can be re-created mid-click, and the paste anchor is the focused
+  // cell, so focus is all this needs.
+  await expect(page.locator(`[data-cell="${row}-${column}"]`)).toHaveCount(1, {
+    timeout: 10_000,
+  });
+  await page.locator(`[data-cell="${row}-${column}"]`).focus();
+  await page.evaluate((payload) => {
+    const grid = document.querySelector('[role="grid"]');
+    if (!grid) throw new Error('grid not found');
+    const data = new DataTransfer();
+    data.setData('text/plain', payload);
+    grid.dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+    );
+  }, text);
+}
+
+test('pasting a block fills cells and a single undo takes it back', async ({ page }) => {
+  await loadSample(page);
+  const before = await cellText(page, 0, 0);
+
+  await pasteIntoGrid(page, 0, 0, 'P1\tP2\r\nP3\tP4');
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('P1');
+  await expect(page.locator('[data-cell="0-1"] .grid-cell__text')).toHaveText('P2');
+  await expect(page.locator('[data-cell="1-0"] .grid-cell__text')).toHaveText('P3');
+  await expect(page.locator('[data-cell="1-1"] .grid-cell__text')).toHaveText('P4');
+  await expect(page.getByText('Pasted 4 cells.')).toBeVisible();
+  await expect(page.getByText('4 cells edited')).toBeVisible();
+
+  // One paste, one undo entry.
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText(before);
+  await expect(page.getByText(/cells? edited/)).toHaveCount(0);
+});
+
+test('a pasted value is searchable and appears in the export', async ({ page }) => {
+  await page.addInitScript(() => {
+    delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker;
+  });
+  await loadSample(page);
+
+  await pasteIntoGrid(page, 0, 0, 'PASTED-TOKEN');
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('PASTED-TOKEN');
+
+  await page.fill('#global-search', 'PASTED-TOKEN');
+  await expect(page.getByText('1 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Export CSV' });
+  const downloadPromise = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: /Export CSV/ }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+  if (path === null) throw new Error('download produced no file');
+  const content = readFileSync(path, 'utf8');
+  expect(content.split('\r\n')[1]?.split(',')[0]).toBe('PASTED-TOKEN');
+});
+
+test('a block that overflows the last row is clipped and reported', async ({ page }) => {
+  await loadSample(page);
+  // Scroll to the end of the dataset so the very last record is the active
+  // row: a two-row block then has nowhere to put its second row.
+  await page.evaluate(() => {
+    const container = document.querySelector<HTMLElement>('.grid-scroll');
+    if (container) container.scrollTop = container.scrollHeight;
+  });
+  await expect
+    .poll(() => page.locator('[data-cell="4999-0"]').count(), { timeout: 10_000 })
+    .toBe(1);
+
+  await pasteIntoGrid(page, 4999, 0, 'kept\r\ndropped');
+
+  await expect(page.getByText(/outside the view/)).toBeVisible();
+  await expect(page.locator('[data-cell="4999-0"] .grid-cell__text')).toHaveText('kept');
+});
