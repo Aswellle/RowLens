@@ -21,12 +21,20 @@ export const PARSE_WARNING_SAMPLE_LIMIT = 20;
 
 /** IndexedDB database identity. Must stay in sync across main thread and workers. */
 export const IDB_NAME = 'rowlens-local';
-export const IDB_VERSION = 1;
+/**
+ * v2 adds `cellEdits`: user edits persisted separately from imported rows, so
+ * the "imported rows are never rewritten" boundary holds across reloads too
+ * (docs/decisions.md ADR-027). The upgrade creates the missing store and
+ * leaves every existing record untouched.
+ */
+export const IDB_VERSION = 2;
 
 /** Object store names inside IDB_NAME. */
 export const IDB_STORE_DATASETS = 'datasets';
 export const IDB_STORE_ROWS = 'rows';
 export const IDB_STORE_IMPORT_ERRORS = 'importErrors';
+/** One record per dataset: { datasetId, updatedAt, edits: [rowIndex, columnId, value][] }. */
+export const IDB_STORE_CELL_EDITS = 'cellEdits';
 
 /** Datasets older than this are cleaned up on startup (architecture §6, security §3). */
 export const DATASET_TTL_MS = 24 * 60 * 60 * 1000;

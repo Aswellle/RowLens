@@ -6,9 +6,11 @@
  */
 import { toAppError } from '../../app/app-error';
 import type { ImportJobId } from '../import/protocol';
+import type { StoredEditRecord } from '../editing/persist';
 import { openDatabase } from './idb';
 import {
   DATASET_TTL_MS,
+  IDB_STORE_CELL_EDITS,
   IDB_STORE_DATASETS,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
@@ -110,7 +112,31 @@ export class DatasetRepository {
   }
 
   /**
-   * Remove the dataset and every stored row and import error for it.
+   * Persist the cell-edit overlay for a dataset (one record per dataset).
+   * Stored separately from rows so an import never has to touch edit state and
+   * a reload can restore edits without rewriting a single imported value.
+   */
+  async putCellEdits(record: StoredEditRecord): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_CELL_EDITS, 'readwrite');
+    txn.objectStore(IDB_STORE_CELL_EDITS).put(record);
+    await txnDone(txn);
+  }
+
+  async getCellEdits(datasetId: DatasetId): Promise<unknown> {
+    const txn = this.db.transaction(IDB_STORE_CELL_EDITS, 'readonly');
+    return requestToPromise(
+      txn.objectStore(IDB_STORE_CELL_EDITS).get(datasetId) as IDBRequest<unknown>,
+    );
+  }
+
+  async deleteCellEdits(datasetId: DatasetId): Promise<void> {
+    const txn = this.db.transaction(IDB_STORE_CELL_EDITS, 'readwrite');
+    txn.objectStore(IDB_STORE_CELL_EDITS).delete(datasetId);
+    await txnDone(txn);
+  }
+
+  /**
+   * Remove the dataset and every stored row, import error and edit record.
    *
    * Row keys are the compound [datasetId, rowIndex] with rowIndex < rowCount,
    * so when the finalized metadata is available the deletes are issued
@@ -122,10 +148,11 @@ export class DatasetRepository {
     const meta = await this.getDataset(datasetId);
     await new Promise<void>((resolve, reject) => {
       const txn = this.db.transaction(
-        [IDB_STORE_DATASETS, IDB_STORE_ROWS, IDB_STORE_IMPORT_ERRORS],
+        [IDB_STORE_DATASETS, IDB_STORE_ROWS, IDB_STORE_IMPORT_ERRORS, IDB_STORE_CELL_EDITS],
         'readwrite',
       );
       txn.objectStore(IDB_STORE_DATASETS).delete(datasetId);
+      txn.objectStore(IDB_STORE_CELL_EDITS).delete(datasetId);
       txn
         .objectStore(IDB_STORE_IMPORT_ERRORS)
         .delete(IDBKeyRange.bound([datasetId, 0], [datasetId, Number.MAX_SAFE_INTEGER]));

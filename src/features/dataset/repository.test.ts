@@ -151,3 +151,108 @@ describe('DatasetRepository (fake IndexedDB)', () => {
     expect(passthrough.code).toBe('QUERY_FAILED');
   });
 });
+
+describe('DatasetRepository cell edits (fake IndexedDB)', () => {
+  let repository: DatasetRepository;
+
+  beforeEach(async () => {
+    repository = await DatasetRepository.open(new IDBFactory());
+  });
+
+  it('stores one edit record per dataset and reads it back', async () => {
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 5,
+      format: 1,
+      cells: [
+        [0, 'c0', 'edited'],
+        [2, 'c1', ''],
+      ],
+    });
+    const record = (await repository.getCellEdits('ds-1')) as {
+      cells: [number, string, string][];
+    };
+    expect(record.cells).toEqual([
+      [0, 'c0', 'edited'],
+      [2, 'c1', ''],
+    ]);
+  });
+
+  it('overwrites the record instead of appending', async () => {
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'a']],
+    });
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 2,
+      format: 1,
+      cells: [[0, 'c0', 'b']],
+    });
+    const record = (await repository.getCellEdits('ds-1')) as {
+      updatedAt: number;
+      cells: [number, string, string][];
+    };
+    expect(record.updatedAt).toBe(2);
+    expect(record.cells).toEqual([[0, 'c0', 'b']]);
+  });
+
+  it('keeps edit records separate per dataset', async () => {
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'a']],
+    });
+    await repository.putCellEdits({
+      datasetId: 'ds-2',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'b']],
+    });
+    expect(((await repository.getCellEdits('ds-1')) as { cells: unknown[] }).cells).toEqual([
+      [0, 'c0', 'a'],
+    ]);
+    expect(((await repository.getCellEdits('ds-2')) as { cells: unknown[] }).cells).toEqual([
+      [0, 'c0', 'b'],
+    ]);
+  });
+
+  it('returns undefined for a dataset with no edits', async () => {
+    expect(await repository.getCellEdits('missing')).toBeUndefined();
+  });
+
+  it('deleting the dataset removes its edits too', async () => {
+    await repository.insertDataset(makeMeta({ status: 'ready', rowCount: 1 }));
+    await repository.putRows('ds-1', [makeRow('ds-1', 0, ['a'])]);
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'x']],
+    });
+
+    await repository.deleteDataset('ds-1');
+
+    expect(await repository.getCellEdits('ds-1')).toBeUndefined();
+    expect(await repository.getDataset('ds-1')).toBeUndefined();
+    expect(await repository.countRows('ds-1')).toBe(0);
+  });
+
+  it('deletes edits without touching rows, and rows without touching edits', async () => {
+    await repository.putRows('ds-1', [makeRow('ds-1', 0, ['kept'])]);
+    await repository.putCellEdits({
+      datasetId: 'ds-1',
+      updatedAt: 1,
+      format: 1,
+      cells: [[0, 'c0', 'x']],
+    });
+
+    await repository.deleteCellEdits('ds-1');
+    expect(await repository.getCellEdits('ds-1')).toBeUndefined();
+    // The imported row is still there: edits are a separate store.
+    expect(await repository.countRows('ds-1')).toBe(1);
+  });
+});

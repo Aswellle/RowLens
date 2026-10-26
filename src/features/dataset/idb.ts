@@ -5,10 +5,15 @@
  *   datasets     keyPath 'id'
  *   rows         keyPath ['datasetId', 'rowIndex'], index 'byDataset'
  *   importErrors keyPath ['datasetId', 'physicalLineNumber']
+ *   cellEdits    keyPath 'datasetId' (v2; user edits, never mixed into rows)
+ *
+ * The upgrade only creates stores that are missing, so a v1 database keeps all
+ * of its imported rows and gains an empty edit store.
  */
 import { AppError, toAppError } from '../../app/app-error';
 import {
   IDB_NAME,
+  IDB_STORE_CELL_EDITS,
   IDB_STORE_DATASETS,
   IDB_STORE_IMPORT_ERRORS,
   IDB_STORE_ROWS,
@@ -35,6 +40,10 @@ function openWith(factory: IDBFactory): Promise<IDBDatabase> {
         db.createObjectStore(IDB_STORE_IMPORT_ERRORS, {
           keyPath: ['datasetId', 'physicalLineNumber'],
         });
+      }
+      // v2: edits live in their own store so the imported rows stay pristine.
+      if (!db.objectStoreNames.contains(IDB_STORE_CELL_EDITS)) {
+        db.createObjectStore(IDB_STORE_CELL_EDITS, { keyPath: 'datasetId' });
       }
     };
     request.onsuccess = () => resolve(request.result);
