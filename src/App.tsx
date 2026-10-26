@@ -8,7 +8,8 @@
  * every dataset is queried the same way.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toAppError, type AppError } from './app/app-error';
+import { AppError, toAppError } from './app/app-error';
+import { reduceQueryOutcome } from './features/query/reduce-outcome';
 import { AppHeader } from './components/AppHeader';
 import { CleaningPanel } from './components/CleaningPanel';
 import { DataGrid, type GridSort } from './components/DataGrid';
@@ -394,24 +395,13 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       if (!live) return;
       setView((state) => {
         if (state.kind !== 'ready') return state;
-        if (outcome.kind === 'superseded' || outcome.kind === 'cancelled') return state;
-        if (outcome.kind === 'limit') {
-          setNotice({
-            variant: 'warning',
-            message: `The query matched more than ${outcome.limit.toLocaleString('en-US')} rows. Narrow the search or filters to see results.`,
-          });
-          return { ...state, queryBusy: false };
+        const reduced = reduceQueryOutcome(state, outcome, (code, message) =>
+          friendlyImportError(new AppError(code as AppError['code'], message)),
+        );
+        if (reduced.notice) {
+          setNotice({ variant: reduced.notice.variant, message: reduced.notice.message });
         }
-        if (outcome.kind === 'failed') {
-          setNotice({ variant: 'error', message: friendlyImportError(outcome.error) });
-          return { ...state, queryBusy: false };
-        }
-        return {
-          ...state,
-          rowIndices: outcome.rowIndices,
-          stepSummaries: outcome.stepSummaries ?? [],
-          queryBusy: false,
-        };
+        return reduced.state;
       });
     })();
     return () => {
