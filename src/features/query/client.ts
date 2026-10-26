@@ -192,11 +192,19 @@ export async function runLocalQuery(
     const transform = spec.cleaning
       ? createCleaningTransform(spec.cleaning, spec.columns)
       : undefined;
+    // The fallback has no folded cache, so overrides reach the engine directly.
+    const overrideByRow = new Map<number, Record<string, string>>();
+    for (const override of spec.edits ?? []) {
+      overrideByRow.set(override.rowIndex, override.values);
+    }
     const result = await runQueryEngine(
       scanDatasetRows(repository, spec.datasetId, 2000),
       requestToEngineSpec(spec),
       {
         matchLimit: QUERY_MATCH_LIMIT,
+        ...(overrideByRow.size > 0
+          ? { overrideFor: (rowIndex: number) => overrideByRow.get(rowIndex) }
+          : {}),
         ...(transform ? { transform: (row) => transform.process(row) } : {}),
       },
     );

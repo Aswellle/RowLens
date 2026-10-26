@@ -5,6 +5,7 @@
  */
 import type { ColumnId, RowIndex } from '../dataset/types';
 import type { CleaningStep, StepSummary } from '../cleaning/types';
+import type { EditOverride } from '../editing/edits';
 import type { SortDirection } from './types';
 
 export type QueryId = string;
@@ -24,6 +25,12 @@ export type QueryRequestSpec = {
   sort?: QuerySortSpec;
   /** Serializable cleaning steps applied after the query, same pass. */
   cleaning?: CleaningStep[];
+  /**
+   * Cell edits as a compact per-row overlay. Sent with every request because
+   * edits change what search, sort and cleaning must see; the sender caps the
+   * number of edited cells so this stays a small structured clone.
+   */
+  edits?: EditOverride[];
 };
 
 // --- Main thread → Query Worker ---

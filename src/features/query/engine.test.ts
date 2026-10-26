@@ -175,3 +175,90 @@ describe('runQueryEngine limits and cancellation', () => {
     expect(progress.at(-1)).toEqual([12, 12]);
   });
 });
+
+describe('runQueryEngine with cell edits', () => {
+  const table = [
+    ['open', 'emea', 'P1'],
+    ['closed', 'latam', 'P2'],
+    ['open', 'apac', 'P3'],
+  ];
+
+  it('searches the edited value instead of the stored one', async () => {
+    const result = await runQueryEngine(
+      batchesOf([rows(table)]),
+      { columns: COLUMNS, search: 'renamed', columnFilters: {} },
+      {
+        matchLimit: 100,
+        overrideFor: (rowIndex) => (rowIndex === 1 ? { c1: 'renamed' } : undefined),
+      },
+    );
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([1]);
+  });
+
+  it('stops matching a value the edit removed', async () => {
+    const result = await runQueryEngine(
+      batchesOf([rows(table)]),
+      { columns: COLUMNS, search: 'emea', columnFilters: {} },
+      {
+        matchLimit: 100,
+        // The first row's region is edited away from "emea".
+        overrideFor: (rowIndex) => (rowIndex === 0 ? { c1: 'north' } : undefined),
+      },
+    );
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([]);
+  });
+
+  it('applies column filters to edited values', async () => {
+    const result = await runQueryEngine(
+      batchesOf([rows(table)]),
+      { columns: COLUMNS, search: '', columnFilters: { c0: 'open' } },
+      {
+        matchLimit: 100,
+        overrideFor: (rowIndex) => (rowIndex === 1 ? { c0: 'open' } : undefined),
+      },
+    );
+    expect(result.status).toBe('done');
+    if (result.status === 'done') expect(result.rowIndices).toEqual([0, 1, 2]);
+  });
+
+  it('sorts by the edited value', async () => {
+    const result = await runQueryEngine(
+      batchesOf([rows(table)]),
+      {
+        columns: COLUMNS,
+        search: '',
+        columnFilters: {},
+        sort: { columnIndex: 1, direction: 'asc' },
+      },
+      {
+        matchLimit: 100,
+        // Row 2's region becomes the alphabetically first one.
+        overrideFor: (rowIndex) => (rowIndex === 2 ? { c1: 'aardvark' } : undefined),
+      },
+    );
+    expect(result.status).toBe('done');
+    // aardvark (row 2), emea (row 0), latam (row 1).
+    if (result.status === 'done') expect(result.rowIndices).toEqual([2, 0, 1]);
+  });
+
+  it('feeds the edited value to the cleaning transform', async () => {
+    const seen: string[] = [];
+    const result = await runQueryEngine(
+      batchesOf([rows(table)]),
+      { columns: COLUMNS, search: '', columnFilters: {} },
+      {
+        matchLimit: 100,
+        overrideFor: (rowIndex) => (rowIndex === 0 ? { c2: '  padded  ' } : undefined),
+        transform: (row) => {
+          seen.push(row.values.c2 ?? '');
+          return row;
+        },
+      },
+    );
+    expect(result.status).toBe('done');
+    // Cleaning sees the edit before trimming it, exactly as the grid shows it.
+    expect(seen[0]).toBe('  padded  ');
+  });
+});

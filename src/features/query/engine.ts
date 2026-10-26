@@ -50,6 +50,12 @@ export type EngineOptions = {
    * comparison — lets a worker amortise folding into a per-dataset cache.
    */
   foldedAt?: (row: EngineRow, columnId: ColumnId) => string | null;
+  /**
+   * Optional per-row cell overrides (user edits). Applied before search,
+   * filters, sort keys and cleaning, so every downstream stage sees the edited
+   * value — an edited cell can make a row match a search it previously missed.
+   */
+  overrideFor?: (rowIndex: RowIndex) => Record<ColumnId, string> | undefined;
 };
 
 export type EngineResult =
@@ -84,8 +90,15 @@ export async function runQueryEngine(
   readLoop: for await (const batch of batches) {
     if (options.isCancelled?.()) return { status: 'cancelled', scanned: totalRows };
 
-    for (const row of batch) {
+    for (const scannedRow of batch) {
       totalRows += 1;
+      // Edits are applied first so search, filters, sort and cleaning all see
+      // the value the user is actually looking at.
+      const override = options.overrideFor?.(scannedRow.rowIndex);
+      const row =
+        override === undefined
+          ? scannedRow
+          : { ...scannedRow, values: { ...scannedRow.values, ...override } };
       if (hasSearch) {
         let found = false;
         for (const id of spec.columns) {

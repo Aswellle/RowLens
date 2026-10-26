@@ -83,6 +83,14 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
       ? createCleaningTransform(spec.cleaning, spec.columns)
       : undefined;
 
+    // Cell edits travel with the request; the engine applies them before
+    // search/filter/sort/cleaning. The folded cache holds pre-edit values, so
+    // an edited cell is folded directly instead of being read from the cache.
+    const overrideByRow = new Map<number, Record<string, string>>();
+    for (const override of spec.edits ?? []) {
+      overrideByRow.set(override.rowIndex, override.values);
+    }
+
     const cacheEntry = foldedCache.get(spec.datasetId);
     const cache =
       cacheEntry && cacheEntry.rowCount === dataset.rowCount
@@ -95,6 +103,10 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
       requestToEngineSpec(spec),
       {
         foldedAt: (row, columnId) => {
+          const override = overrideByRow.get(row.rowIndex);
+          if (override !== undefined && columnId in override) {
+            return (override[columnId] ?? '').toLocaleLowerCase('en-US');
+          }
           let foldedRow = cache.rows.get(row.rowIndex);
           if (foldedRow === undefined) {
             foldedRow = {};
@@ -106,6 +118,9 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
           }
           return foldedRow[columnId] ?? null;
         },
+        ...(overrideByRow.size > 0
+          ? { overrideFor: (rowIndex: number) => overrideByRow.get(rowIndex) }
+          : {}),
         matchLimit: QUERY_MATCH_LIMIT,
         onProgress: (scanned, matched) =>
           post({ type: 'QUERY_PROGRESS', queryId, scanned, matched }),
