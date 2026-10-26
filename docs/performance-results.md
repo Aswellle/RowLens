@@ -85,6 +85,24 @@
 的 500 行分块。优化前 P3 的 6.9s 里绝大部分是它永远不会渲染的 249,500 行。
 数据量越大收益越大，这正是分块懒加载与"先读全部"的本质差别。
 
+## 分块淘汰后的滚动内存（2026-10-26 追加）
+
+按需分块解决了首屏恢复耗时，但浏览全表会把每个分块都留在内存，等于退回
+"全量加载"。加入 LRU 上限（40 个分块 = 20,000 行，当前渲染窗口固定不淘汰）
+后实测：
+
+| 配置 | 跳转步数 | 滚动耗时 | 滚动前 JS 堆 | 滚动后 JS 堆 |
+|---|---|---|---|---|
+| P3（250,000×40） | 25（每步 10,000 行，覆盖全表） | 8,859ms | 337 MB | **48 MB** |
+
+方法：`e2e/bench/scroll-memory.spec.ts`（PERF=1）。导入 → 刷新（走懒加载
+路径）→ 记录堆 → 以 10,000 行为步长跳遍全表（每步等 120ms 让分块落地）→
+记录堆。堆值来自 `performance.memory.usedJSHeapSize`。
+
+**结论**：滚动前 337 MB 是导入期写穿缓存尚未回收的余量；滚动全表后降到
+48 MB，说明已加载分块被正确淘汰、没有被滚动过程累积。若没有淘汰，P3 全表
+约 500 个分块会持续驻留。
+
 ## 与验收目标对照（测试文档 §4）
 
 - P2 不出现 UI 长时间冻结、任务可取消：导入/查询均在 worker；查询自动
@@ -106,5 +124,6 @@ npm run build
 PERF=1 npx playwright test e2e/performance.spec.ts   # 导入/查询/排序/导出
 PERF=1 npx playwright test e2e/bench/restore.spec.ts # 启动恢复
 PERF=1 npx playwright test e2e/bench/search-cache.spec.ts  # 搜索缓存专项
+PERF=1 npx playwright test e2e/bench/scroll-memory.spec.ts  # 滚动内存
 # 结果输出至 test-results/bench/results.json 与控制台表格
 ```

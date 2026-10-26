@@ -93,7 +93,8 @@ Playwright browser job (`.github/workflows/ci.yml`).
 - Restoring reads chunks as you scroll; a chunk that has not arrived yet shows
   blank cells for a frame. Scrolling to a row always triggers its chunk, so a
   blank is transient, but a read failure leaves that region blank for the
-  session.
+  session. At most 40 chunks (20,000 rows) are cached — the window on screen is
+  pinned, and anything else is re-read from IndexedDB when you scroll back.
 - Grid keyboard navigation covers arrows/Home/End/PageUp/PageDown, the record
   header and rectangular range selection (Shift+arrows, drag with edge
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are

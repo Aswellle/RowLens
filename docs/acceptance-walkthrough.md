@@ -73,6 +73,11 @@
   编辑不动行、`deleteDataset` 一并级联删除；`repository.test.ts` 两个 store
   的独立性用例；`e2e/editing.spec.ts` 刷新后编辑恢复且 Reset edits 回到导
   入值。
+- [x] 浏览全表时内存有界（分块淘汰）。
+  证据：`lazy-store.test.ts` 淘汰组（上限、LRU 顺序、窗口固定、窗口超上限
+  时优先正确性、淘汰后重读）；`e2e/bench/scroll-memory.spec.ts` P3 跳遍全
+  表后堆 48 MB；`e2e/editing.spec.ts` 60k 行（120 分块）跳遍后回到顶部仍
+  显示 R0。
 - [x] 刷新恢复耗时不随数据量增长。
   证据：`e2e/bench/restore.spec.ts`（PERF=1）P1/P2/P3 恢复 282/394/381ms，
   优化前为 1,045/2,691/6,931ms；`lazy-store.test.ts` 覆盖按需分块、不重复

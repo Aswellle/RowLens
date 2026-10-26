@@ -105,6 +105,11 @@ clean → export, entirely in the browser.
   transactions for rows the grid will never show. Measured restore time went
   from 1.0/2.7/6.9 s to 0.28/0.39/0.38 s at 20k/100k/250k rows — flat in
   dataset size (`docs/performance-results.md`).
+- **Bounded chunk cache**: at most 40 chunks (20,000 rows) stay in memory, with
+  the window currently on screen pinned so it is never evicted mid-render.
+  Scrolling a whole 250k-row file now leaves 48 MB of JS heap instead of
+  accumulating every chunk it passed; an evicted chunk is simply re-read from
+  IndexedDB when it comes back into view.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).
