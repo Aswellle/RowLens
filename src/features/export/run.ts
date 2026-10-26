@@ -53,6 +53,8 @@ export type DownloadSaverHooks = {
   /** Replaces the programmatic download click (tests). */
   onStartDownload?: (url: string, fileName: string) => void;
   revokeDelayMs?: number;
+  /** Blob MIME type; CSV unless a caller is saving another text format. */
+  mimeType?: string;
 };
 
 /** Memory-bound fallback: parts accumulate only up to the byte cap. */
@@ -84,10 +86,13 @@ export function createDownloadSaver(
       if (closed) return;
       closed = true;
       if (typeof URL.createObjectURL !== 'function') return; // non-DOM hosts (tests)
-      const blob = new Blob(parts, { type: 'text/csv;charset=utf-8' });
+      const blob = new Blob(parts, { type: hooks?.mimeType ?? 'text/csv;charset=utf-8' });
       objectUrl = URL.createObjectURL(blob);
-      hooks?.onStartDownload?.(objectUrl, fileName);
-      if (!hooks) {
+      // The click is suppressed only when a hook actually replaced it; passing
+      // `hooks` for another field (a MIME type) must still download.
+      if (hooks?.onStartDownload) {
+        hooks.onStartDownload(objectUrl, fileName);
+      } else {
         const anchor = document.createElement('a');
         anchor.href = objectUrl;
         anchor.download = fileName;

@@ -124,6 +124,30 @@ describe('createDownloadSaver', () => {
     vi_advance(50);
     expect(downloads).toHaveLength(1); // URL string captured; revoke is fire-and-forget
   });
+
+  it('still downloads when hooks only supply a MIME type', async () => {
+    // Regression guard: suppressing the click whenever *any* hook is present
+    // would silently break a caller that only overrides the blob type.
+    const clicks: string[] = [];
+    const original = document.createElement.bind(document);
+    const spy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const element = original(tag) as HTMLElement;
+      if (tag === 'a') {
+        (element as HTMLAnchorElement).click = () => {
+          clicks.push((element as HTMLAnchorElement).download);
+        };
+      }
+      return element;
+    });
+    try {
+      const saver = createDownloadSaver('presets.json', 1000, { mimeType: 'application/json' });
+      await saver.write('{"format":1}');
+      await saver.close();
+      expect(clicks).toEqual(['presets.json']);
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 // Tiny helpers keep vitest import out of the describe bodies.
