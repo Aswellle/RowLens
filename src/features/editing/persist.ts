@@ -12,7 +12,7 @@
  * bad tuple is dropped instead of poisoning the whole dataset's edits.
  */
 import type { ColumnId, RowIndex } from '../dataset/types';
-import { emptyEditState, type EditState } from './edits';
+import { emptyEditState, MAX_EDITS, type EditState } from './edits';
 
 /** Bumped when the stored layout changes; older records are ignored. */
 export const EDIT_RECORD_FORMAT = 1;
@@ -56,6 +56,10 @@ export function deserializeEdits(record: unknown): EditState {
 
   const edits = new Map<RowIndex, Map<ColumnId, string>>();
   for (const entry of cells) {
+    // A corrupt or hand-edited record can carry millions of tuples; stop at
+    // the editing cap so deserialization can never materialize more state
+    // than the session itself allows.
+    if (countEdits(edits) >= MAX_EDITS) break;
     if (!Array.isArray(entry) || entry.length < 3) continue;
     const [rowIndex, columnId, value] = entry as unknown[];
     if (
@@ -78,6 +82,13 @@ export function deserializeEdits(record: unknown): EditState {
 
   if (edits.size === 0) return emptyEditState();
   return { edits, undoStack: [], redoStack: [], revision: 0 };
+}
+
+/** Total edited cells across rows. */
+function countEdits(edits: Map<RowIndex, Map<ColumnId, string>>): number {
+  let total = 0;
+  for (const row of edits.values()) total += row.size;
+  return total;
 }
 
 /** True when the record is a version this build understands. */

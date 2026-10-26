@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyEdits, editCount, editedValue, emptyEditState, type EditInput } from './edits';
+import { applyEdits, editCount, editedValue, emptyEditState, MAX_EDITS, type EditInput } from './edits';
 import {
   EDIT_RECORD_FORMAT,
   deserializeEdits,
@@ -131,3 +131,18 @@ describe('pruning edits after a schema change', () => {
     expect(pruneEdits(state, 0, new Set(['c0'])).revision).toBeGreaterThan(state.revision);
   });
 });
+
+describe('deserializeEdits cap', () => {
+  it('stops accepting tuples beyond the editing cap', () => {
+    const cells: [number, string, string][] = Array.from({ length: MAX_EDITS + 50 }, (_, i) => [
+      i,
+      'c0',
+      `v${i}`,
+    ]);
+    const state = deserializeEdits({ format: 1, cells });
+    let total = 0;
+    for (const row of state.edits.values()) total += row.size;
+    expect(total).toBe(MAX_EDITS);
+  });
+});
+
