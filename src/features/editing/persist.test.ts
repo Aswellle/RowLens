@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { applyEdits, editCount, editedValue, emptyEditState, MAX_EDITS, type EditInput } from './edits';
+import {
+  applyEdits,
+  editCount,
+  editedValue,
+  emptyEditState,
+  MAX_EDITS,
+  type EditInput,
+} from './edits';
 import {
   EDIT_RECORD_FORMAT,
   deserializeEdits,
@@ -145,4 +152,3 @@ describe('deserializeEdits cap', () => {
     expect(total).toBe(MAX_EDITS);
   });
 });
-

@@ -31,10 +31,7 @@ type StepTransform = {
  * copying it per scanned row showed up as millions of short-lived arrays on
  * large datasets (ADR-035-era profiling of the query hot path).
  */
-function resolveScope(
-  scope: ColumnScope,
-  columnOrder: readonly ColumnId[],
-): readonly ColumnId[] {
+function resolveScope(scope: ColumnScope, columnOrder: readonly ColumnId[]): readonly ColumnId[] {
   return scope.kind === 'all-columns' ? columnOrder : scope.columnIds;
 }
 

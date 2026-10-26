@@ -1,6 +1,5 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { openDatabase } from './idb';
 
 /**
  * Version-change behavior: a future schema bump (or another tab's upgrade)

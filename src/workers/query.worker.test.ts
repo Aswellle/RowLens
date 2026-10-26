@@ -25,9 +25,12 @@ function postOf(type: string, queryId: string): PostedMessage | undefined {
 }
 
 async function waitDone(queryId: string): Promise<void> {
-  await vi.waitFor(() => {
-    expect(postOf('QUERY_DONE', queryId)).toBeDefined();
-  }, { timeout: 10_000 });
+  await vi.waitFor(
+    () => {
+      expect(postOf('QUERY_DONE', queryId)).toBeDefined();
+    },
+    { timeout: 10_000 },
+  );
 }
 
 function makeMeta(rowCount: number): DatasetMetadata {
