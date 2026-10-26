@@ -847,7 +847,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const run = runner.run(spec);
       activeQueryRef.current = run;
       const outcome: QueryOutcome = await run.done;
-      activeQueryRef.current = null;
+      // Only the newest run may clear the handle: a superseded run's closure
+      // resolves after its successor started, and nulling here would disable
+      // Cancel Query for the query that is actually running.
+      if (activeQueryRef.current === run) activeQueryRef.current = null;
       if (!live) return;
       setView((state) => {
         if (state.kind !== 'ready') return state;

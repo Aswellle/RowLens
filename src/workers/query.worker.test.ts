@@ -17,7 +17,7 @@ import type { QueryRequestSpec } from '../features/query/protocol';
  * client's promise unsettled forever (the regression these tests pin).
  */
 
-type PostedMessage = { type: string; queryId?: string };
+type PostedMessage = { type: string; queryId?: string; matched?: number };
 const posted: PostedMessage[] = [];
 
 function postOf(type: string, queryId: string): PostedMessage | undefined {
@@ -58,7 +58,7 @@ function rowOf(rowIndex: number): StoredRow {
   };
 }
 
-function spec(queryIdIgnore: string, filters: Record<string, string> = {}): QueryRequestSpec {
+function spec(filters: Record<string, string> = {}): QueryRequestSpec {
   return {
     datasetId: 'ds-worker',
     columns: ['c0', 'c1'],
@@ -68,7 +68,8 @@ function spec(queryIdIgnore: string, filters: Record<string, string> = {}): Quer
 }
 
 function send(message: unknown): void {
-  (globalThis as { onmessage?: (event: { data: unknown }) => void }).onmessage?.({ data: message });
+  const host = globalThis as unknown as { onmessage?: (event: { data: unknown }) => void };
+  host.onmessage?.({ data: message });
 }
 
 async function seed(rowCount: number): Promise<void> {
@@ -96,7 +97,7 @@ describe('query worker message gate', () => {
   });
 
   it('runs a query that owns the slot and reports its result', async () => {
-    send({ type: 'QUERY_START', queryId: 'q-solo', spec: spec('q-solo', { c0: 'even' }) });
+    send({ type: 'QUERY_START', queryId: 'q-solo', spec: spec({ c0: 'even' }) });
     await waitDone('q-solo');
     expect(postOf('QUERY_DONE', 'q-solo')?.matched as number | undefined).toBe(10);
   });
@@ -104,9 +105,9 @@ describe('query worker message gate', () => {
   it('queues a start that arrives while the previous scan unwinds', async () => {
     // Back-to-back, in one synchronous block: exactly the shape the client's
     // supersede path produces.
-    send({ type: 'QUERY_START', queryId: 'q-old', spec: spec('q-old', { c0: 'even' }) });
+    send({ type: 'QUERY_START', queryId: 'q-old', spec: spec({ c0: 'even' }) });
     send({ type: 'CANCEL', queryId: 'q-old' });
-    send({ type: 'QUERY_START', queryId: 'q-new', spec: spec('q-new', { c0: 'odd' }) });
+    send({ type: 'QUERY_START', queryId: 'q-new', spec: spec({ c0: 'odd' }) });
 
     // The new query must run, not be dropped: its result settles.
     await waitDone('q-new');
@@ -117,9 +118,9 @@ describe('query worker message gate', () => {
   });
 
   it('keeps only the newest queued query when starts pile up', async () => {
-    send({ type: 'QUERY_START', queryId: 'q-1', spec: spec('q-1', { c0: 'even' }) });
-    send({ type: 'QUERY_START', queryId: 'q-2', spec: spec('q-2', { c0: 'odd' }) });
-    send({ type: 'QUERY_START', queryId: 'q-3', spec: spec('q-3', { c0: 'even' }) });
+    send({ type: 'QUERY_START', queryId: 'q-1', spec: spec({ c0: 'even' }) });
+    send({ type: 'QUERY_START', queryId: 'q-2', spec: spec({ c0: 'odd' }) });
+    send({ type: 'QUERY_START', queryId: 'q-3', spec: spec({ c0: 'even' }) });
 
     await waitDone('q-1');
     await waitDone('q-3');
@@ -127,8 +128,8 @@ describe('query worker message gate', () => {
   });
 
   it('drops a queued query the client cancels before it starts', async () => {
-    send({ type: 'QUERY_START', queryId: 'q-a', spec: spec('q-a', { c0: 'even' }) });
-    send({ type: 'QUERY_START', queryId: 'q-b', spec: spec('q-b', { c0: 'odd' }) });
+    send({ type: 'QUERY_START', queryId: 'q-a', spec: spec({ c0: 'even' }) });
+    send({ type: 'QUERY_START', queryId: 'q-b', spec: spec({ c0: 'odd' }) });
     send({ type: 'CANCEL', queryId: 'q-b' });
 
     await waitDone('q-a');
