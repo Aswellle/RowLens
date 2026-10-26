@@ -912,7 +912,7 @@ export function DataGrid({
                         isAnchor && hasRange ? ' grid-cell--anchor' : ''
                       }${edited ? ' grid-cell--edited' : ''}`}
                       style={{ width: column.width }}
-                      title={valueAt(rowIndex, columnIndex) ?? undefined}
+                      title={cellValue === '' ? undefined : cellValue}
                       onMouseDown={(event) => {
                         // A click inside the open editor belongs to the input:
                         // stealing focus here would blur (and commit) the draft
