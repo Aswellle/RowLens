@@ -25,8 +25,17 @@ type StepTransform = {
   summary(): StepSummary;
 };
 
-function resolveScope(scope: ColumnScope, columnOrder: readonly ColumnId[]): ColumnId[] {
-  return scope.kind === 'all-columns' ? [...columnOrder] : scope.columnIds;
+/**
+ * Resolves a scope against the row's column order. The all-columns branch
+ * returns the shared order array itself — every consumer only iterates, and
+ * copying it per scanned row showed up as millions of short-lived arrays on
+ * large datasets (ADR-035-era profiling of the query hot path).
+ */
+function resolveScope(
+  scope: ColumnScope,
+  columnOrder: readonly ColumnId[],
+): readonly ColumnId[] {
+  return scope.kind === 'all-columns' ? columnOrder : scope.columnIds;
 }
 
 function isBlank(value: string | null | undefined): boolean {
@@ -153,13 +162,18 @@ export function createCleaningTransform(
       }
     });
 
+  // The initial column order is the same for every scanned row and nothing
+  // mutates it (select-columns allocates its own narrowed order), so one array
+  // is shared across the whole pass instead of copied per row.
+  const initialColumnOrder: ColumnId[] = [...columns];
+
   return {
     active: transforms.length > 0,
     process(row) {
       let current: CleaningRow | undefined = {
         rowIndex: row.rowIndex,
         values: row.values,
-        columnOrder: [...columns],
+        columnOrder: initialColumnOrder,
       };
       for (const transform of transforms) {
         if (current === undefined) return undefined;
