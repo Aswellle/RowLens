@@ -65,6 +65,7 @@ export function Toolbar({
           type="search"
           placeholder="Search all columns…"
           value={searchTerm}
+          aria-describedby="global-search-hint"
           onChange={(event) => onSearchChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Escape' && searchTerm !== '') {
@@ -74,6 +75,12 @@ export function Toolbar({
             }
           }}
         />
+        {/* Kept out of the layout: the syntax is opt-in, not a tutorial. */}
+        <span id="global-search-hint" className="visually-hidden">
+          Space separates terms that must all match. Write a column name, a colon, then text to
+          search only that column, quoting names with spaces: Status:open, &quot;First response
+          (h)&quot;:14
+        </span>
         {searchTerm !== '' && (
           <button
             type="button"

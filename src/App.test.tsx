@@ -66,6 +66,75 @@ describe('App shell (synthetic data)', () => {
     expect(document.activeElement).toBe(search);
   }, 20_000);
 
+  it('a column:value term searches only that column', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={300} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const search = screen.getByLabelText('Search all columns');
+    // "P1" only exists in Priority; Status holds open/pending/closed.
+    await user.type(search, 'Priority:P1');
+    await waitFor(
+      () => {
+        const status = screen.getByText(/of 300 rows match/).textContent ?? '';
+        const count = Number(status.split(' of ')[0]!.replace(/,/g, ''));
+        expect(count).toBeGreaterThan(0);
+        expect(count).toBeLessThan(300);
+      },
+      { timeout: 15_000 },
+    );
+
+    // The same text scoped to a column that cannot contain it matches nothing,
+    // and the no-results state offers the way back.
+    await user.clear(search);
+    await user.type(search, 'Status:P1');
+    await waitFor(() => expect(screen.getByText(/No rows match/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    await user.clear(search);
+    await user.type(search, 'Status:open');
+    await waitFor(
+      () => {
+        const status = screen.getByText(/of 300 rows match/);
+        expect(status).not.toHaveTextContent('300 of 300');
+      },
+      { timeout: 15_000 },
+    );
+  }, 30_000);
+
+  it('two search terms must both match', async () => {
+    const user = userEvent.setup();
+    render(<App sampleSize={300} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('300 of 300 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+
+    const search = screen.getByLabelText('Search all columns');
+    await user.type(search, 'Status:open chat');
+    await waitFor(
+      () => {
+        const status = screen.getByText(/of 300 rows match/);
+        expect(status).not.toHaveTextContent('300 of 300');
+      },
+      { timeout: 15_000 },
+    );
+    const narrowed = Number(
+      (screen.getByText(/of 300 rows match/).textContent ?? '').split(' of ')[0]!.replace(/,/g, ''),
+    );
+    expect(narrowed).toBeGreaterThan(0);
+
+    // Dropping the second term can only widen the result.
+    await user.type(search, ' zzz-no-such-value');
+    await waitFor(() => expect(screen.getByText(/No rows match/)).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+  }, 30_000);
+
   it('sort clicks cycle ascending → descending → off with aria-sort following', async () => {
     const user = userEvent.setup();
     render(<App sampleSize={300} />);

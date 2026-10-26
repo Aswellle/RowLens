@@ -83,6 +83,7 @@ import {
   type QueryRequestSpec,
   type QueryRun,
 } from './features/query/client';
+import { parseSearchQuery } from './features/query/search';
 import {
   deserializeView,
   emptyView,
@@ -785,7 +786,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const spec: QueryRequestSpec = {
         datasetId: current.data.meta.id,
         columns: current.data.meta.columns.map((column) => column.id),
-        search: current.search,
+        // The raw input is parsed here, where the column labels live; the
+        // worker only ever sees resolved column indexes (ADR-034).
+        searchTerms: parseSearchQuery(
+          current.search,
+          current.data.meta.columns.map((column) => ({ id: column.id, label: column.label })),
+        ),
         columnFilters: current.columnFilters,
       };
       if (current.sort) {
