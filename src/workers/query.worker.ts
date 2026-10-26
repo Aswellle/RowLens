@@ -45,11 +45,31 @@ let repositoryPromise: Promise<DatasetRepository> | null = null;
  * invalidated when the dataset's stored row count changes (re-import).
  * Trade-off (ADR-022): one folded copy of every cell in exchange for
  * repeated-query speed on large datasets.
+ *
+ * The cache is a two-entry LRU keyed by dataset id: each entry can hold a
+ * folded copy of an entire dataset, so an unbounded map would accumulate every
+ * file the session ever queried. Touching an entry on use and evicting the
+ * oldest keeps the last two working sets hot.
  */
 const foldedCache = new Map<
   string,
   { rowCount: number; rows: Map<number, Record<string, string | null>> }
 >();
+
+const FOLDED_CACHE_CAPACITY = 2;
+
+/** Marks a dataset's cache entry as most recently used, evicting if needed. */
+function touchFoldedCache(datasetId: string): void {
+  const entry = foldedCache.get(datasetId);
+  if (entry === undefined) return;
+  foldedCache.delete(datasetId);
+  foldedCache.set(datasetId, entry);
+  while (foldedCache.size > FOLDED_CACHE_CAPACITY) {
+    const oldest = foldedCache.keys().next().value;
+    if (oldest === undefined) break;
+    foldedCache.delete(oldest);
+  }
+}
 
 async function getRepository(): Promise<DatasetRepository> {
   repositoryPromise ??= DatasetRepository.open();
@@ -111,6 +131,7 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
         ? cacheEntry
         : { rowCount: dataset.rowCount, rows: new Map() };
     foldedCache.set(spec.datasetId, cache);
+    touchFoldedCache(spec.datasetId);
 
     const result = await runQueryEngine(
       scanDatasetRows(repository, spec.datasetId),
