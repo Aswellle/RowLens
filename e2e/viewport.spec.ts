@@ -8,8 +8,17 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function loadSample(page: Page): Promise<void> {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
+  // A second visit in the same context restores the remembered dataset, so the
+  // empty state may be replaced by the restored one before anything is
+  // clicked. Wait for whichever appears, then only click if the button is
+  // still there.
+  const sampleButton = page.getByRole('button', { name: 'Try sample data' });
+  const ready = page.getByText('5,000 of 5,000 rows match');
+  await expect(sampleButton.or(ready).first()).toBeVisible({ timeout: 20_000 });
+  if (await sampleButton.isVisible()) {
+    await sampleButton.click();
+  }
+  await expect(ready).toBeVisible({ timeout: 20_000 });
 }
 
 const SIZES = [

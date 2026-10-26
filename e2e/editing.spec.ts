@@ -255,3 +255,36 @@ test('a block that overflows the last row is clipped and reported', async ({ pag
   await expect(page.getByText(/outside the view/)).toBeVisible();
   await expect(page.locator('[data-cell="4999-0"] .grid-cell__text')).toHaveText('kept');
 });
+
+test('a restored dataset fills in rows as they scroll into view', async ({ page }) => {
+  await loadSample(page);
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 30_000 });
+
+  // The restore reads chunks on demand, so jumping to the end exercises a
+  // chunk that was never loaded. Every visible record must show its ticket id.
+  await page.evaluate(() => {
+    const container = document.querySelector<HTMLElement>('.grid-scroll');
+    if (container) container.scrollTop = container.scrollHeight;
+  });
+  await expect(page.locator('[data-cell="4999-0"]')).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('[data-cell="4999-0"] .grid-cell__text')).toHaveText('T-05000');
+
+  // No cell in the window is blank in the first column: a blank there would
+  // mean a chunk that never arrived.
+  const blanks = await page.evaluate(
+    () =>
+      [...document.querySelectorAll('[data-cell$="-0"] .grid-cell__text')].filter(
+        (cell) => (cell.textContent ?? '') === '',
+      ).length,
+  );
+  expect(blanks).toBe(0);
+
+  // Scrolling back up reads from the already-loaded chunks and still shows data.
+  await page.evaluate(() => {
+    const container = document.querySelector<HTMLElement>('.grid-scroll');
+    if (container) container.scrollTop = 0;
+  });
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('T-00001');
+});
