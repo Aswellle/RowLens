@@ -17,7 +17,21 @@ type ActiveQuery = {
   cancel: () => void;
 };
 
+type QueuedQuery = {
+  queryId: string;
+  spec: QueryRequestSpec;
+};
+
 let active: ActiveQuery | null = null;
+/**
+ * A QUERY_START that arrived while another scan was unwinding. The client
+ * supersedes by sending CANCEL immediately followed by the new QUERY_START;
+ * CANCEL only flags the running engine, which stops at its next batch
+ * boundary — so the new query waits here and starts the moment the old run's
+ * `finally` clears the slot. Only the newest queued query is kept: an older
+ * queued one could never be read by the client anymore.
+ */
+let queued: QueuedQuery | null = null;
 
 const post = (message: unknown): void => {
   (self as unknown as { postMessage(message: unknown): void }).postMessage(message);
@@ -164,17 +178,33 @@ async function runQuery(queryId: string, spec: QueryRequestSpec): Promise<void> 
     });
   } finally {
     if (active?.queryId === queryId) active = null;
+    if (queued !== null) {
+      const next = queued;
+      queued = null;
+      void runQuery(next.queryId, next.spec);
+    }
   }
 }
 
 self.onmessage = (event: MessageEvent<MainToQueryWorker>): void => {
   const message = event.data;
   if (message.type === 'QUERY_START') {
-    if (active !== null) return; // one query at a time per worker
+    // One query runs at a time, but a start that arrives while the previous
+    // scan is unwinding is queued, never dropped — the client has already
+    // resolved the old run as superseded and is awaiting this one.
+    if (active !== null) {
+      queued = { queryId: message.queryId, spec: message.spec };
+      return;
+    }
     void runQuery(message.queryId, message.spec);
     return;
   }
-  if (message.type === 'CANCEL' && message.queryId === active?.queryId) {
-    active.cancel();
+  if (message.type === 'CANCEL') {
+    if (queued?.queryId === message.queryId) {
+      // The client superseded the queued query before it could start.
+      queued = null;
+      return;
+    }
+    if (message.queryId === active?.queryId) active.cancel();
   }
 };
