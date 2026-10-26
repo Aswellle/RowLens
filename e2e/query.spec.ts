@@ -105,3 +105,31 @@ test('column:value search targets one column and ANDs with plain terms', async (
   await search.fill('namee:B');
   await expect(page.getByText(/No rows match/)).toBeVisible({ timeout: 10_000 });
 });
+
+test('numeric sort reorders values and partitions what is not a number', async ({ page }) => {
+  // amount: 9, "1,050", 00123, N/A, "" — string order and numeric order differ.
+  await importFixture(page, 'e2e/fixtures/numeric-sort.csv');
+  await expect(page.getByText('5 of 5 rows match')).toBeVisible({ timeout: 10_000 });
+
+  const cell = (row: number) => page.locator(`[data-cell="${row}-1"] .grid-cell__text`);
+  await page.getByRole('button', { name: 'Sort by amount' }).click();
+  // String order: "" < "00123" < "1,050" < "9" < "N/A".
+  await expect(cell(0)).toHaveText('', { timeout: 10_000 });
+  await expect(cell(1)).toHaveText('00123');
+  await expect(cell(3)).toHaveText('9');
+
+  // Numeric: 9 < 123 < 1050, then the text partition, empty stays last.
+  await page.getByRole('button', { name: 'Treat amount values as numbers' }).click();
+  await expect(cell(0)).toHaveText('9', { timeout: 10_000 });
+  await expect(cell(1)).toHaveText('00123');
+  await expect(cell(2)).toHaveText('1,050');
+  await expect(cell(3)).toHaveText('N/A');
+  await expect(cell(4)).toHaveText('');
+
+  // Descending reverses the numbers; the partitions stay put.
+  await page.getByRole('button', { name: 'Sort by amount' }).click();
+  await expect(cell(0)).toHaveText('1,050', { timeout: 10_000 });
+  await expect(cell(2)).toHaveText('9');
+  await expect(cell(3)).toHaveText('N/A');
+  await expect(cell(4)).toHaveText('');
+});
