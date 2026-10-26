@@ -125,6 +125,16 @@ clean → export, entirely in the browser.
   hide every column is ignored, since it would leave no grid to interact with.
   `Reset` now clears all four and deletes the saved record, and the status line
   reports hidden columns so that state is visible.
+- **Cleaning presets**: the current pipeline can be saved under a name and
+  applied to a _different_ file, so a recurring cleanup (trim, dedupe, keep
+  these columns) no longer has to be rebuilt for every export. Presets match
+  columns by **header name** rather than position, so they still target the
+  right column when the next file orders its columns differently. A header name
+  that matches several columns is never guessed at — the affected step or label
+  is skipped and reported, and a preset that matches nothing is refused with an
+  explanation instead of applying silently. Presets are stored globally, so
+  removing the dataset they were captured from does not delete them; saving over
+  an existing name asks for confirmation first.
 - **Fixed**: the debounced save effects for edits and the cleaning pipeline
   depended on the whole view object, so every query result restarted the timer
   and a slow query could postpone the write indefinitely. They now depend on a

@@ -84,6 +84,14 @@
   稳定）；`repository.test.ts` 视图 store 与行/编辑/管线四者独立；App 恢复
   用例（搜索词与结果数、排序方向、隐藏列、重置后不恢复）；`e2e/view-
   persistence.spec.ts` 真实刷新后筛选与排序仍在、隐藏列仍在且 Reset 恢复。
+- [x] 清洗预设按表头名跨文件复用，匹配不上时明确报告而不静默改列。
+  证据：`cleaning/presets.test.ts`（id→标签捕获、重复表头不猜、部分歧义
+  收窄、标签→id 应用、位置不同的同名列仍命中、无匹配整步丢弃、应用时换新
+  id、名字规范化与摘要）；`repository.test.ts` 删除数据集**不**删预设；
+  `CleaningPanel.test.tsx` 重名二次确认、空名拒绝、Escape 取消、错误回显；
+  App 用例（重挂载后仍在、删数据集后仍在、应用到空管线并重算、删预设不动
+  当前管线）；`e2e/presets.spec.ts` 用"表头相同、列序不同"的一对夹具证明
+  目标文件里 Status 在第 3 列仍被正确 trim，且无匹配时报告"无法应用"。
 - [x] 浏览全表时内存有界（分块淘汰）。
   证据：`lazy-store.test.ts` 淘汰组（上限、LRU 顺序、窗口固定、窗口超上限
   时优先正确性、淘汰后重读）；`e2e/bench/scroll-memory.spec.ts` P3 跳遍全

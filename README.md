@@ -56,6 +56,14 @@ hidden columns. Reopening a dataset therefore returns to what you were looking
 at rather than the unfiltered table; **Reset** clears all four and deletes the
 saved view. Like the pipeline, it is configuration: no stored row changes.
 
+A pipeline can also be saved as a named **preset** and applied to a different
+file, which is the case a per-dataset pipeline cannot cover. Presets match
+columns by header name, not position, so they still target the right column
+when the next file orders its columns differently; a header name shared by
+several columns is never guessed at — that step or column is skipped and
+reported. Presets are stored globally and outlive the dataset they were
+captured from.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -118,6 +126,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
   are not part of the undo history for cleaning steps. A paste that would run past the last visible row or column
   is clipped and reported instead of writing to hidden records. Two tabs
   editing the same dataset do not coordinate: the last write wins.
+- Cleaning presets match columns by header name, so they only apply cleanly to
+  files whose headers match; a step whose columns are missing is skipped and
+  reported rather than widened to every column. Applying a preset replaces the
+  current pipeline instead of appending to it, and presets cannot be exported
+  to another browser (up to 50 are kept).
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via

@@ -133,7 +133,7 @@ type DatasetMetadata = {
 ## 6. IndexedDB 设计
 
 - Database name: `rowlens-local`；版本升级必须可重复、可测试。
-- Object stores: `datasets`（keyPath `id`）；`rows`（compound key `[datasetId, rowIndex]`，并建 datasetId 可用的复合索引以便按范围读取）；`importErrors`（如实现单独存储，以 datasetId + physicalLineNumber 唯一标识）；`cellEdits`（v2，keyPath `datasetId`，单元格编辑覆盖层，见 ADR-027）；`pipelines`（v3，keyPath `datasetId`，清洗步骤配置，见 ADR-030）；`views`（v4，keyPath `datasetId`，查询视图：搜索/筛选/排序/隐藏列，见 ADR-031）。三个配置类 store 都是"每数据集一条"，与导入行严格分离：保存配置不写任何行，删除数据集时在同一事务里级联删除。
+- Object stores: `datasets`（keyPath `id`）；`rows`（compound key `[datasetId, rowIndex]`，并建 datasetId 可用的复合索引以便按范围读取）；`importErrors`（如实现单独存储，以 datasetId + physicalLineNumber 唯一标识）；`cellEdits`（v2，keyPath `datasetId`，单元格编辑覆盖层，见 ADR-027）；`pipelines`（v3，keyPath `datasetId`，清洗步骤配置，见 ADR-030）；`views`（v4，keyPath `datasetId`，查询视图：搜索/筛选/排序/隐藏列，见 ADR-031）；`presets`（v5，keyPath `id`，固定键 `all`，全局命名清洗预设，见 ADR-032）。前三个配置类 store 是"每数据集一条"，与导入行严格分离：保存配置不写任何行，删除数据集时在同一事务里级联删除。`presets` **刻意不参与级联删除**——预设的用途是应用到别的文件，删掉来源数据集不应销毁配方。
 - 每批写入建议从 500 条开始，通过真实基准调整；禁止将整份文件放进一个长期 transaction。
 - 数据集状态只有在所有批次成功写入并 finalize 之后才改为 `ready`。
 - Worker 与主线程的 IDB 访问需要明确模块所有权。推荐所有 row write 由 repository 统一处理；若 Query Worker 自己读取 IDB，须共享 schema/version 常量并测试版本升级行为。
