@@ -14,7 +14,15 @@ import type { ColumnId } from '../dataset/types';
 
 export type CsvSafetyMode = 'spreadsheet-safe' | 'raw';
 
-export type ExportScope = 'filtered' | 'all';
+/**
+ * What to export.
+ *
+ * - `filtered`: the current view's rows, in view order (ADR-036).
+ * - `all`: every imported row through the cleaning pipeline.
+ * - `selection`: the exact visible rectangle, in view order — the streamed
+ *   counterpart of what Copy puts on the clipboard, without the copy cell cap.
+ */
+export type ExportScope = 'filtered' | 'all' | 'selection';
 
 export type CsvExportOptions = {
   /** Output file name; the app sanitises path separators and control characters. */

@@ -108,6 +108,12 @@ type DataGridProps = {
    * so the scroll position and focus survive.
    */
   dataVersion?: number;
+  /**
+   * Notified whenever the selection's rectangle changes (ADR-036). The bounds
+   * are view coordinates — the caller maps them to dataset rows and columns.
+   * A selection always exists (the focused cell), so this never reports null.
+   */
+  onSelectionBoundsChange?: (bounds: SelectionBounds) => void;
 };
 
 const ROW_NUM_WIDTH = 110;
@@ -136,6 +142,7 @@ export function DataGrid({
   isEdited,
   warmRows,
   dataVersion = 0,
+  onSelectionBoundsChange,
 }: DataGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -480,8 +487,19 @@ export function DataGrid({
     return () => cancelAnimationFrame(frame);
   }, [dragging]);
 
-  const bounds = boundsOf(selection, rowCount, columnCount);
+  const bounds = useMemo(
+    () => boundsOf(selection, rowCount, columnCount),
+    [selection, rowCount, columnCount],
+  );
   const size = selectionSize(bounds);
+
+  // Keep the caller's latest bounds without re-rendering it on every change:
+  // the callback goes through a ref and the effect fires on bounds identity.
+  const notifyBoundsRef = useRef(onSelectionBoundsChange);
+  notifyBoundsRef.current = onSelectionBoundsChange;
+  useEffect(() => {
+    notifyBoundsRef.current?.(bounds);
+  }, [bounds]);
   const hasRange = size.cells > 1;
 
   /** TSV for the current selection; shared by the button and the copy event. */
@@ -494,7 +512,7 @@ export function DataGrid({
 
   const tooManyToCopy = (): string =>
     `Selection has ${size.cells.toLocaleString('en-US')} cells — too many to copy at once. ` +
-    'Narrow it, or use Export CSV.';
+    'Narrow it, or export it with the Export dialog’s Selected-range scope.';
 
   const announceCopied = (copied: boolean): void => {
     announce(
