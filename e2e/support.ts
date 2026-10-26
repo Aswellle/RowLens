@@ -18,16 +18,16 @@ export const SAMPLE_READY = '5,000 of 5,000 rows match';
 /**
  * Clears the session pointer and IndexedDB so the next visit starts empty.
  *
- * The pointer is cleared by evaluating in the page *after* navigating, not by
- * `addInitScript`: an init script would re-run on every later navigation and
- * silently wipe the pointer on the reload a restore test depends on.
+ * Two traps this has to avoid:
  *
- * The deletion is issued from a blank page, not the app: the app opens its
- * IndexedDB connection at startup (to read presets), and an open connection
- * blocks a deletion. Resolving on `onblocked` would leave that deletion pending
- * — it then fires at an unpredictable moment and can tear down the database
- * while the *next* test is seeding its sample. Navigating away first closes the
- * connection, so the delete completes here and now.
+ * 1. `addInitScript` would re-run on every later navigation and silently wipe
+ *    the pointer on the reload a restore test depends on, so the pointer is
+ *    cleared by evaluating in the page instead.
+ * 2. `indexedDB.deleteDatabase` cannot be used from a blank page: `about:blank`
+ *    has an opaque origin, so it sees (and deletes) nothing. Deleting from the
+ *    app's own origin is blocked by the connection the app opens at startup.
+ *    `Storage.clearDataForOrigin` sidesteps both — it clears the origin's data
+ *    through the browser itself, with no connection to block it.
  */
 export async function resetSession(page: Page): Promise<void> {
   await page.goto('/');
@@ -38,31 +38,14 @@ export async function resetSession(page: Page): Promise<void> {
       // Storage may be blocked; the empty state is the fallback anyway.
     }
   });
-  // `about:blank` has no app, so nothing holds a connection open.
-  await page.goto('about:blank');
-  await page.evaluate(async () => {
-    try {
-      const dbs = await indexedDB.databases();
-      await Promise.all(
-        dbs
-          .filter((info) => info.name !== undefined)
-          .map(
-            (info) =>
-              new Promise<void>((resolve, reject) => {
-                const request = indexedDB.deleteDatabase(info.name!);
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-                // No app holds a connection here, so a block is unexpected;
-                // reject rather than silently leaving the deletion pending.
-                request.onblocked = () => reject(new Error(`deletion of ${info.name} was blocked`));
-              }),
-          ),
-      );
-    } catch {
-      // Best effort: a leftover database only affects the restore path.
-    }
-  });
-  // Return to the app, now with a clean database, so callers can assert on it.
+  const origin = new URL(page.url()).origin;
+  const client = await page.context().newCDPSession(page);
+  try {
+    await client.send('Storage.clearDataForOrigin', { origin, storageTypes: 'indexeddb' });
+  } finally {
+    await client.detach().catch(() => undefined);
+  }
+  // Reload so the next step starts from a fresh app with a clean database.
   await page.goto('/');
 }
 

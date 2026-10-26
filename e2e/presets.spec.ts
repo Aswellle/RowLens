@@ -96,3 +96,53 @@ test('a preset that matches no column is reported instead of applied silently', 
   // Nothing was applied, so the pipeline is still empty.
   await expect(page.getByText('No cleaning steps yet.')).toBeVisible();
 });
+
+test('a preset exported from one browser imports into a clean one', async ({ page }) => {
+  await resetSession(page);
+  await page.goto('/');
+  await importFixture(page, 'e2e/fixtures/preset-source.csv');
+  await expect(page.getByText('4 of 4 rows match')).toBeVisible({ timeout: 20_000 });
+
+  // Build and save a recipe that targets Status by name.
+  await page.getByRole('button', { name: '+ Trim whitespace' }).click();
+  await page.locator('summary', { hasText: 'Edit' }).first().click();
+  await page.getByRole('checkbox', { name: 'All columns' }).uncheck();
+  await page.getByRole('checkbox', { name: 'Trim Status' }).check();
+  await page.getByRole('button', { name: 'Save as preset…' }).click();
+  await page.getByLabel('Preset name').fill('Trim status');
+  await page.getByRole('button', { name: /^Save$/ }).click();
+  await expect(page.getByRole('button', { name: 'Apply preset: Trim status' })).toBeVisible();
+
+  // Export it and read the downloaded file.
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export presets…' }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+  if (path === null) throw new Error('preset export produced no file');
+  expect(download.suggestedFilename()).toMatch(/^rowlens-presets-\d{4}-\d{2}-\d{2}\.json$/);
+  const { readFileSync } = await import('node:fs');
+  const exported = JSON.parse(readFileSync(path, 'utf8')) as {
+    format: number;
+    presets: { name: string; steps: unknown[] }[];
+  };
+  expect(exported.format).toBe(1);
+  expect(exported.presets.map((preset) => preset.name)).toEqual(['Trim status']);
+
+  // A fresh session (no dataset, no presets) imports the file back.
+  await resetSession(page);
+  await page.goto('/');
+  await importFixture(page, 'e2e/fixtures/preset-target.csv');
+  await expect(page.getByText('2 of 2 rows match')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText('No cleaning steps yet.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Apply preset: Trim status' })).toHaveCount(0);
+
+  await page.setInputFiles('[data-testid="preset-file-input"]', path);
+  await expect(page.getByText(/Imported 1 preset/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('button', { name: 'Apply preset: Trim status' })).toBeVisible();
+
+  // And it still targets the right column in this file's column order.
+  await page.getByRole('button', { name: 'Apply preset: Trim status' }).click();
+  await expect(page.locator('[data-cell="1-2"] .grid-cell__text')).toHaveText('open', {
+    timeout: 20_000,
+  });
+});
