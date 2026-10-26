@@ -41,7 +41,9 @@ import {
   selectionSize,
   type CellPos,
   type GridSelection,
+  type SelectionBounds,
 } from '../features/grid/selection';
+import { describePaste, parseClipboardGrid, planPaste } from '../features/grid/paste';
 
 export type GridColumn = {
   id: string;
@@ -83,6 +85,11 @@ type DataGridProps = {
   onSortChange: (sort: GridSort | null) => void;
   /** Commits an edited cell; absent means the grid is read-only. */
   onEditCell?: (edit: GridCellEdit) => string | null;
+  /**
+   * Commits a block paste as one undoable action. Absent means pasting into
+   * cells is not offered (the grid still stays read-only for typing).
+   */
+  onPasteCells?: (edits: GridCellEdit[]) => string | null;
   /** True when the cell currently holds an unsaved overlay value. */
   isEdited?: (rowIndex: RowIndex, columnIndex: number) => boolean;
 };
@@ -109,6 +116,7 @@ export function DataGrid({
   sort,
   onSortChange,
   onEditCell,
+  onPasteCells,
   isEdited,
 }: DataGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -532,6 +540,90 @@ export function DataGrid({
     announceCopied(true);
   };
 
+  /**
+   * Paste a clipboard block into the selection (ADR-026).
+   *
+   * The plan is computed against the *visible* view, so a paste that would
+   * run past the last row or column is clipped and reported rather than
+   * writing to records the user cannot see. All cells commit as one batch, so
+   * a single undo takes the whole paste back.
+   */
+  const onGridPaste = (event: React.ClipboardEvent<HTMLDivElement>): void => {
+    if (onPasteCells === undefined) return;
+    // Pasting into the open editor belongs to the input.
+    if (editor !== null) return;
+    const text = event.clipboardData?.getData('text/plain') ?? '';
+    if (text === '') return;
+    event.preventDefault();
+
+    // The paste rectangle is the active cell unless the user selected a
+    // larger area: programmatic focus alone does not widen the selection, and
+    // an anchored 1×1 selection is the same thing as the active cell.
+    // The focused element is the source of truth — a focus event and a paste
+    // can arrive in the same tick, before the roving state re-renders.
+    const focused = document.activeElement;
+    const focusedRef =
+      focused instanceof HTMLElement ? focused.closest<HTMLElement>('[data-cell]') : null;
+    const focusedPos = (() => {
+      const raw = focusedRef?.dataset.cell;
+      if (raw === undefined) return clampedFocus;
+      const [row, column] = raw.split('-').map(Number);
+      return row !== undefined && column !== undefined ? { row, column } : clampedFocus;
+    })();
+    const target: SelectionBounds =
+      size.cells > 1
+        ? bounds
+        : {
+            top: focusedPos.row,
+            left: Math.max(0, focusedPos.column),
+            bottom: focusedPos.row,
+            right: Math.max(0, focusedPos.column),
+          };
+
+    const block = parseClipboardGrid(text);
+    const plan = planPaste(block, target, rowCount, columnCount);
+    if (plan.cells.length === 0) {
+      announce('Nothing to paste.');
+      return;
+    }
+
+    const edits: GridCellEdit[] = [];
+    for (const cell of plan.cells) {
+      const rowIndex = visibleIndices[cell.row];
+      const column = columns[cell.column];
+      if (rowIndex === undefined || column === undefined) continue;
+      edits.push({
+        rowIndex,
+        columnIndex: cell.column,
+        columnId: column.id,
+        displayed: valueAt(rowIndex, cell.column),
+        stored: storedValueAt?.(rowIndex, cell.column) ?? null,
+        value: cell.value,
+      });
+    }
+    if (edits.length === 0) {
+      announce('Nothing to paste.');
+      return;
+    }
+
+    const refusal = onPasteCells(edits);
+    if (refusal) {
+      announce(refusal);
+      return;
+    }
+    announce(describePaste(plan));
+    // Select the area the paste actually covered, so the result is visible.
+    const lastCell = plan.cells.at(-1);
+    if (lastCell) {
+      setSelection(
+        rangeBetween(
+          { row: target.top, column: target.left },
+          { row: lastCell.row, column: lastCell.column },
+        ),
+      );
+    }
+  };
+
   /** Shared mouse/keyboard entry for cells and the row header. */
   const beginPointerSelection = (pos: CellPos, event: React.MouseEvent): void => {
     if (event.button !== 0) return;
@@ -622,6 +714,7 @@ export function DataGrid({
         tabIndex={0}
         onKeyDown={onGridKeyDown}
         onCopy={onGridCopy}
+        onPaste={onGridPaste}
       >
         <div role="rowgroup" className="grid-table">
           <div role="row" style={{ display: 'flex', minWidth: 'max-content' }}>

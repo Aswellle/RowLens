@@ -681,28 +681,33 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
    * overlay cap is reached, so the grid can explain instead of silently
    * dropping the draft.
    */
-  const editCell = useCallback(
-    (edit: GridCellEdit): string | null => {
-      const input: EditInput = {
+  const commitEdits = useCallback(
+    (gridEdits: readonly GridCellEdit[]): string | null => {
+      const inputs: EditInput[] = gridEdits.map((edit) => ({
         rowIndex: edit.rowIndex,
         columnId: edit.columnId,
         displayed: edit.displayed,
         stored: edit.stored,
         after: edit.value,
-      };
+      }));
       let refusal: string | null = null;
       patchReady((current) => {
-        if (wouldExceedCap(current.edits, [input])) {
+        if (wouldExceedCap(current.edits, inputs)) {
           refusal = `Cell edits are limited to ${MAX_EDITS.toLocaleString('en-US')} cells. Reset edits or use a cleaning step for bulk changes.`;
           return current;
         }
-        const edits = applyEdits(current.edits, [input]);
+        const edits = applyEdits(current.edits, inputs);
         if (edits === current.edits) return current;
         return { ...current, edits, queryBusy: true };
       });
       return refusal;
     },
     [patchReady],
+  );
+
+  const editCell = useCallback(
+    (edit: GridCellEdit): string | null => commitEdits([edit]),
+    [commitEdits],
   );
 
   const undoEdit = useCallback(() => {
@@ -926,6 +931,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
                     );
                   }}
                   onEditCell={editCell}
+                  onPasteCells={commitEdits}
                   recordLabel={(rowIndex) => `Record ${rowIndex + 1}`}
                   sort={readyGridSort}
                   onSortChange={(gridSort) =>
