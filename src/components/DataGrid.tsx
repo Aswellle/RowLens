@@ -148,11 +148,19 @@ export function DataGrid({
    * changed (a lazy chunk landed). Cells read through `valueAt` during render,
    * so bumping a local epoch is enough; remounting the grid would reset the
    * scroll position instead.
+   *
+   * A re-render can replace the row nodes, which drops DOM focus to <body>.
+   * That is invisible while a chunk fills in behind an idle grid, but it used
+   * to steal focus from a cell the user had just clicked. The flag below tells
+   * the focus effect to put focus back on the same cell.
    */
   const [, setDataEpoch] = useState(0);
   const lastDataVersionRef = useRef(dataVersion);
+  const restoreFocusAfterDataRef = useRef(false);
   if (lastDataVersionRef.current !== dataVersion) {
     lastDataVersionRef.current = dataVersion;
+    // Only worth restoring if focus was inside the grid when the data changed.
+    restoreFocusAfterDataRef.current = scrollRef.current?.contains(document.activeElement) ?? false;
     setDataEpoch((epoch) => epoch + 1);
   }
 
@@ -321,10 +329,22 @@ export function DataGrid({
    * moved it somewhere on purpose, or a later keypress would fight the user.
    */
   useEffect(() => {
-    if (!pendingFocusRef.current) return;
     const container = scrollRef.current;
     if (!container) return;
     const selector = focusSelector(clampedFocus.row, clampedFocus.column);
+
+    // A data refresh (lazy chunk landing) replaced the row nodes under the
+    // user's cursor. Put focus back on the same cell, but only when it fell
+    // off the page — never steal it from wherever the user moved it.
+    if (restoreFocusAfterDataRef.current) {
+      restoreFocusAfterDataRef.current = false;
+      const active = document.activeElement;
+      if (active === null || active === document.body) {
+        container.querySelector<HTMLElement>(selector)?.focus();
+      }
+    }
+
+    if (!pendingFocusRef.current) return;
     const initial = container.querySelector<HTMLElement>(selector);
     // Row not in the window yet — the next render (after scrolling) retries.
     if (!initial) return;
