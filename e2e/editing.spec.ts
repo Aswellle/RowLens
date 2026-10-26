@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { loadSample } from './support';
 
 /**
  * Cell editing in a real browser: the in-cell editor, its keyboard contract,
@@ -7,12 +8,6 @@ import { expect, test, type Page } from '@playwright/test';
  * the stored rows and the source file are never rewritten, and exports carry
  * the edited values.
  */
-
-async function loadSample(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
-}
 
 async function focusCell(page: Page, row: number, column: number): Promise<void> {
   const cell = page.locator(`[data-cell="${row}-${column}"]`);
@@ -287,4 +282,50 @@ test('a restored dataset fills in rows as they scroll into view', async ({ page 
     if (container) container.scrollTop = 0;
   });
   await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('T-00001');
+});
+
+test('evicted chunks reload correctly when the user scrolls back', async ({ page }) => {
+  // The sample is only 10 chunks, below the 40-chunk cap, so eviction would
+  // never run. A synthetic file big enough to exceed the cap exercises the
+  // real path: read a chunk, get it evicted, read it again from IndexedDB.
+  const rows = 60_000; // 120 chunks at 500 rows each
+  const lines = ['id,value'];
+  for (let i = 0; i < rows; i += 1) lines.push(`R${i},v${i}`);
+  await page.goto('/');
+  await page.setInputFiles('#file-input', {
+    name: 'wide.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(lines.join('\n'), 'utf8'),
+  });
+  const start = page.getByRole('button', { name: 'Start import' });
+  if (await start.isVisible()) await start.click();
+  await expect(page.getByText('60,000 of 60,000 rows match')).toBeVisible({ timeout: 60_000 });
+
+  await page.waitForTimeout(1_000);
+  await page.reload();
+  await expect(page.getByText('60,000 of 60,000 rows match')).toBeVisible({ timeout: 60_000 });
+
+  const cellText = (row: number) =>
+    page.evaluate(
+      (topRow) =>
+        document.querySelector(`[data-cell="${topRow}-0"] .grid-cell__text`)?.textContent ?? '',
+      row,
+    );
+  const jumpTo = async (row: number) => {
+    await page.evaluate((topRow) => {
+      const container = document.querySelector<HTMLElement>('.grid-scroll');
+      if (container) container.scrollTop = topRow * 36;
+    }, row);
+    await expect.poll(() => cellText(row), { timeout: 15_000 }).toBe(`R${row}`);
+  };
+
+  // Visit chunks far enough apart to push the first ones out of the cache.
+  await jumpTo(0);
+  for (let row = 5_000; row <= 55_000; row += 5_000) await jumpTo(row);
+
+  // Back to the top: that chunk was evicted long ago and must be re-read.
+  await jumpTo(0);
+  await expect(page.locator('[data-cell="0-0"] .grid-cell__text')).toHaveText('R0');
+  // And the far end still resolves.
+  await jumpTo(59_000);
 });

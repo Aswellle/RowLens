@@ -1,5 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
+import { loadSample } from './support';
 
 /**
  * Captures the README screenshots from the production preview build.
@@ -10,12 +11,6 @@ import { expect, test, type Page } from '@playwright/test';
 test.skip(!process.env.SHOTS, 'set SHOTS=1 to regenerate README screenshots');
 
 const DIR = 'docs/screenshots';
-
-async function loadSample(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
-}
 
 test('capture the main views', async ({ page }) => {
   test.setTimeout(60_000);

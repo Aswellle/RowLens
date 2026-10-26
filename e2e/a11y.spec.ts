@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { loadSample } from './support';
 
 /**
  * Accessibility scans with axe-core over the main states. The bar: no
@@ -13,12 +14,6 @@ import { expect, test, type Page } from '@playwright/test';
  * default 30 s budget when several workers share the machine.
  */
 test.describe.configure({ timeout: 90_000 });
-
-async function loadSample(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
-}
 
 async function scan(page: Page) {
   const results = await new AxeBuilder({ page })

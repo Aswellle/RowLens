@@ -1,14 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loadSample } from './support';
 
 /**
  * Query cancellation and grid keyboard navigation in a real browser.
  */
-
-async function loadSample(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible({ timeout: 20_000 });
-}
 
 test('cancelling a query clears the busy marker and keeps the previous view', async ({ page }) => {
   await loadSample(page);

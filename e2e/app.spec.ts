@@ -1,17 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loadSample, resetSession } from './support';
 
 /**
  * Phase 1 E2E: honest main path (empty → sample → grid), keyboard operability,
  * virtualized DOM size, and the narrow-viewport "More" menu.
  */
 
-async function loadSample(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Try sample data' }).click();
-  await expect(page.getByText('5,000 of 5,000 rows match')).toBeVisible();
-}
-
 test('empty state explains the product and offers the two entries', async ({ page }) => {
-  await page.goto('/');
+  // A leftover session pointer would restore a dataset instead of the empty
+  // state, which is a different test's concern.
+  await resetSession(page);
   await expect(
     page.getByRole('heading', { name: 'Explore a data file. Keep it on your device.' }),
   ).toBeVisible();
@@ -46,7 +44,8 @@ test('search narrows results and updates the announced count', async ({ page }) 
 });
 
 test('keyboard-only: Tab to sample, load, search, Escape clears in place', async ({ page }) => {
-  await page.goto('/');
+  // The tab order starts from the empty state, so no restored session.
+  await resetSession(page);
   // Tab through theme toggle → Choose a file → Try sample data.
   await page.keyboard.press('Tab'); // document body → theme toggle
   await page.keyboard.press('Tab'); // → Choose a file
