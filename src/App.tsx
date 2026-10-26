@@ -52,6 +52,7 @@ import {
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
 import { createDownloadSaver, runExport } from './features/export/run';
 import { readRowsByIndices, readRowsForIndices } from './features/export/rows';
+import { useDebouncedPersist } from './app/use-debounced-persist';
 import type { ExportScope } from './features/export/types';
 import {
   MAX_EDITS,
@@ -173,6 +174,13 @@ const EXPORT_READ_BATCH = 500;
 const SEARCH_DEBOUNCE_MS = 250;
 /** Coalesces bursts of edits into one persisted record write. */
 const EDIT_PERSIST_DEBOUNCE_MS = 400;
+
+/** The pipeline persist signature: dataset-scoped and order-sensitive. */
+function pipelineSignatureOf(
+  pending: { id: string; steps: readonly CleaningStep[] } | null,
+): string {
+  return pending === null ? '' : `${pending.id}\n${JSON.stringify(pending.steps)}`;
+}
 
 /** A fresh id for a cleaning step or a preset. */
 function newPresetId(): string {
@@ -503,41 +511,28 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
    * produces a new view object, and depending on it would restart the timer
    * each time, so a busy query could postpone the write indefinitely.
    */
-  const persistedRevisionRef = useRef<number | null>(null);
   const editPersistRef = useRef<{ id: string; edits: EditState } | null>(null);
   editPersistRef.current =
     view.kind === 'ready' ? { id: view.data.meta.id, edits: view.edits } : null;
-  const editPersistRevision = view.kind === 'ready' ? view.edits.revision : -1;
-  useEffect(() => {
-    if (editPersistRevision < 0) return;
-    if (persistedRevisionRef.current === editPersistRevision) return;
-    const timer = window.setTimeout(() => {
+  const { markPersisted: markEditsPersisted } = useDebouncedPersist(
+    view.kind === 'ready' ? `${view.data.meta.id}:${view.edits.revision}` : '',
+    async (repository) => {
       const pending = editPersistRef.current;
       if (pending === null) return;
-      persistedRevisionRef.current = pending.edits.revision;
-      void (async () => {
-        try {
-          const repository = await ensureRepository();
-          if (pending.edits.edits.size === 0) {
-            await repository.deleteCellEdits(pending.id);
-            return;
-          }
-          await repository.putCellEdits({
-            datasetId: pending.id,
-            updatedAt: Date.now(),
-            format: EDIT_RECORD_FORMAT,
-            cells: serializeEdits(pending.edits),
-          });
-        } catch {
-          // Storage full or blocked: the session keeps its edits in memory.
-          // Resetting the marker makes the next change retry.
-          persistedRevisionRef.current = null;
-        }
-      })();
-    }, EDIT_PERSIST_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [editPersistRevision, ensureRepository]);
-
+      if (pending.edits.edits.size === 0) {
+        await repository.deleteCellEdits(pending.id);
+        return;
+      }
+      await repository.putCellEdits({
+        datasetId: pending.id,
+        updatedAt: Date.now(),
+        format: EDIT_RECORD_FORMAT,
+        cells: serializeEdits(pending.edits),
+      });
+    },
+    ensureRepository,
+    EDIT_PERSIST_DEBOUNCE_MS,
+  );
   /**
    * Persist the cleaning pipeline whenever its configuration changes
    * (ADR-030). Steps are configuration, not data: saving them never touches
@@ -546,58 +541,43 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
    *
    * Keyed on the steps' signature for the same reason as the edits above.
    */
-  const persistedPipelineRef = useRef<string | null>(null);
   const pipelinePersistRef = useRef<{
     id: string;
     steps: readonly CleaningStep[];
-    signature: string;
   } | null>(null);
   if (view.kind === 'ready') {
     pipelinePersistRef.current = {
       id: view.data.meta.id,
       steps: view.cleaningSteps,
-      signature: `${view.data.meta.id}\n${JSON.stringify(view.cleaningSteps)}`,
     };
   } else {
     pipelinePersistRef.current = null;
   }
-  const pipelinePersistSignature = pipelinePersistRef.current?.signature ?? '';
-  useEffect(() => {
-    if (pipelinePersistSignature === '') return;
-    if (persistedPipelineRef.current === pipelinePersistSignature) return;
-    const timer = window.setTimeout(() => {
+  const { markPersisted: markPipelinePersisted } = useDebouncedPersist(
+    pipelineSignatureOf(pipelinePersistRef.current),
+    async (repository) => {
       const pending = pipelinePersistRef.current;
       if (pending === null) return;
-      persistedPipelineRef.current = pending.signature;
-      void (async () => {
-        try {
-          const repository = await ensureRepository();
-          if (pending.steps.length === 0) {
-            await repository.deletePipeline(pending.id);
-            return;
-          }
-          await repository.putPipeline({
-            datasetId: pending.id,
-            updatedAt: Date.now(),
-            format: PIPELINE_RECORD_FORMAT,
-            steps: [...pending.steps],
-          });
-        } catch {
-          // Storage full or blocked: the session keeps its pipeline in memory.
-          persistedPipelineRef.current = null;
-        }
-      })();
-    }, EDIT_PERSIST_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [pipelinePersistSignature, ensureRepository]);
-
+      if (pending.steps.length === 0) {
+        await repository.deletePipeline(pending.id);
+        return;
+      }
+      await repository.putPipeline({
+        datasetId: pending.id,
+        updatedAt: Date.now(),
+        format: PIPELINE_RECORD_FORMAT,
+        steps: [...pending.steps],
+      });
+    },
+    ensureRepository,
+    EDIT_PERSIST_DEBOUNCE_MS,
+  );
   /**
    * Persist the query view whenever it changes (ADR-031): the search term, the
    * column filters, the sort and the hidden columns. An untouched view deletes
    * the record rather than storing an empty one, so "Reset" is a real reset at
    * the storage layer too.
    */
-  const persistedViewRef = useRef<string | null>(null);
   /**
    * The view in stored form, rebuilt on every render but consumed by an effect
    * keyed on `viewPersistSignature`. Depending on the whole `view` would restart
@@ -631,31 +611,20 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     viewPersistRef.current = null;
   }
   const viewPersistSignature = viewPersistRef.current?.signature ?? '';
-
-  useEffect(() => {
-    if (viewPersistSignature === '') return;
-    if (persistedViewRef.current === viewPersistSignature) return;
-    const timer = window.setTimeout(() => {
+  const { markPersisted: markViewPersisted } = useDebouncedPersist(
+    viewPersistSignature,
+    async (repository) => {
       const pending = viewPersistRef.current;
       if (pending === null) return;
-      persistedViewRef.current = pending.signature;
-      void (async () => {
-        try {
-          const repository = await ensureRepository();
-          if (!isActiveView(pending.state)) {
-            await repository.deleteView(pending.id);
-            return;
-          }
-          await repository.putView(serializeView(pending.state, pending.id));
-        } catch {
-          // Storage full or blocked: the view still works for this session.
-          persistedViewRef.current = null;
-        }
-      })();
-    }, EDIT_PERSIST_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [viewPersistSignature, ensureRepository]);
-
+      if (!isActiveView(pending.state)) {
+        await repository.deleteView(pending.id);
+        return;
+      }
+      await repository.putView(serializeView(pending.state, pending.id));
+    },
+    ensureRepository,
+    EDIT_PERSIST_DEBOUNCE_MS,
+  );
   /**
    * Load the saved presets once on startup. Deliberately independent of the
    * dataset restore below: presets are global, so they must be available even
@@ -724,7 +693,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               new Set(meta.columns.map((column) => column.id)),
             )
           : emptyEditState();
-        persistedRevisionRef.current = restoredEdits.revision;
+        markEditsPersisted(`${datasetId}:${restoredEdits.revision}`);
 
         // The cleaning pipeline is configuration, so it is restored together
         // with the dataset: reopening a file should not make the user rebuild
@@ -734,7 +703,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         const restoredSteps = isSupportedPipelineRecord(pipelineRecord)
           ? deserializePipeline(pipelineRecord, validColumns)
           : [];
-        persistedPipelineRef.current = JSON.stringify(restoredSteps);
+        markPipelinePersisted(pipelineSignatureOf({ id: datasetId, steps: restoredSteps }));
 
         // The query view is the other half of "where I left off": the filter
         // the user was reading through is as much a part of the session as the
@@ -744,7 +713,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         const restoredView = isSupportedViewRecord(viewRecord)
           ? deserializeView(viewRecord, validColumns)
           : emptyView();
-        persistedViewRef.current = `${datasetId}\n${viewSignature(restoredView)}`;
+        markViewPersisted(`${datasetId}\n${viewSignature(restoredView)}`);
         // Stored by column id so a re-import that reorders columns still
         // sorts the same column; the grid sorts by dataset index.
         const restoredSortIndex =
