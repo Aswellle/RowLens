@@ -15,6 +15,11 @@ export type QuerySortSpec = {
   /** Index into the query's column-id list. */
   columnIndex: number;
   direction: SortDirection;
+  /**
+   * Explicit "treat values as numbers" mode (ADR-035); never inferred. The
+   * engine partitions unparseable and empty values instead of guessing.
+   */
+  numeric: boolean;
 };
 
 export type QueryRequestSpec = {

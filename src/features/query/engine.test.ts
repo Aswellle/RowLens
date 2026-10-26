@@ -154,19 +154,21 @@ describe('runQueryEngine sorting', () => {
   ];
 
   it('sorts ascending, keeping equal values in original order', async () => {
-    const result = await run(table, { sort: { columnIndex: 0, direction: 'asc' } });
+    const result = await run(table, { sort: { columnIndex: 0, direction: 'asc', numeric: false } });
     expect(result.status === 'done' && result.rowIndices).toEqual([1, 4, 0, 2, 3]);
   });
 
   it('sorts descending with missing values still last and ties stable', async () => {
-    const result = await run(table, { sort: { columnIndex: 0, direction: 'desc' } });
+    const result = await run(table, {
+      sort: { columnIndex: 0, direction: 'desc', numeric: false },
+    });
     expect(result.status === 'done' && result.rowIndices).toEqual([0, 2, 1, 4, 3]);
   });
 
   it('sorts after filtering', async () => {
     const result = await run(table, {
       columnFilters: { c0: 'a' },
-      sort: { columnIndex: 1, direction: 'desc' },
+      sort: { columnIndex: 1, direction: 'desc', numeric: false },
     });
     expect(result.status === 'done' && result.rowIndices).toEqual([4, 1]);
   });
@@ -177,8 +179,26 @@ describe('runQueryEngine sorting', () => {
       ['10', 'x'],
       ['00123', 'x'],
     ];
-    const result = await run(numeric, { sort: { columnIndex: 0, direction: 'asc' } });
+    const result = await run(numeric, {
+      sort: { columnIndex: 0, direction: 'asc', numeric: false },
+    });
     expect(result.status === 'done' && result.rowIndices).toEqual([2, 1, 0]);
+  });
+
+  it('numeric mode sorts the same column by value, partitioning non-numbers', async () => {
+    const mixed = [
+      ['9', 'row-a'],
+      ['1,050', 'row-b'],
+      ['00123', 'row-c'],
+      ['N/A', 'row-d'],
+      ['', 'row-e'],
+      [null, 'row-f'],
+    ];
+    const result = await run(mixed, { sort: { columnIndex: 0, direction: 'asc', numeric: true } });
+    expect(result.status === 'done' && result.rowIndices).toEqual([0, 2, 1, 3, 4, 5]);
+    // Descend reverses the numbers and the text partition; empty stays last.
+    const desc = await run(mixed, { sort: { columnIndex: 0, direction: 'desc', numeric: true } });
+    expect(desc.status === 'done' && desc.rowIndices).toEqual([1, 2, 0, 3, 4, 5]);
   });
 });
 
@@ -281,7 +301,7 @@ describe('runQueryEngine with cell edits', () => {
         columns: COLUMNS,
         searchTerms: [],
         columnFilters: {},
-        sort: { columnIndex: 1, direction: 'asc' },
+        sort: { columnIndex: 1, direction: 'asc', numeric: false },
       },
       {
         matchLimit: 100,

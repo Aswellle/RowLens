@@ -10,6 +10,7 @@
  */
 import type { ColumnId, RowIndex } from '../dataset/types';
 import { sortIndicesStable } from './literal';
+import { sortIndicesNumeric } from './numeric';
 import type { SortDirection } from './types';
 import type { QueryRequestSpec } from './protocol';
 import type { SearchTerm } from './search';
@@ -23,6 +24,8 @@ export type EngineSort = {
   /** Index into the spec's column-id list. */
   columnIndex: number;
   direction: SortDirection;
+  /** Explicit numeric mode (ADR-035); the engine never infers it. */
+  numeric: boolean;
 };
 
 export type QueryEngineSpec = {
@@ -189,12 +192,21 @@ export async function runQueryEngine(
     return { status: 'limit', matched: matchedIndices.length, limit: options.matchLimit };
   }
 
+  // The sort type is the user's explicit choice (ADR-035): numeric mode
+  // parses keys and partitions what does not parse; the plain mode keeps the
+  // contract's UTF-16 string order. Both are stable.
   const rowIndices = spec.sort
-    ? sortIndicesStable(
-        matchedIndices,
-        (rowIndex) => sortKeys.get(rowIndex) ?? null,
-        spec.sort.direction,
-      )
+    ? spec.sort.numeric
+      ? sortIndicesNumeric(
+          matchedIndices,
+          (rowIndex) => sortKeys.get(rowIndex) ?? null,
+          spec.sort.direction,
+        )
+      : sortIndicesStable(
+          matchedIndices,
+          (rowIndex) => sortKeys.get(rowIndex) ?? null,
+          spec.sort.direction,
+        )
     : matchedIndices;
 
   return {
