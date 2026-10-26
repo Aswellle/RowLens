@@ -52,10 +52,15 @@ export function ExportDialog(props: ExportDialogProps) {
   );
   const [safetyMode, setSafetyMode] = useState<CsvSafetyMode>('spreadsheet-safe');
   const [riskCount, setRiskCount] = useState<number | null>(null);
+  const { countRiskCells } = props;
 
+  // Keyed on the counter's identity, not the whole props object: the parent
+  // re-renders while the dialog is open (queries finishing, chunks landing),
+  // and each of those renders must not restart a full-cell scan. The App's
+  // counter changes identity when a cached estimate lands.
   useEffect(() => {
-    setRiskCount(props.countRiskCells(scope));
-  }, [scope, props]);
+    setRiskCount(countRiskCells(scope));
+  }, [scope, countRiskCells]);
 
   const riskLabel =
     riskCount === null

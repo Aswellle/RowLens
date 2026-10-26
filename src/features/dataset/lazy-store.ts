@@ -13,8 +13,10 @@
  *   miss only ever affects a row that is not on screen yet.
  * - `onChunkLoaded` lets the caller re-render once a chunk arrives; the grid
  *   then reads real values for the rows it is showing.
- * - Query, export and edits all run against IndexedDB directly (worker scans
- *   and repository windows), so they never depend on this cache.
+ * - Query runs against IndexedDB directly (worker scans and repository
+ *   windows), and export plus the risk estimate read through the dataset's
+ *   total row source — never through this cache, whose misses mean "not loaded
+ *   yet" (ADR-037).
  *
  * Memory therefore scales with what the user actually looks at, not with the
  * dataset size (ADR-028). A least-recently-used cap keeps that true even after

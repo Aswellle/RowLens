@@ -38,6 +38,7 @@ import type {
   ColumnId,
   DatasetFormat,
   DatasetMetadata,
+  StoredRow,
 } from './features/dataset/types';
 import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
 import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
@@ -50,6 +51,7 @@ import {
 } from './features/cleaning/persist';
 import { cleanedFileName, hasFormulaRisk, sanitizeCsvFileName } from './features/export/csv';
 import { createDownloadSaver, runExport } from './features/export/run';
+import { readRowsByIndices, readRowsForIndices } from './features/export/rows';
 import type { ExportScope } from './features/export/types';
 import {
   MAX_EDITS,
@@ -125,6 +127,12 @@ type CellSource = {
 type ReadyData = {
   meta: DatasetMetadata;
   store: CellSource;
+  /**
+   * Total stored-row reader, present only for lazily restored datasets whose
+   * render cache may miss (ADR-037). Export and the risk estimate read through
+   * this instead of the cache; the in-memory store needs no second reader.
+   */
+  readStoredRows?: (offset: number, limit: number) => Promise<StoredRow[]>;
 };
 
 type AppQueryRunner = {
@@ -158,6 +166,9 @@ type View =
       /** In-memory cell edits; the stored rows are never modified. */
       edits: EditState;
     };
+
+/** Stored rows read per IndexedDB window while exporting a restored dataset. */
+const EXPORT_READ_BATCH = 500;
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Coalesces bursts of edits into one persisted record write. */
@@ -738,7 +749,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         lazyStoreRef.current = store;
         setView({
           kind: 'ready',
-          data: { meta, store },
+          data: {
+            meta,
+            store,
+            readStoredRows: (offset, limit) => repository.readRows(datasetId, offset, limit),
+          },
           searchInput: restoredView.search,
           search: restoredView.search,
           columnFilters: restoredView.columnFilters,
@@ -1197,33 +1212,73 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     [view],
   );
 
+  /**
+   * Formula-risk estimates per scope, computed once and cached while the
+   * dialog is open. A lazily restored dataset reads through IndexedDB windows
+   * (the render cache would undercount unloaded chunks), so the computation is
+   * asynchronous: the first call per scope returns null ("counting…") and the
+   * dialog re-asks when the cached value lands.
+   */
+  const [riskCounts, setRiskCounts] = useState<Partial<Record<ExportScope, number>>>({});
+  const riskInFlightRef = useRef<Set<ExportScope>>(new Set());
+  const riskOpenTokenRef = useRef(0);
+
   const countRiskCells = useCallback(
     (scope: ExportScope): number | null => {
-      if (view.kind !== 'ready') return 0;
-      const { store, meta } = view.data;
-      const indices = exportIndices(scope);
-      const columnIndexes =
-        scope === 'selection'
-          ? (selectionSnapshotRef.current?.columnIndexes ?? [])
-          : meta.columns.map((_, index) => index);
-      if (indices.length * columnIndexes.length > 3_000_000) return -1;
-      let count = 0;
-      for (const rowIndex of indices) {
-        for (const columnIndex of columnIndexes) {
-          // The estimate must describe what will actually be written, so an
-          // edited cell counts with its edited value.
-          const stored = store.getCell(rowIndex, columnIndex);
-          const columnId = meta.columns[columnIndex]?.id;
-          const cell =
-            columnId === undefined
-              ? stored
-              : (editedValue(view.edits, rowIndex, columnId) ?? stored);
-          if (cell !== null && hasFormulaRisk(cell)) count += 1;
+      const cached = riskCounts[scope];
+      if (cached !== undefined) return cached;
+      if (!riskInFlightRef.current.has(scope)) {
+        const token = riskOpenTokenRef.current;
+        const current = viewRef.current;
+        if (current.kind !== 'ready') return 0;
+        const { meta, readStoredRows } = current.data;
+        const indices = exportIndices(scope);
+        const columnIndexes =
+          scope === 'selection'
+            ? (selectionSnapshotRef.current?.columnIndexes ?? [])
+            : meta.columns.map((_, index) => index);
+        if (indices.length * columnIndexes.length > 3_000_000) {
+          setRiskCounts((prev) => ({ ...prev, [scope]: -1 }));
+          return -1;
         }
+        riskInFlightRef.current.add(scope);
+        void (async () => {
+          const edits = current.edits;
+          const allColumnIds = meta.columns.map((column) => column.id);
+          let count = 0;
+          const countRow = (rowIndex: number, values: Record<ColumnId, string | null>) => {
+            for (const columnIndex of columnIndexes) {
+              const columnId = allColumnIds[columnIndex];
+              const cell =
+                columnId === undefined
+                  ? null
+                  : (editedValue(edits, rowIndex, columnId) ?? values[columnId] ?? null);
+              if (cell !== null && hasFormulaRisk(cell)) count += 1;
+            }
+          };
+          if (readStoredRows === undefined) {
+            const { store } = current.data;
+            for (const rowIndex of indices) {
+              const values: Record<ColumnId, string | null> = {};
+              for (let d = 0; d < allColumnIds.length; d++) {
+                values[allColumnIds[d]!] = store.getCell(rowIndex, d);
+              }
+              countRow(rowIndex, values);
+            }
+          } else {
+            await readRowsForIndices(readStoredRows, indices, (row) => {
+              countRow(row.rowIndex, row.values);
+            });
+          }
+          // A dialog reopened for another dataset must not take this result.
+          if (token !== riskOpenTokenRef.current) return;
+          setRiskCounts((prev) => ({ ...prev, [scope]: count }));
+          riskInFlightRef.current.delete(scope);
+        })();
       }
-      return count;
+      return null;
     },
-    [view, exportIndices],
+    [riskCounts, exportIndices],
   );
 
   /**
@@ -1245,6 +1300,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     } else {
       selectionSnapshotRef.current = null;
     }
+    riskOpenTokenRef.current += 1;
+    riskInFlightRef.current.clear();
+    setRiskCounts({});
     setExportState((current) => ({
       ...current,
       open: true,
@@ -1260,7 +1318,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       exportCancelRef.current = cancelFlag;
       setExportState((current) => ({ ...current, open: true, busy: true, error: null }));
 
-      const { store, meta } = view.data;
+      const { store, meta, readStoredRows } = view.data;
       // Captured for the row generator: narrowing does not survive into a
       // nested function, and the export must read the same overlay.
       const edits = view.edits;
@@ -1271,26 +1329,52 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       const columnIndexes =
         request.scope === 'selection'
           ? (selectionSnapshotRef.current?.columnIndexes ?? [])
-          : view.kind === 'ready'
-            ? effectiveDatasetIndexes
-            : ([] as number[]);
+          : effectiveDatasetIndexes;
       const exportIds = columnIndexes.map((index) => allColumnIds[index]!);
       const indices = exportIndices(request.scope);
+      // Lazily restored datasets read through IndexedDB windows (ADR-037); the
+      // in-memory store's getCell never misses, so it stays the direct source.
+      const rowWindow = readStoredRows ?? null;
 
       async function* rows(): AsyncGenerator<(string | null)[]> {
-        for (const rowIndex of indices) {
-          const record: Record<string, string | null> = {};
-          for (let d = 0; d < allColumnIds.length; d++) {
-            const columnId = allColumnIds[d]!;
-            // Edits are part of the data the user sees, so exports include
-            // them; cleaning then runs on top of the edited values.
-            record[columnId] = editedValue(edits, rowIndex, columnId) ?? store.getCell(rowIndex, d);
+        if (rowWindow === null) {
+          for (const rowIndex of indices) {
+            const record: Record<string, string | null> = {};
+            for (let d = 0; d < allColumnIds.length; d++) {
+              const columnId = allColumnIds[d]!;
+              // Edits are part of the data the user sees, so exports include
+              // them; cleaning then runs on top of the edited values.
+              record[columnId] =
+                editedValue(edits, rowIndex, columnId) ?? store.getCell(rowIndex, d);
+            }
+            const out = transform
+              ? transform.process({ rowIndex, values: record })
+              : { rowIndex, values: record };
+            if (!out) continue;
+            yield exportIds.map((id) => out.values[id] ?? null);
           }
-          const out = transform
-            ? transform.process({ rowIndex, values: record })
-            : { rowIndex, values: record };
-          if (!out) continue;
-          yield exportIds.map((id) => out.values[id] ?? null);
+          return;
+        }
+        // Restored dataset: batch the (possibly sorted) view order, read each
+        // batch's stored rows through IndexedDB, and never touch the render
+        // cache — an unloaded chunk must not export as empty cells.
+        for (let start = 0; start < indices.length; start += EXPORT_READ_BATCH) {
+          const batch = indices.slice(start, start + EXPORT_READ_BATCH);
+          const byIndex = await readRowsByIndices(rowWindow, batch);
+          for (const rowIndex of batch) {
+            const stored = byIndex.get(rowIndex);
+            const record: Record<string, string | null> = {};
+            for (let d = 0; d < allColumnIds.length; d++) {
+              const columnId = allColumnIds[d]!;
+              record[columnId] =
+                editedValue(edits, rowIndex, columnId) ?? stored?.values[columnId] ?? null;
+            }
+            const out = transform
+              ? transform.process({ rowIndex, values: record })
+              : { rowIndex, values: record };
+            if (!out) continue;
+            yield exportIds.map((id) => out.values[id] ?? null);
+          }
         }
       }
 
