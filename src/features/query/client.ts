@@ -180,7 +180,7 @@ export async function runLocalQuery(
   }
   const hasActiveFilter = Object.values(spec.columnFilters).some((value) => value !== '');
   const hasActiveCleaning = (spec.cleaning ?? []).some((step) => step.enabled);
-  if (spec.search === '' && !hasActiveFilter && !spec.sort && !hasActiveCleaning) {
+  if (spec.searchTerms.length === 0 && !hasActiveFilter && !spec.sort && !hasActiveCleaning) {
     // Every row matches by definition; the finalized row count already knows
     // it — skip the scan entirely (the worker keeps its scan-based path).
     const rowIndices = Array.from({ length: dataset.rowCount }, (_, i) => i);

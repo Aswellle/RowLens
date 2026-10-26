@@ -7,6 +7,7 @@ import type { ColumnId, RowIndex } from '../dataset/types';
 import type { CleaningStep, StepSummary } from '../cleaning/types';
 import type { EditOverride } from '../editing/edits';
 import type { SortDirection } from './types';
+import type { SearchTerm } from './search';
 
 export type QueryId = string;
 
@@ -20,7 +21,13 @@ export type QueryRequestSpec = {
   datasetId: string;
   /** Dataset column ids in display order (search/sort indexes refer to this). */
   columns: ColumnId[];
-  search: string;
+  /**
+   * The parsed search box: one entry per whitespace-separated term, each a
+   * literal substring that must match (AND). A `column:value` term carries the
+   * indexes of every column whose header matches (ADR-034). Empty list = no
+   * search restriction.
+   */
+  searchTerms: SearchTerm[];
   columnFilters: Partial<Record<ColumnId, string>>;
   sort?: QuerySortSpec;
   /** Serializable cleaning steps applied after the query, same pass. */

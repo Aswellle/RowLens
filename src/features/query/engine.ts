@@ -1,6 +1,7 @@
 /**
- * Pure query engine: literal global search + per-column literal filters +
- * stable sort, executed while streaming row batches (data contract §4).
+ * Pure query engine: literal search terms (global or column-targeted) +
+ * per-column literal filters + stable sort, executed while streaming row
+ * batches (data contract §4, ADR-034).
  *
  * Runs identically inside the query worker (cursor-fed batches) and the
  * no-worker fallback (repository windows), so query semantics have exactly
@@ -11,6 +12,7 @@ import type { ColumnId, RowIndex } from '../dataset/types';
 import { sortIndicesStable } from './literal';
 import type { SortDirection } from './types';
 import type { QueryRequestSpec } from './protocol';
+import type { SearchTerm } from './search';
 
 export type EngineRow = {
   rowIndex: RowIndex;
@@ -26,7 +28,8 @@ export type EngineSort = {
 export type QueryEngineSpec = {
   /** Dataset column ids in display order. */
   columns: readonly ColumnId[];
-  search: string;
+  /** One term per whitespace-separated token; all must match (ADR-034). */
+  searchTerms: readonly SearchTerm[];
   /** Non-empty entries are literal substring filters on that column. */
   columnFilters: Readonly<Partial<Record<ColumnId, string>>>;
   sort?: EngineSort;
@@ -65,6 +68,14 @@ export type EngineResult =
 
 type ActiveFilter = { columnId: ColumnId; foldedNeedle: string };
 
+/** A search term resolved against the spec's column list, needle pre-folded. */
+type PreparedTerm = {
+  kind: SearchTerm['kind'];
+  foldedText: string;
+  /** Set only for column-targeted terms: every column sharing that header. */
+  columnIds?: readonly (ColumnId | undefined)[];
+};
+
 export async function runQueryEngine(
   batches: AsyncIterable<readonly EngineRow[]>,
   spec: QueryEngineSpec,
@@ -76,8 +87,22 @@ export async function runQueryEngine(
       columnId,
       foldedNeedle: (needle as string).toLocaleLowerCase('en-US'),
     }));
-  const hasSearch = spec.search !== '';
-  const foldedNeedle = spec.search.toLocaleLowerCase('en-US');
+  /**
+   * Search prepared once: which columns each term may match, with the needle
+   * folded. A column-targeted term folds only its own columns, so a scoped
+   * search reads fewer cache entries than a global one.
+   */
+  const searchTerms: PreparedTerm[] = spec.searchTerms.map((term) => {
+    if (term.kind === 'columns') {
+      return {
+        kind: 'columns',
+        foldedText: term.text.toLocaleLowerCase('en-US'),
+        columnIds: term.columnIndexes.map((index) => spec.columns[index]),
+      };
+    }
+    return { kind: 'all', foldedText: term.text.toLocaleLowerCase('en-US') };
+  });
+  const hasSearch = searchTerms.length > 0;
   const sortColumnId = spec.sort ? spec.columns[spec.sort.columnIndex] : undefined;
 
   const matchedIndices: RowIndex[] = [];
@@ -100,18 +125,28 @@ export async function runQueryEngine(
           ? scannedRow
           : { ...scannedRow, values: { ...scannedRow.values, ...override } };
       if (hasSearch) {
-        let found = false;
-        for (const id of spec.columns) {
-          const folded =
-            options.foldedAt !== undefined
-              ? options.foldedAt(row, id)
-              : ((row.values[id] ?? null)?.toLocaleLowerCase('en-US') ?? null);
-          if (folded !== null && folded.includes(foldedNeedle)) {
-            found = true;
+        // Every term must match; a term matches when ANY of its columns does.
+        let allTermsMatch = true;
+        for (const term of searchTerms) {
+          const candidates = term.columnIds ?? spec.columns;
+          let found = false;
+          for (const id of candidates) {
+            if (id === undefined) continue;
+            const folded =
+              options.foldedAt !== undefined
+                ? options.foldedAt(row, id)
+                : ((row.values[id] ?? null)?.toLocaleLowerCase('en-US') ?? null);
+            if (folded !== null && folded.includes(term.foldedText)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            allTermsMatch = false;
             break;
           }
         }
-        if (!found) continue;
+        if (!allTermsMatch) continue;
       }
       let matches = true;
       for (const filter of activeFilters) {
@@ -174,7 +209,7 @@ export async function runQueryEngine(
 export function requestToEngineSpec(spec: QueryRequestSpec): QueryEngineSpec {
   const engineSpec: QueryEngineSpec = {
     columns: spec.columns,
-    search: spec.search,
+    searchTerms: spec.searchTerms,
     columnFilters: spec.columnFilters,
   };
   if (spec.sort) engineSpec.sort = spec.sort;

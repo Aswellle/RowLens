@@ -56,7 +56,7 @@ function makeClient(): { client: QueryClient; transport: ScriptedQueryTransport 
 const SPEC: QueryRequestSpec = {
   datasetId: 'ds',
   columns: ['c0'],
-  search: '',
+  searchTerms: [],
   columnFilters: {},
 };
 
@@ -180,7 +180,7 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
       {
         datasetId: 'ds',
         columns: ['c0', 'c1'],
-        search: '',
+        searchTerms: [],
         columnFilters: { c0: 'berlin' },
         sort: { columnIndex: 1, direction: 'desc' },
       },
@@ -196,7 +196,7 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
 
   it('fails with DATASET_NOT_FOUND for missing datasets', async () => {
     const outcome = await runLocalQuery(
-      { datasetId: 'nope', columns: ['c0'], search: '', columnFilters: {} },
+      { datasetId: 'nope', columns: ['c0'], searchTerms: [], columnFilters: {} },
       repository,
     );
     expect(outcome.kind === 'failed' && outcome.error.code).toBe('DATASET_NOT_FOUND');
@@ -213,7 +213,7 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
       {
         datasetId: 'ds',
         columns: ['c0', 'c1'],
-        search: '',
+        searchTerms: [],
         columnFilters: {},
         cleaning: [
           { id: 't', type: 'trim', enabled: true, scope: { kind: 'all-columns' } },
@@ -248,7 +248,7 @@ describe('Local query fallback and dataset scan (fake IndexedDB)', () => {
 
   it('returns every index when no predicates are set', async () => {
     const outcome = await runLocalQuery(
-      { datasetId: 'ds', columns: ['c0', 'c1'], search: '', columnFilters: {} },
+      { datasetId: 'ds', columns: ['c0', 'c1'], searchTerms: [], columnFilters: {} },
       repository,
     );
     expect(outcome).toEqual({ kind: 'done', rowIndices: [0, 1, 2], matched: 3, totalRows: 3 });

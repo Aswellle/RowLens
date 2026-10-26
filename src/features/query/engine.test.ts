@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ColumnId } from '../dataset/types';
 import { runQueryEngine, type EngineRow, type QueryEngineSpec } from './engine';
+import type { SearchTerm } from './search';
 
 const COLUMNS: ColumnId[] = ['c0', 'c1', 'c2'];
 
@@ -18,21 +19,35 @@ async function* batchesOf(batches: EngineRow[][]): AsyncGenerator<EngineRow[]> {
   for (const batch of batches) yield batch;
 }
 
+/** Term helpers keep the spec literals readable. */
+const all = (text: string): SearchTerm => ({ kind: 'all', text });
+const scoped = (index: number, text: string): SearchTerm => ({
+  kind: 'columns',
+  columnIndexes: [index],
+  text,
+});
+
 async function run(
   table: (string | null)[][],
   spec: Partial<QueryEngineSpec>,
-  options: { matchLimit?: number; isCancelled?: () => boolean } = {},
+  options: {
+    matchLimit?: number;
+    isCancelled?: () => boolean;
+    foldedAt?: (row: EngineRow, columnId: ColumnId) => string | null;
+  } = {},
 ) {
   const engineOptions: {
     matchLimit: number;
     isCancelled?: () => boolean;
+    foldedAt?: (row: EngineRow, columnId: ColumnId) => string | null;
   } = { matchLimit: options.matchLimit ?? 1000 };
   if (options.isCancelled) engineOptions.isCancelled = options.isCancelled;
+  if (options.foldedAt) engineOptions.foldedAt = options.foldedAt;
   return runQueryEngine(
     batchesOf([rows(table)]),
     {
       columns: COLUMNS,
-      search: '',
+      searchTerms: [],
       columnFilters: {},
       ...spec,
     },
@@ -59,7 +74,7 @@ describe('runQueryEngine matching', () => {
   });
 
   it('global search matches case-insensitively across every column', async () => {
-    const result = await run(table, { search: 'EMEA' });
+    const result = await run(table, { searchTerms: [all('EMEA')] });
     expect(result.status).toBe('done');
     if (result.status === 'done') expect(result.rowIndices).toEqual([0, 2]);
   });
@@ -76,9 +91,45 @@ describe('runQueryEngine matching', () => {
   });
 
   it('combines search with column filters (AND semantics)', async () => {
-    const result = await run(table, { search: 'e', columnFilters: { c0: 'open' } });
+    const result = await run(table, { searchTerms: [all('e')], columnFilters: { c0: 'open' } });
     expect(result.status).toBe('done');
     if (result.status === 'done') expect(result.rowIndices).toEqual([0, 3]);
+  });
+
+  it('a column-targeted term matches only that column', async () => {
+    // 'open' appears in column 0 of rows 0 and 3; a global search for 'open'
+    // would match the same rows here, so the differentiator is a value that
+    // exists only in another column.
+    const scopedResult = await run(table, { searchTerms: [scoped(1, 'amer')] });
+    expect(scopedResult.status).toBe('done');
+    if (scopedResult.status === 'done') expect(scopedResult.rowIndices).toEqual([1]);
+
+    // The same text lives in column 1 only, so scoping to column 0 finds nothing.
+    const wrongColumn = await run(table, { searchTerms: [scoped(0, 'amer')] });
+    if (wrongColumn.status === 'done') expect(wrongColumn.rowIndices).toEqual([]);
+  });
+
+  it('multiple terms AND together across different columns', async () => {
+    const result = await run(table, { searchTerms: [scoped(0, 'open'), scoped(1, 'emea')] });
+    if (result.status === 'done') expect(result.rowIndices).toEqual([0]);
+  });
+
+  it('a scoped search reads only its own column from the folded cache', async () => {
+    // The foldedAt hook records which columns were consulted; a scoped term
+    // must not fold unrelated columns (fewer cache reads on large datasets).
+    const foldedColumns = new Set<ColumnId>();
+    const result = await run(
+      table,
+      { searchTerms: [scoped(2, 'P2')] },
+      {
+        foldedAt: (_row, columnId) => {
+          foldedColumns.add(columnId);
+          return null;
+        },
+      },
+    );
+    expect(result.status).toBe('done');
+    expect([...foldedColumns]).toEqual(['c2']);
   });
 
   it('treats missing cell values as non-matching for filters and search', async () => {
@@ -88,7 +139,7 @@ describe('runQueryEngine matching', () => {
     ];
     const filtered = await run(sparse, { columnFilters: { c1: 'b' } });
     if (filtered.status === 'done') expect(filtered.rowIndices).toEqual([1]);
-    const searched = await run(sparse, { search: 'b' });
+    const searched = await run(sparse, { searchTerms: [all('b')] });
     if (searched.status === 'done') expect(searched.rowIndices).toEqual([1]);
   });
 });
@@ -152,7 +203,7 @@ describe('runQueryEngine limits and cancellation', () => {
     };
     const result = await runQueryEngine(
       batchesOf([rows(wideTable(10)), rows(wideTable(10))]),
-      { columns: COLUMNS, search: '', columnFilters: {} },
+      { columns: COLUMNS, searchTerms: [], columnFilters: {} },
       engineOptions,
     );
     expect(result.status).toBe('cancelled');
@@ -163,7 +214,7 @@ describe('runQueryEngine limits and cancellation', () => {
     const progress: Array<[number, number]> = [];
     const result = await runQueryEngine(
       batchesOf([rows(wideTable(12))]),
-      { columns: COLUMNS, search: '', columnFilters: {} },
+      { columns: COLUMNS, searchTerms: [], columnFilters: {} },
       {
         matchLimit: 1000,
         progressEvery: 5,
@@ -186,7 +237,7 @@ describe('runQueryEngine with cell edits', () => {
   it('searches the edited value instead of the stored one', async () => {
     const result = await runQueryEngine(
       batchesOf([rows(table)]),
-      { columns: COLUMNS, search: 'renamed', columnFilters: {} },
+      { columns: COLUMNS, searchTerms: [all('renamed')], columnFilters: {} },
       {
         matchLimit: 100,
         overrideFor: (rowIndex) => (rowIndex === 1 ? { c1: 'renamed' } : undefined),
@@ -199,7 +250,7 @@ describe('runQueryEngine with cell edits', () => {
   it('stops matching a value the edit removed', async () => {
     const result = await runQueryEngine(
       batchesOf([rows(table)]),
-      { columns: COLUMNS, search: 'emea', columnFilters: {} },
+      { columns: COLUMNS, searchTerms: [all('emea')], columnFilters: {} },
       {
         matchLimit: 100,
         // The first row's region is edited away from "emea".
@@ -213,7 +264,7 @@ describe('runQueryEngine with cell edits', () => {
   it('applies column filters to edited values', async () => {
     const result = await runQueryEngine(
       batchesOf([rows(table)]),
-      { columns: COLUMNS, search: '', columnFilters: { c0: 'open' } },
+      { columns: COLUMNS, searchTerms: [], columnFilters: { c0: 'open' } },
       {
         matchLimit: 100,
         overrideFor: (rowIndex) => (rowIndex === 1 ? { c0: 'open' } : undefined),
@@ -228,7 +279,7 @@ describe('runQueryEngine with cell edits', () => {
       batchesOf([rows(table)]),
       {
         columns: COLUMNS,
-        search: '',
+        searchTerms: [],
         columnFilters: {},
         sort: { columnIndex: 1, direction: 'asc' },
       },
@@ -247,7 +298,7 @@ describe('runQueryEngine with cell edits', () => {
     const seen: string[] = [];
     const result = await runQueryEngine(
       batchesOf([rows(table)]),
-      { columns: COLUMNS, search: '', columnFilters: {} },
+      { columns: COLUMNS, searchTerms: [], columnFilters: {} },
       {
         matchLimit: 100,
         overrideFor: (rowIndex) => (rowIndex === 0 ? { c2: '  padded  ' } : undefined),
