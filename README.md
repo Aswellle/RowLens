@@ -34,6 +34,13 @@ active cell, the record header is one step to the left of the first column,
 Shift+arrows or a drag extends a rectangular selection, Ctrl/Cmd+A selects the
 view and Ctrl/Cmd+C copies the range as tab-separated text.
 
+Cells are editable in place: Enter, F2, a double-click or just typing opens an
+editor, Enter/Tab commits, Escape cancels, and Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z
+step back and forth. Edits are an **in-memory overlay** — the imported rows,
+the IndexedDB copy and the source file are never rewritten, search and sort see
+the edited values, exports write them, and reloading the page returns to the
+imported data. Up to 5,000 cells can be edited at once.
+
 ## Getting started
 
 Requirements: Node.js **>= 22.12** (22 LTS or 24 LTS recommended) and npm.
@@ -81,7 +88,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
   header and rectangular range selection (Shift+arrows, drag with edge
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
   refused rather than truncated — use Export CSV for extracts that large.
-  There is no cell editing and no multi-range (Ctrl+click) selection.
+  There is no multi-range (Ctrl+click) selection.
+- Cell edits live in memory only: they are not written back to the imported
+  rows or to IndexedDB, and reloading the page discards them. Editing is
+  capped at 5,000 cells, there is no paste-a-block-into-cells, and edits are
+  not part of the undo history for cleaning steps.
 - Verified on Chromium (Edge 156, headless) only; Firefox/Safari and
   reduced-motion/200 % zoom checks are still manual and unrecorded.
 - The File System Access export path is preferred but is only exercised via

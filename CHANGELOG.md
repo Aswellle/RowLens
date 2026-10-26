@@ -80,6 +80,15 @@ clean → export, entirely in the browser.
   the range as tab-separated text with CRLF rows. Copies over 100,000 cells
   are refused with an explanation instead of being truncated, and the record
   header is a selector that never contributes a value.
+- **Cell editing with undo/redo**: Enter, F2, double-click or typing a
+  character opens an in-cell editor; Enter/Tab commit (Tab moves on), Escape
+  cancels, and leaving the cell commits. Edited cells carry a visible marker
+  and the status line reports the count with Undo, Redo and Reset edits
+  (Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z work anywhere outside a text field).
+  Edits are an in-memory overlay: the imported rows, the IndexedDB copy and
+  the source file are never rewritten, search/filter/sort run against the
+  edited values, exports write them, and reloading discards them. Editing is
+  capped at 5,000 cells with an explanation instead of a silent drop.
 - **Fixed**: cancelling a query left the busy marker and Cancel button on
   screen permanently — the cancelled outcome now clears busy while preserving
   the previous view (regression test in `reduce-outcome.test.ts`).
