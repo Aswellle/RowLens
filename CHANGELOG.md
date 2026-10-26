@@ -37,6 +37,22 @@ clean → export, entirely in the browser.
   URLs, times and typos are unaffected — and a header shared by several
   columns searches all of them rather than silently picking one. Everything
   remains a literal substring; there is no regex or wildcard syntax.
+- **Numeric sort**: a sorted column's header gains a "123" toggle that re-sorts
+  the column by value instead of string order, so `9` comes before `1,050` and
+  `00123` parses as 123. The mode is strictly opt-in — never inferred — and the
+  parsing rule is fixed: plain decimals with optional sign/exponent, and strict
+  thousands grouping (`1,050` accepts; `1,05` does not). Hex, `Infinity`,
+  `NaN` and currency symbols are not numbers. Mixed columns partition
+  predictably: numbers, then values that do not parse (string order among
+  themselves), then empty cells — the partition order is identical in both
+  directions, only comparisons inside a partition reverse. The mode persists
+  with the rest of the view, composes with cleaning and edits (they feed the
+  sort keys), and the direction cycle keeps it.
+- **Fixed**: the grid header's CSS had targeted `th` elements since the first
+  release while the grid renders `div[role='columnheader']` — every header
+  rule (background, sticky position, borders, arrow visibility) silently
+  matched nothing, leaving the header transparent and scrolling away with the
+  body. The selectors now target the roles.
 - **Cleaning pipeline** — serializable steps (trim whitespace, remove empty
   rows, remove duplicates with exact or trimmed comparison over whole rows or
   key columns, select columns) added, edited, enabled/disabled, removed and

@@ -19,7 +19,9 @@
 bounded batches with explicit backpressure; cancellation removes all partial
 data. **Query** with literal case-insensitive search (`Status:open` targets one
 column, whitespace-separated terms must all match), per-column filters,
-stable string sort and column show/hide — run in a second worker over windowed
+stable string sort (with an explicit per-column "treat as numbers" mode:
+`9` sorts before `1,050`, unparseable values partition after the numbers) and
+column show/hide — run in a second worker over windowed
 dataset scans, where the newest query always wins. **Clean** with serializable
 steps (trim whitespace, remove empty rows, remove duplicates, select columns),
 each showing its impact, never touching the stored file. **Export** CSV as the
@@ -107,6 +109,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
 
 ## Known limitations
 
+- Numeric sorting is strictly opt-in per column and parses only plain
+  decimals and strict `1,050`-style grouping — currency symbols, other locale
+  conventions and dates are not interpreted (ISO-8601 dates already sort
+  correctly as strings). A value that stops parsing (an edit, a mixed column)
+  moves to the text partition rather than changing the whole column's mode.
 - Search scans the current dataset on each query; a case-folded cache makes
   repeat searches much faster than the first (measured in
   [docs/performance-results.md](docs/performance-results.md)): P2 repeat
