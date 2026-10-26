@@ -488,9 +488,15 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     }
   }, [view]);
 
-  // Debounce the committed search term behind the input value.
+  // Debounce the committed search term behind the input value. Keyed on the
+  // input itself: depending on the whole view would restart the timer on every
+  // query result, and a burst of view changes could postpone the commit
+  // indefinitely — the same starvation the persistence effects avoid.
+  const searchInput = view.kind === 'ready' ? view.searchInput : '';
+  const searchCommitted = view.kind === 'ready' ? view.search : '';
   useEffect(() => {
     if (view.kind !== 'ready') return;
+    if (searchInput === searchCommitted) return;
     const timer = window.setTimeout(() => {
       setView((current) =>
         current.kind === 'ready' && current.search !== current.searchInput
@@ -499,7 +505,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       );
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [view]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- input identity, not the view
+  }, [view.kind, searchInput, searchCommitted]);
 
   /**
    * Persist the edit overlay whenever it changes (ADR-027). Debounced so a
