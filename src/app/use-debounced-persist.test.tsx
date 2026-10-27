@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useDebouncedPersist } from './use-debounced-persist';
 import { DatasetRepository } from '../features/dataset/repository';
