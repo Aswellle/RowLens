@@ -22,7 +22,24 @@ export function Modal({ label, onClose, closeDisabled = false, children }: Modal
     const panel = panelRef.current;
     panel?.querySelector<HTMLElement>('input, select, button')?.focus();
 
+    // Make the background genuinely unreachable, not just visually covered:
+    // aria-modal alone does not stop keyboard focus from wandering into
+    // content behind the overlay. `inert` is the platform mechanism; the
+    // overlay lives inside the app tree, so its own subtree is exempt.
+    const background: { node: HTMLElement; previous: string | null }[] = [];
+    for (const sibling of Array.from(document.body.children)) {
+      if (sibling.contains(panel)) continue;
+      if (sibling instanceof HTMLElement) {
+        background.push({ node: sibling, previous: sibling.getAttribute('inert') });
+        sibling.setAttribute('inert', '');
+      }
+    }
+
     return () => {
+      for (const entry of background) {
+        if (entry.previous === null) entry.node.removeAttribute('inert');
+        else entry.node.setAttribute('inert', entry.previous);
+      }
       if (openerRef.current instanceof HTMLElement) openerRef.current.focus();
     };
   }, []);
