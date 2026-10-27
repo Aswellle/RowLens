@@ -74,12 +74,10 @@ test('360px keeps search and export reachable without horizontal page scroll', a
       const next = [...chain, el];
       const width = el.getBoundingClientRect().width;
       if (width > clientWidth + 2 && (widest === null || width > widest.width)) {
-        const clamps = [...next]
-          .reverse()
-          .find((node) => {
-            const ov = getComputedStyle(node).overflowX;
-            return ov !== 'visible' && ov !== '';
-          });
+        const clamps = [...next].reverse().find((node) => {
+          const ov = getComputedStyle(node).overflowX;
+          return ov !== 'visible' && ov !== '';
+        });
         widest = {
           describe: `${describe(el)} width=${Math.round(width)} clamped-by=${
             clamps ? describe(clamps) : 'nothing'
