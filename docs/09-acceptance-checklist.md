@@ -10,9 +10,10 @@
   typecheck / 448 unit tests / build 全部通过。
 - [x] `typecheck`、unit tests、production build 全部通过。
   证据：每批验证记录；最近一次 33 文件 / 448 测试、build + 网络审计 OK。
-- [ ] CI 使用锁文件安装，不发生未声明依赖。
-  状态：`.github/workflows/ci.yml` 已按 `npm ci` + typecheck/unit/build/format/e2e 编写，
-  但**从未实际执行过**——远程仓库尚不存在（见下一条）。待仓库建立、CI 首跑绿后再勾。
+- [x] CI 使用锁文件安装，不发生未声明依赖。
+  证据：仓库建立后 CI 首跑全绿（run 40468822644，2026-10-27）：`npm ci` 安装、
+  node 22/24 双版本 verify（typecheck/unit/build/format）与 e2e（含生产构建预览）
+  三个 job 全部通过。
 - [x] 无未使用的大型依赖；无远程字体、CDN 脚本、遥测或文件上传接口。
   证据：依赖仅 react / react-dom / papaparse / @tanstack/react-virtual，全部在用；
   生产构建网络审计（scripts/audit-network.mjs）每批通过。
