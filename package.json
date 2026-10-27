@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.1.0-rc.1",
   "description": "Local-only CSV/TSV/JSONL viewer and cleaning workbench. No upload, no telemetry.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aswellle/RowLens.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Aswellle/RowLens/issues"
+  },
+  "homepage": "https://github.com/Aswellle/RowLens#readme",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"

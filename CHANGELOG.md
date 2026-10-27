@@ -210,4 +210,4 @@ See the README ("Known limitations") — notably search's per-cell scan cost
 at very large datasets, memory amplification from the write-through cache,
 and Chromium-only verification so far.
 
-[0.1.0-rc.1]: https://github.com/rowlens/rowlens/releases/tag/v0.1.0-rc.1
+[0.1.0-rc.1]: https://github.com/Aswellle/RowLens/releases/tag/v0.1.0-rc.1
