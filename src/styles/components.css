@@ -7,7 +7,10 @@
      content — the grid must scroll inside its region, not the page. */
   height: 100vh;
   min-height: 360px;
-  min-width: 360px;
+  /* No min-width here: on Linux, classic scrollbars take real viewport width
+     (a 360px window gives ~345px of client width), so a 360px floor would
+     force horizontal page overflow at exactly the narrowest supported size.
+     The grid region clamps its own content instead. */
 }
 
 /* ---------- header ---------- */
