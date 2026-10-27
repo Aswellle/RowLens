@@ -28,7 +28,18 @@ export function useTheme(): { theme: ThemePreference; toggleTheme: () => void } 
   const [theme, setTheme] = useState<ThemePreference>(resolveInitial);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    // A theme flip changes background, border and color on nearly every
+    // element at once; letting each transition run turns the switch into a
+    // smear. Kill all transitions for one frame, force a reflow, restore.
+    const root = document.documentElement;
+    const style = document.createElement('style');
+    style.textContent = '*,*::before,*::after{transition:none !important}';
+    root.dataset.theme = theme;
+    root.appendChild(style);
+    void root.offsetHeight;
+    requestAnimationFrame(() => {
+      style.remove();
+    });
     try {
       window.localStorage.setItem(STORAGE_KEY, theme);
     } catch {
