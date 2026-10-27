@@ -10,6 +10,31 @@ import { DatasetRepository } from './features/dataset/repository';
  * Phase 1 interaction tests: empty state, sample load, live search with live
  * status counts, sort aria state, Esc-to-clear, no-results and reset.
  */
+/** A fresh module-level repository handle for polling persistence state. */
+async function openRepository(): Promise<DatasetRepository> {
+  return DatasetRepository.open();
+}
+
+/**
+ * Waits until the debounced config write has actually landed in IndexedDB.
+ * Fixed sleeps raced the 400 ms debounce on slower runners: the timer never
+ * fired before unmount, the write was dropped, and the next mount restored
+ * a record the test had just reset (the CI-only failure this replaces).
+ */
+async function waitForPersisted(
+  read: (repository: DatasetRepository) => Promise<unknown>,
+  expectDefined: boolean,
+): Promise<void> {
+  const repository = await openRepository();
+  await vi.waitFor(
+    async () => {
+      const record = await read(repository);
+      expect(record !== undefined).toBe(expectDefined);
+    },
+    { timeout: 10_000, interval: 50 },
+  );
+}
+
 describe('App shell (synthetic data)', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -531,7 +556,7 @@ describe('App session restore', () => {
       },
       { timeout: 5_000 },
     );
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await waitForPersisted((repository) => repository.getCellEdits('sample-tickets'), true);
     unmount();
 
     // A fresh mount restores the dataset and the edit from IndexedDB.
@@ -618,7 +643,7 @@ describe('App pipeline persistence', () => {
     expect(screen.getByText('Remove duplicates')).toBeInTheDocument();
 
     // Let the debounced pipeline write land, then remount as a reload would.
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getPipeline('sample-tickets'), true);
     unmount();
 
     render(<App sampleSize={60} />);
@@ -653,7 +678,7 @@ describe('App pipeline persistence', () => {
       timeout: 10_000,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getPipeline('sample-tickets'), false);
     unmount();
 
     render(<App sampleSize={60} />);
@@ -697,7 +722,7 @@ describe('App view persistence', () => {
     const narrowed = screen.getByText(/of 80 rows match/).textContent ?? '';
 
     // Let the debounced write land, then remount as a reload would.
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getView('sample-tickets'), true);
     unmount();
 
     render(<App sampleSize={80} />);
@@ -721,7 +746,7 @@ describe('App view persistence', () => {
       'ascending',
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getView('sample-tickets'), true);
     unmount();
 
     render(<App sampleSize={80} />);
@@ -748,7 +773,7 @@ describe('App view persistence', () => {
       ).toHaveAttribute('aria-pressed', 'true'),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getView('sample-tickets'), true);
     unmount();
 
     render(<App sampleSize={80} />);
@@ -771,7 +796,7 @@ describe('App view persistence', () => {
     await waitFor(() => expect(screen.getByText('1 column hidden')).toBeInTheDocument());
     expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getView('sample-tickets'), true);
     unmount();
 
     render(<App sampleSize={80} />);
@@ -803,7 +828,7 @@ describe('App view persistence', () => {
     await user.click(screen.getByRole('button', { name: 'Reset' }));
     await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument());
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await waitForPersisted((repository) => repository.getView('sample-tickets'), false);
     unmount();
 
     render(<App sampleSize={80} />);
@@ -857,7 +882,10 @@ describe('App cleaning presets', () => {
       expect(screen.getByRole('button', { name: 'Apply preset: Weekly cleanup' })).toBeVisible(),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await waitForPersisted(async (repository) => {
+      const record = (await repository.getPresets()) as { presets?: unknown[] } | undefined;
+      return record?.presets?.length ? record : undefined;
+    }, true);
     unmount();
 
     // Presets load on startup independently of the dataset restore.
