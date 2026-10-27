@@ -32,6 +32,13 @@ h3 {
   margin: 0;
   font-weight: 600;
   line-height: 1.25;
+  /* Even two-line splits on headings (empty-state title, dialog titles). */
+  text-wrap: balance;
+}
+
+p {
+  /* No single-word last line on descriptions. */
+  text-wrap: pretty;
 }
 
 p {
@@ -71,6 +78,14 @@ button {
   clip-path: inset(50%);
   overflow: hidden;
   white-space: nowrap;
+}
+
+@media (max-width: 699px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
