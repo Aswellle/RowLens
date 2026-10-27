@@ -2,8 +2,8 @@
 
 **A local-only CSV/TSV/JSONL viewer and cleaning workbench. Drag a file in, preview, search, clean and export — your data never leaves your device.**
 
-| Light | Dark |
-| ----- | ---- |
+| Light                                                                                               | Dark                                                             |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | ![RowLens data grid with the cleaning pipeline and toolbar, light theme](docs/screenshots/grid.png) | ![RowLens data grid, dark theme](docs/screenshots/grid-dark.png) |
 
 - No account, no upload endpoint, no telemetry, no remote fonts or CDN runtime scripts.
