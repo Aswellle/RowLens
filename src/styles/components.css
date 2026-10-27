@@ -63,22 +63,26 @@
   cursor: pointer;
   transition:
     background-color var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-fast),
+    scale var(--transition-fast);
   white-space: nowrap;
 }
 
-.btn:hover:not(:disabled) {
-  background: var(--surface-hover);
+/* Hover styling is pointer-only: on touch there is no hover, and the sticky
+   :hover after a tap would leave a ghost highlight on the wrong button. */
+@media (hover: hover) {
+  .btn:hover:not(:disabled) {
+    background: var(--surface-hover);
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
 }
 
-.btn--primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-}
-
-.btn--primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+/* Tactile press feedback; interrupted instantly on release. */
+.btn:active:not(:disabled) {
+  scale: 0.96;
 }
 
 .btn:disabled,
@@ -186,7 +190,7 @@
 }
 
 .notice-bar__dismiss {
-  margin-left: auto;
+  margin-inline-start: auto;
   flex: none;
 }
 
@@ -372,7 +376,7 @@
   border-right: 1px solid var(--border);
   font-size: var(--cell-font);
   font-weight: 600;
-  text-align: left;
+  text-align: start;
   padding: 0 var(--cell-padding-x);
   height: var(--row-height);
   position: sticky;
@@ -439,8 +443,10 @@
   background: var(--row-stripe);
 }
 
-.grid-row:hover {
-  background: var(--row-hover);
+@media (hover: hover) {
+  .grid-row:hover {
+    background: var(--row-hover);
+  }
 }
 
 .grid-cell {
@@ -649,7 +655,7 @@
   gap: 10px;
   align-items: stretch;
   min-width: min(320px, 80vw);
-  text-align: left;
+  text-align: start;
 }
 
 .import-options__form label {
@@ -697,7 +703,7 @@
 }
 
 .cleaning-step__impact {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 12px;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -865,6 +871,8 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  /* Scrolling past a dialog's edge must not scroll the page behind it. */
+  overscroll-behavior: contain;
 }
 
 .modal-panel {
@@ -918,7 +926,7 @@
   font-size: 12px;
   color: var(--text-secondary);
   margin: 0;
-  padding-left: 24px;
+  padding-inline-start: 24px;
 }
 
 .export-dialog__hint--warning {
@@ -952,10 +960,19 @@
   min-width: 0;
 }
 
+@media (hover: none) {
+  /* No hover to reveal the per-cell Copy button, so on touch it stays
+     visible at rest (slightly muted) instead of being unreachable. */
+  .grid-cell__copy {
+    display: inline-block;
+    opacity: 0.65;
+  }
+}
+
 .grid-cell__copy {
   display: none;
   flex: none;
-  margin-left: 6px;
+  margin-inline-start: 6px;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--surface);
@@ -965,7 +982,12 @@
   cursor: pointer;
 }
 
-.grid-row:hover .grid-cell__copy,
+@media (hover: hover) {
+  .grid-row:hover .grid-cell__copy {
+    display: inline-block;
+  }
+}
+
 .grid-cell__copy:focus-visible {
   display: inline-block;
 }
