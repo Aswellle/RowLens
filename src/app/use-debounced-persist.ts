@@ -7,6 +7,13 @@
  * different format than the writer compared, so every reload with a saved
  * pipeline scheduled a redundant write). One primitive keeps the fourth
  * configuration record from inheriting that.
+ *
+ * Ordering guarantee: the write callback receives the signature it was
+ * scheduled for and skips itself when the current signature has moved on.
+ * Without this, an IndexedDB transaction for an older payload can land *after*
+ * the newer one's — a Reset's delete racing a pre-Reset write could lose, and
+ * the "reset" record would resurrect on the next mount. The newest scheduled
+ * timer is always the last one allowed to write.
  */
 import { useCallback, useEffect, useRef } from 'react';
 import type { DatasetRepository } from '../features/dataset/repository';
@@ -32,6 +39,9 @@ export function useDebouncedPersist(
   delayMs: number,
 ): DebouncedPersist {
   const lastPersistedRef = useRef<string | null>(null);
+  // The signature the pending timer was scheduled for; a later scheduling
+  // invalidates an in-flight one.
+  const scheduledSignatureRef = useRef<string | null>(null);
   // The writer reads the latest payload through a ref: keying the effect on
   // its identity would restart the debounce on every render.
   const writeRef = useRef(write);
@@ -45,6 +55,10 @@ export function useDebouncedPersist(
     if (signature === '') return;
     if (lastPersistedRef.current === signature) return;
     const timer = window.setTimeout(() => {
+      // Superseded: a newer signature was scheduled after this timer, so let
+      // that one (alone) decide the stored state.
+      if (scheduledSignatureRef.current !== signature) return;
+      scheduledSignatureRef.current = null;
       lastPersistedRef.current = signature;
       void (async () => {
         try {
@@ -57,6 +71,7 @@ export function useDebouncedPersist(
         }
       })();
     }, delayMs);
+    scheduledSignatureRef.current = signature;
     return () => window.clearTimeout(timer);
   }, [signature, ensureRepository, delayMs]);
 
