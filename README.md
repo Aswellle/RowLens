@@ -2,7 +2,9 @@
 
 **A local-only CSV/TSV/JSONL viewer and cleaning workbench. Drag a file in, preview, search, clean and export — your data never leaves your device.**
 
-![RowLens data grid with the cleaning pipeline and toolbar](docs/screenshots/grid.png)
+| Light | Dark |
+| ----- | ---- |
+| ![RowLens data grid with the cleaning pipeline and toolbar, light theme](docs/screenshots/grid.png) | ![RowLens data grid, dark theme](docs/screenshots/grid-dark.png) |
 
 - No account, no upload endpoint, no telemetry, no remote fonts or CDN runtime scripts.
 - All parsing, cleaning and exporting happens in your browser; parsed records are temporarily cached in the browser's own IndexedDB storage and are never transmitted anywhere.
@@ -27,7 +29,9 @@ steps (trim whitespace, remove empty rows, remove duplicates, select columns),
 each showing its impact, never touching the stored file. **Export** CSV as the
 filtered view, the cleaned dataset, or the selected rectangle, streamed to a File System Access save
 picker when available (capped in-browser download otherwise), with
-spreadsheet-safe formula protection by default and an explicit raw mode.
+spreadsheet-safe formula protection by default and an explicit raw mode. A
+toggle in the header switches between light and dark themes; until you pick
+one the app follows the OS preference, and the choice is remembered locally.
 
 All cell values stay strings — no implicit numeric or date conversion, so
 leading zeros and date-like text are preserved exactly.
@@ -184,7 +188,9 @@ src/
   features/
     cleaning/      serializable cleaning steps and pure transforms
     dataset/       data model, schema, IndexedDB repository, sample data
+    editing/       cell-edit overlay state and persistence
     export/        CSV encoding, serializer, saver abstraction
+    grid/          selection model, clipboard copy, paste expansion
     import/        validation, CSV/TSV & JSONL sessions, coordinator, worker
     query/         query engine, worker client, protocols
     settings/      theme preference
