@@ -20,13 +20,19 @@ test('cancelling a query clears the busy marker and keeps the previous view', as
     .then(() => true)
     .catch(() => false);
   if (busyAppeared) {
-    await cancel.click();
+    // Clicking retries while the element is "unstable": on Linux the status
+    // line re-lays-out as counts change, which can keep the button moving for
+    // longer than the actionability timeout. Keyboard activation is layout
+    // independent and what a keyboard user would do anyway.
+    await cancel.focus();
+    await page.keyboard.press('Enter');
   } else {
     // Query already finished; start another and cancel immediately.
     await page.fill('#global-search', 'T-00');
     await page
       .getByRole('button', { name: 'Cancel query' })
-      .click({ timeout: 5_000 })
+      .focus()
+      .then(() => page.keyboard.press('Enter'))
       .catch(() => {});
   }
 
