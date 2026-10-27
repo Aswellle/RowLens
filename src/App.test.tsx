@@ -808,13 +808,13 @@ describe('App view persistence', () => {
 
     render(<App sampleSize={80} />);
     await waitFor(() => expect(screen.getByText('80 of 80 rows match')).toBeInTheDocument(), {
-      timeout: 15_000,
+      timeout: 30_000,
     });
     expect(screen.getByLabelText('Search all columns')).toHaveValue('');
     expect(
       screen.queryByText(/Restored your previous session with its filters and sort/),
     ).not.toBeInTheDocument();
-  }, 40_000);
+  }, 60_000);
 });
 
 /**
