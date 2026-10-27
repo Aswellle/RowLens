@@ -55,11 +55,48 @@ test('360px keeps search and export reachable without horizontal page scroll', a
   await page.setViewportSize({ width: 360, height: 720 });
   await loadSample(page);
 
-  // No horizontal page overflow: the body does not scroll sideways.
-  const pageOverflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  );
-  expect(pageOverflow).toBe(false);
+  // No horizontal page overflow: the body does not scroll sideways. On failure
+  // the assertion message names the widest offending element and the ancestor
+  // that should have clamped it, so a platform-specific overflow (Linux's
+  // classic scrollbars and font metrics differ from Windows/macOS) can be
+  // diagnosed straight from the CI log.
+  const overflow = await page.evaluate(() => {
+    const docEl = document.documentElement;
+    const scrollWidth = docEl.scrollWidth;
+    const clientWidth = docEl.clientWidth;
+    if (scrollWidth <= clientWidth) return null;
+    let widest: { describe: string; width: number } | null = null;
+    const describe = (el: Element): string => {
+      const cls = String(el.className).split(' ')[0] ?? '';
+      return `${el.tagName.toLowerCase()}.${cls}`;
+    };
+    const walk = (el: Element, chain: Element[], depth: number): void => {
+      const next = [...chain, el];
+      const width = el.getBoundingClientRect().width;
+      if (width > clientWidth + 2 && (widest === null || width > widest.width)) {
+        const clamps = [...next]
+          .reverse()
+          .find((node) => {
+            const ov = getComputedStyle(node).overflowX;
+            return ov !== 'visible' && ov !== '';
+          });
+        widest = {
+          describe: `${describe(el)} width=${Math.round(width)} clamped-by=${
+            clamps ? describe(clamps) : 'nothing'
+          } chain=${next.map(describe).join('>')}`,
+          width,
+        };
+      }
+      if (depth < 10) for (const child of el.children) walk(child, next, depth + 1);
+    };
+    for (const child of document.body.children) walk(child, [], 0);
+    return {
+      scrollWidth,
+      clientWidth,
+      widest: widest?.describe ?? 'no single element exceeds the viewport',
+    };
+  });
+  expect(overflow, `horizontal overflow at 360px: ${JSON.stringify(overflow)}`).toBeNull();
 
   // Every feature button is directly reachable, no menu in between.
   await expect(page.getByRole('button', { name: 'Filter', exact: true })).toBeVisible();
