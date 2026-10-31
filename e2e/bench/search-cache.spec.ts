@@ -1,11 +1,22 @@
 import { expect, test } from '@playwright/test';
+import { PROFILES, generateProfile } from './generate';
 
 /**
  * Measures the folded-value cache: two consecutive identical searches on the
  * same dataset. The first pass builds the cache; the second should be much
  * faster. PERF=1 gated.
+ *
+ * Generates its own P2 fixture instead of assuming another spec file made
+ * it: in a parallel-worker run the implicit ordering does not exist, and
+ * reading a fixture that another worker is still writing yields a
+ * half-written CSV that fails to parse.
  */
 test.skip(!process.env.PERF, 'set PERF=1');
+
+test.beforeAll(async () => {
+  test.setTimeout(300_000);
+  await generateProfile(PROFILES[1]!, '.bench'); // P2-50MB-100kx30
+});
 
 test('search cache: second pass faster than first (P2)', async ({ page }) => {
   test.setTimeout(300_000);

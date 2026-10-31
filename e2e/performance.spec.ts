@@ -8,6 +8,11 @@ import { PROFILES, generateProfile, type BenchProfile } from './bench/generate';
  * runs stay fast; results land in test-results/bench/results.json and are
  * transcribed into docs/performance-results.md by hand — no number in the
  * docs exists without a real run behind it.
+ *
+ * Run with `--workers=1` (PERF=1 npx playwright test e2e/performance.spec.ts
+ * e2e/bench --workers=1): these tests measure the app, and running them in
+ * parallel workers would time contention instead. Benchmark files therefore
+ * share one worker and never race each other on the .bench fixtures.
  */
 
 test.skip(!process.env.PERF, 'set PERF=1 to run performance benchmarks');
@@ -20,6 +25,9 @@ const results: Array<Record<string, string | number>> = [];
 const generated = new Map<string, { path: string; bytes: number; markerRows: number }>();
 
 test.beforeAll(async () => {
+  // Generating all three profiles cold takes over a minute; the hook must
+  // not inherit the 30s test timeout.
+  test.setTimeout(300_000);
   await mkdir(BENCH_DIR, { recursive: true });
   for (const profile of PROFILES) {
     generated.set(profile.name, await generateProfile(profile, BENCH_DIR));

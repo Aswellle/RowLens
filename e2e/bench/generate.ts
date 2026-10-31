@@ -3,9 +3,16 @@
  * (testing doc §4). Output sizes target P1 ≈ 10 MiB, P2 ≈ 50 MiB and
  * P3 just under the 100 MiB import cap. ~0.5% of rows carry a PERFNEEDLE
  * marker in the first column so searches have a known, small match set.
+ *
+ * Generation is deterministic (fixed seed), so a completed fixture is
+ * reused on later runs: a sidecar `.ok` file records the byte size and
+ * marker count, and the CSV is only rewritten when that record is missing
+ * or disagrees with the file on disk. Without this, spec files running in
+ * parallel workers would each rewrite the same 155 MB and a reader could
+ * import a half-written file.
  */
 import { createWriteStream } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export type BenchProfile = {
@@ -64,12 +71,19 @@ function filler(random: () => number, chars: number): string {
   return trim > 0 ? text.slice(0, text.length - trim) : text;
 }
 
+export type GeneratedFixture = { path: string; bytes: number; markerRows: number };
+
 export async function generateProfile(
   profile: BenchProfile,
   outDir: string,
-): Promise<{ path: string; bytes: number; markerRows: number }> {
+): Promise<GeneratedFixture> {
   await mkdir(outDir, { recursive: true });
   const path = join(outDir, `${profile.name}.csv`);
+  const okPath = `${path}.ok`;
+
+  const cached = await readCachedFixture(path, okPath);
+  if (cached) return cached;
+
   const random = lcg(0x50455246); // "PERF"
   let markerRows = 0;
 
@@ -110,10 +124,27 @@ export async function generateProfile(
     stream.on('error', reject);
   });
 
-  const { stat } = await import('node:fs/promises');
   const bytes = (await stat(path)).size;
   if (bytes > 100 * 1024 * 1024) {
     throw new Error(`${profile.name} generated ${bytes} bytes, over the import cap`);
   }
+  // Written only after the stream has fully flushed; a torn or missing .ok
+  // file makes the next run regenerate rather than trust a partial CSV.
+  await writeFile(okPath, JSON.stringify({ bytes, markerRows }));
   return { path, bytes, markerRows };
+}
+
+/** Reuse a completed fixture: .ok record present and matching the CSV size. */
+async function readCachedFixture(path: string, okPath: string): Promise<GeneratedFixture | null> {
+  try {
+    const record = JSON.parse(await readFile(okPath, 'utf8')) as {
+      bytes: number;
+      markerRows: number;
+    };
+    const bytes = (await stat(path)).size;
+    if (record.bytes !== bytes) return null;
+    return { path, bytes, markerRows: record.markerRows };
+  } catch {
+    return null;
+  }
 }

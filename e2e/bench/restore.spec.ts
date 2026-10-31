@@ -9,6 +9,9 @@ import { PROFILES, generateProfile } from './generate';
  * so this number is dominated by how many transactions that takes. Results
  * are transcribed into docs/performance-results.md by hand — no number in the
  * docs exists without a real run behind it.
+ *
+ * Part of the PERF=1 run, which must use `--workers=1` so benchmarks do not
+ * time each other's I/O.
  */
 
 test.skip(!process.env.PERF, 'set PERF=1 to run the restore benchmark');
@@ -18,6 +21,8 @@ test.describe.configure({ mode: 'serial' });
 const generated = new Map<string, string>();
 
 test.beforeAll(async () => {
+  // Cold generation of all three profiles exceeds the 30s default hook timeout.
+  test.setTimeout(300_000);
   for (const profile of PROFILES) {
     const fixture = await generateProfile(profile, '.bench');
     generated.set(profile.name, fixture.path);
