@@ -19,6 +19,8 @@ const profile = PROFILES[2]!; // P3: 250k rows × 40 columns
 let fixturePath = '';
 
 test.beforeAll(async () => {
+  // Cold generation of the 95 MB fixture exceeds the 30s default hook timeout.
+  test.setTimeout(300_000);
   const fixture = await generateProfile(profile, '.bench');
   fixturePath = fixture.path;
 });
@@ -62,6 +64,13 @@ test(`${profile.name}: scrolling the whole file keeps memory bounded`, async ({ 
   const scrollMs = Date.now() - startedAt;
   expect(steps).toBeGreaterThan(1);
 
+  // usedJSHeapSize includes uncollected garbage, and the walk leaves ~200 MB
+  // of dead chunk strings behind. Without a forced collection the reading
+  // depends on when GC last happened: one run of this benchmark reported
+  // 48 MB, the next 532 MB, with identical eviction behaviour. Collecting
+  // first measures the steady state — what eviction actually retains.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('HeapProfiler.collectGarbage');
   await page.waitForTimeout(1_000);
   const heapAfter = await page.evaluate(
     () =>
@@ -74,4 +83,9 @@ test(`${profile.name}: scrolling the whole file keeps memory bounded`, async ({ 
     `SCROLL-MEM ${profile.name} steps=${steps} scrollMs=${scrollMs} ` +
       `heapBeforeMB=${Math.round(heapBefore / 1e6)} heapAfterMB=${Math.round(heapAfter / 1e6)}`,
   );
+
+  // The chunk LRU caps the retained rows at 40 × 500 ≈ 20k (~8 MB of text),
+  // so the collected heap must stay far below what the whole file would
+  // need. A broken eviction path holds every chunk and blows past this.
+  expect(heapAfter).toBeLessThan(250_000_000);
 });
