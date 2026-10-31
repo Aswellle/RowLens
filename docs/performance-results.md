@@ -110,6 +110,33 @@
   候选）——冻结未用指标断言，标为未测项。
 - 内存不无界增长：受文件上限约束（见观察 5）。
 
+## 全量复测（2026-11-01 追加）
+
+发布候选验收时的同机全量复测（同浏览器、生产构建、`--workers=1` 串行）。
+与首测各数字均在同量级；导入差距较大（P3 17.6s vs 32.1s），属机器状态噪声
+（首测当天后台负载更高），不改变任何结论：
+
+| 配置 | 导入(ms) | 搜索(ms) | 排序(ms) | 导出(ms) | JS 堆(前→后) |
+|---|---|---|---|---|---|
+| P1 | 2,067 | 1,751 | 468 | 382 | 3→69 MB |
+| P2 | 8,276 | 9,058 | 1,909 | 1,370 | 3→370 MB |
+| P3 | 17,564 | 27,979 | 3,093 | 3,368 | 3→661 MB |
+
+专项复测：启动恢复 408 / 348 / 445 ms（P1/P2/P3，仍与数据量无关）；搜索
+缓存 P2 首趟 9,344 ms → 复用 2,416 ms（3.9×，两次结果一致，541 行命中）。
+
+滚动内存复测为 **37 MB**（滚动前 315 MB）。本次起测量方法收紧：滚动后先经
+CDP `HeapProfiler.collectGarbage` 强制回收再读堆（`usedJSHeapSize` 含未回收
+垃圾，同一淘汰行为在一次运行里读到 48 MB、另一次 532 MB，取决于 GC 时机；
+强制回收后稳定在 ~40 MB 量级）。基准同时新增断言：回收后堆 < 250 MB——
+若淘汰路径失效（全表 500 个分块常驻），该断言会失败。
+
+另修复基准基建：`.bench` 夹具现在带 `.ok` 侧车标记（记录字节数与命中行数）
+跨运行复用，生成是确定性的、内容不变；没有标记或字节数不符则重新生成。
+此前各 spec 在并行 worker 里各自重写同一批夹具，读方可能拿到写了一半的
+CSV（实测表现为"文件无法解析"）。PERF 运行统一用 `--workers=1`：基准测的
+是应用本身，并行只会测到争用。
+
 ## 未测项（明确列出）
 
 - 主线程长任务（long-task）占比与导入期间交互延迟。
@@ -119,11 +146,11 @@
 
 ## 复现
 
+基准必须串行运行（`--workers=1`）：并行 worker 会互相争用 I/O 与 CPU，
+测到的是争用而非应用，且会同时重写共享夹具。
+
 ```bash
 npm run build
-PERF=1 npx playwright test e2e/performance.spec.ts   # 导入/查询/排序/导出
-PERF=1 npx playwright test e2e/bench/restore.spec.ts # 启动恢复
-PERF=1 npx playwright test e2e/bench/search-cache.spec.ts  # 搜索缓存专项
-PERF=1 npx playwright test e2e/bench/scroll-memory.spec.ts  # 滚动内存
+PERF=1 npx playwright test e2e/performance.spec.ts e2e/bench --workers=1
 # 结果输出至 test-results/bench/results.json 与控制台表格
 ```
