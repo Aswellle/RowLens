@@ -308,6 +308,13 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   const sampleRef = useRef<SampleDataset | null>(null);
   /** Set once startup restoration ran, so it never fights a user action. */
   const restoreAttemptedRef = useRef(false);
+  /**
+   * Incremented whenever a user-initiated flow (import, sample) takes over
+   * the view. Async flows compare against it before their final setView, so
+   * a slower predecessor cannot clobber the newest intent — the race the
+   * restore path's viewRef guard alone could not close.
+   */
+  const startEpochRef = useRef(0);
   /** Latest view, readable from async startup work without stale closures. */
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -380,6 +387,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           return;
         }
 
+        const epoch = ++startEpochRef.current;
         lazyStoreRef.current?.dispose();
         lazyStoreRef.current = null;
         storeRef.current.reset();
@@ -396,6 +404,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         activeImportRef.current = null;
 
         if (outcome.kind === 'ready') {
+          // A newer flow (a sample clicked while the batches were landing)
+          // owns the view now; this dataset stays stored and expires by TTL.
+          if (startEpochRef.current !== epoch) return;
           rememberLastDataset(outcome.metadata.id);
           setView({
             kind: 'ready',
@@ -465,12 +476,14 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   );
 
   const loadSample = useCallback(async () => {
+    const epoch = ++startEpochRef.current;
     setNotice(null);
     setView({ kind: 'working', label: 'Preparing sample data…' });
     try {
       const repository = await ensureRepository();
       const sample = (sampleRef.current ??= createSampleDataset(sampleSize));
       await seedSampleDataset(repository, sample);
+      if (startEpochRef.current !== epoch) return;
       lazyStoreRef.current?.dispose();
       lazyStoreRef.current = null;
       storeRef.current = buildSampleStore(sample);
@@ -490,6 +503,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         edits: emptyEditState(),
       });
     } catch {
+      if (startEpochRef.current !== epoch) return;
       setView({ kind: 'empty' });
       setNotice({ variant: 'error', message: 'Sample data could not be prepared.' });
     }
@@ -683,6 +697,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   useEffect(() => {
     if (restoreAttemptedRef.current) return;
     restoreAttemptedRef.current = true;
+    // Yields to any user flow that starts while storage is opening: the
+    // epoch comparison below abandons the restore instead of clobbering.
+    const epochAtStart = startEpochRef.current;
 
     void (async () => {
       try {
@@ -700,6 +717,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
 
         const stored = await repository.getDataset(datasetId);
         if (stored === undefined || stored.status !== 'ready') {
+          if (startEpochRef.current !== epochAtStart) return;
           rememberLastDataset(null);
           return;
         }
@@ -762,6 +780,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             ? -1
             : meta.columns.findIndex((column) => column.id === restoredView.sort?.columnId);
 
+        // A user flow took over while the records were being read: it owns
+        // the view and the persistence markers, so abandon the restore.
+        if (startEpochRef.current !== epochAtStart) return;
         lazyStoreRef.current = store;
         setView({
           kind: 'ready',
@@ -809,11 +830,13 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           });
         }
       } catch {
-        // Storage unavailable: the empty state is still a working app.
+        // Storage unavailable: the empty state is still a working app. A
+        // user flow that started meanwhile owns the pointer — leave it.
+        if (startEpochRef.current !== epochAtStart) return;
         rememberLastDataset(null);
       }
     })();
-    // Runs once on mount; viewRef guards against clobbering a user action.
+    // Runs once on mount; the epoch and viewRef guards yield to user actions.
   }, [ensureRepository]);
 
   // Run the query whenever the committed inputs change. Deps are leaf keys
