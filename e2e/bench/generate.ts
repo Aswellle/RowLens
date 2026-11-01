@@ -73,6 +73,13 @@ function filler(random: () => number, chars: number): string {
 
 export type GeneratedFixture = { path: string; bytes: number; markerRows: number };
 
+/**
+ * Bumped whenever the generation logic changes shape, even if the total byte
+ * size happens to stay identical: the cache validates byte size only, so a
+ * same-size logic change would otherwise silently reuse stale fixtures.
+ */
+const GENERATOR_VERSION = 1;
+
 export async function generateProfile(
   profile: BenchProfile,
   outDir: string,
@@ -130,7 +137,10 @@ export async function generateProfile(
   }
   // Written only after the stream has fully flushed; a torn or missing .ok
   // file makes the next run regenerate rather than trust a partial CSV.
-  await writeFile(okPath, JSON.stringify({ bytes, markerRows }));
+  await writeFile(
+    okPath,
+    JSON.stringify({ generatorVersion: GENERATOR_VERSION, bytes, markerRows }),
+  );
   return { path, bytes, markerRows };
 }
 
@@ -138,9 +148,11 @@ export async function generateProfile(
 async function readCachedFixture(path: string, okPath: string): Promise<GeneratedFixture | null> {
   try {
     const record = JSON.parse(await readFile(okPath, 'utf8')) as {
+      generatorVersion?: number;
       bytes: number;
       markerRows: number;
     };
+    if (record.generatorVersion !== GENERATOR_VERSION) return null;
     const bytes = (await stat(path)).size;
     if (record.bytes !== bytes) return null;
     return { path, bytes, markerRows: record.markerRows };
