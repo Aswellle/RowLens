@@ -606,6 +606,52 @@ describe('App session restore', () => {
     await waitFor(() => expect(window.localStorage.getItem('rowlens:last-dataset')).toBeNull());
   }, 20_000);
 
+  it('sweeps a dataset whose 24-hour TTL expired while closed', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={40} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    const repository = await openRepository();
+    const meta = await repository.getDataset('sample-tickets');
+    expect(meta?.status).toBe('ready');
+    await repository.finalizeDataset({
+      ...meta!,
+      lastTouchedAt: Date.now() - 25 * 60 * 60 * 1000,
+    });
+    unmount();
+
+    // The startup sweep runs before the restore attempt, so the expired
+    // dataset is removed instead of resurrected.
+    render(<App sampleSize={40} />);
+    await waitFor(async () => {
+      expect(await repository.getDataset('sample-tickets')).toBeUndefined();
+    });
+    expect(window.localStorage.getItem('rowlens:last-dataset')).toBeNull();
+  }, 30_000);
+
+  it('reopening a dataset restarts its 24-hour expiry clock', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App sampleSize={40} />);
+    await user.click(screen.getByRole('button', { name: 'Try sample data' }));
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    const seededAt = (await (await openRepository()).getDataset('sample-tickets'))!.lastTouchedAt;
+    unmount();
+
+    render(<App sampleSize={40} />);
+    await waitFor(() => expect(screen.getByText('40 of 40 rows match')).toBeInTheDocument(), {
+      timeout: 15_000,
+    });
+    const repository = await openRepository();
+    await waitFor(async () => {
+      const meta = await repository.getDataset('sample-tickets');
+      expect(meta?.lastTouchedAt).toBeGreaterThan(seededAt);
+    });
+  }, 40_000);
+
   it('keeps the imported rows unchanged while edits persist separately', async () => {
     const user = userEvent.setup();
     const grid = await loadAndEdit(user);

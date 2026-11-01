@@ -661,19 +661,31 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   useEffect(() => {
     if (restoreAttemptedRef.current) return;
     restoreAttemptedRef.current = true;
-    const datasetId = readLastDatasetId();
-    if (datasetId === null) return;
 
     void (async () => {
       try {
         const repository = await ensureRepository();
-        const meta = await repository.getDataset(datasetId);
-        if (meta === undefined || meta.status !== 'ready') {
+        // Security doc §3: interrupted and expired datasets are swept at
+        // startup, before anything can restore them. A failed sweep must not
+        // block the session; those datasets stay until the next startup.
+        try {
+          await repository.cleanupStale();
+        } catch {
+          // Sweep is best-effort housekeeping.
+        }
+        const datasetId = readLastDatasetId();
+        if (datasetId === null) return;
+
+        const stored = await repository.getDataset(datasetId);
+        if (stored === undefined || stored.status !== 'ready') {
           rememberLastDataset(null);
           return;
         }
-        // A user action may have started while IndexedDB was opening.
         if (viewRef.current.kind !== 'empty') return;
+        // Reopening counts as touching: the 24-hour expiry runs from the last
+        // time the user actually had the dataset open, not from the import.
+        const meta = { ...stored, lastTouchedAt: Date.now() };
+        await repository.finalizeDataset(meta);
 
         // Rows are read on demand (500-row chunks) instead of all up front:
         // a reload used to issue one transaction per 500 rows before showing

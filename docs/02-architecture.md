@@ -137,7 +137,7 @@ type DatasetMetadata = {
 - 每批写入建议从 500 条开始，通过真实基准调整；禁止将整份文件放进一个长期 transaction。
 - 数据集状态只有在所有批次成功写入并 finalize 之后才改为 `ready`。
 - Worker 与主线程的 IDB 访问需要明确模块所有权。推荐所有 row write 由 repository 统一处理；若 Query Worker 自己读取 IDB，须共享 schema/version 常量并测试版本升级行为。
-- 清理策略：启动时发现 `importing` 且过期、`cancelled`/`failed` 的数据集则尝试删除；用户移除数据集时显示清理状态。TTL 建议 24 小时，作为代码常量并配测试。
+- 清理策略：启动时（恢复尝试之前）清扫 `cancelled`/`failed` 的数据集，以及超过 TTL 的任何状态数据集——`ready` 也过期，与隐私文档"数据集 24 小时后过期"的承诺一致；恢复命中一个数据集会刷新其 `lastTouchedAt`，经常打开的数据集不会因此过期。用户移除数据集时显示清理状态。TTL 为 24 小时代码常量并配测试。
 - 所有 IDB 错误都通过 typed error 传回 UI；`QuotaExceededError` 必须单独处理。
 
 ## 7. Worker 协议

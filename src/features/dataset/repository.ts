@@ -272,19 +272,16 @@ export class DatasetRepository {
 
   /**
    * Startup cleanup (security doc §3): drop datasets that were interrupted
-   * (cancelled/failed), expired while still 'importing', or outlived the TTL
-   * in any state. Returns the number of removed datasets.
+   * (cancelled/failed) or outlived the TTL in any state — a ready dataset
+   * expires too, which is what the privacy doc promises ("datasets expire
+   * after 24 h"). Returns the number of removed datasets.
    */
   async cleanupStale(now: number = Date.now()): Promise<number> {
     const datasets = await this.listDatasets();
     let removed = 0;
     for (const meta of datasets) {
       const expired = now - meta.lastTouchedAt > DATASET_TTL_MS;
-      const stale =
-        meta.status === 'cancelled' ||
-        meta.status === 'failed' ||
-        (meta.status === 'importing' && expired) ||
-        expired;
+      const stale = meta.status === 'cancelled' || meta.status === 'failed' || expired;
       if (stale) {
         await this.deleteDataset(meta.id);
         removed += 1;
