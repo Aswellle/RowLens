@@ -166,6 +166,13 @@ type View =
       stepSummaries: StepSummary[];
       rowIndices: number[];
       queryBusy: boolean;
+      /**
+       * True when the last query hit the match limit: rowIndices still holds
+       * the previous query's result set, which is what row-scoped exports
+       * would write — the export dialog says so instead of presenting the
+       * counts as current (ADR-037-era review finding).
+       */
+      queryLimited: boolean;
       /** In-memory cell edits; the stored rows are never modified. */
       edits: EditState;
     };
@@ -422,6 +429,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
             stepSummaries: [],
             rowIndices: [],
             queryBusy: true,
+            queryLimited: false,
             edits: emptyEditState(),
           });
           if (outcome.metadata.parseErrorCount > 0) {
@@ -502,6 +510,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         stepSummaries: [],
         rowIndices: [],
         queryBusy: true,
+        queryLimited: false,
         edits: emptyEditState(),
       });
     } catch {
@@ -808,6 +817,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           stepSummaries: [],
           rowIndices: [],
           queryBusy: true,
+          queryLimited: false,
           edits: restoredEdits,
         });
         const editCountRestored = editCount(restoredEdits);
@@ -1660,6 +1670,7 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
               defaultFileName={cleanedFileName(view.data.meta.fileName)}
               filteredCount={view.rowIndices.length}
               totalCount={view.data.meta.rowCount}
+              queryLimited={view.queryLimited}
               exportColumnCount={effectiveDatasetIndexes.length}
               totalColumnCount={view.data.meta.columns.length}
               selection={exportState.selection}

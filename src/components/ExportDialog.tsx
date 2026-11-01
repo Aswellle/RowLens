@@ -18,6 +18,12 @@ type ExportDialogProps = {
   defaultFileName: string;
   filteredCount: number;
   totalCount: number;
+  /**
+   * True when the last query hit the match limit: the filtered and selection
+   * counts describe the previous query's result set, not what the current
+   * search matches — the dialog says so instead of presenting them as live.
+   */
+  queryLimited: boolean;
   exportColumnCount: number;
   totalColumnCount: number;
   /**
@@ -125,6 +131,13 @@ export function ExportDialog(props: ExportDialogProps) {
           All rows, cleaned ({props.totalCount.toLocaleString('en-US')})
         </label>
       </fieldset>
+
+      {props.queryLimited && (
+        <p className="export-dialog__hint" role="note">
+          The last query matched more rows than the view holds, so the filtered and selected counts
+          describe the previous result set.
+        </p>
+      )}
 
       <p className="export-dialog__columns">
         {scope === 'selection'

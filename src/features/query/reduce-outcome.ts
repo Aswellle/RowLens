@@ -10,6 +10,12 @@ export type QueryViewState = {
   rowIndices: number[];
   stepSummaries: StepSummary[];
   queryBusy: boolean;
+  /**
+   * The last completed query hit the match limit: rowIndices still describes
+   * the previous query, so row-scoped consumers (the export dialog) must say
+   * so rather than present the counts as current.
+   */
+  queryLimited: boolean;
 };
 
 export type QueryNotice = { variant: 'warning' | 'error'; message: string };
@@ -42,11 +48,12 @@ export function reduceQueryOutcome<T extends QueryViewState>(
           rowIndices: outcome.rowIndices,
           stepSummaries: outcome.stepSummaries ?? [],
           queryBusy: false,
+          queryLimited: false,
         },
       };
     case 'limit':
       return {
-        state: { ...state, queryBusy: false },
+        state: { ...state, queryBusy: false, queryLimited: true },
         notice: {
           variant: 'warning',
           message: `The query matched more than ${outcome.limit.toLocaleString('en-US')} rows. Narrow the search or filters to see results.`,

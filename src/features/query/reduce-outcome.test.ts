@@ -7,6 +7,7 @@ const STATE: QueryViewState = {
   rowIndices: [0, 1, 2],
   stepSummaries: [{ stepId: 's1', rowsRemoved: 1, cellsChanged: 0 }],
   queryBusy: true,
+  queryLimited: false,
 };
 
 const describeFailure = (code: string, message: string): string => `${code}: ${message}`;
@@ -27,6 +28,7 @@ describe('reduceQueryOutcome', () => {
     expect(state.rowIndices).toEqual([5, 7]);
     expect(state.stepSummaries[0]?.stepId).toBe('s2');
     expect(state.queryBusy).toBe(false);
+    expect(state.queryLimited).toBe(false);
     expect(notice).toBeUndefined();
   });
 
@@ -42,6 +44,8 @@ describe('reduceQueryOutcome', () => {
     const { state, notice } = reduce({ kind: 'limit', matched: 200_001, limit: 200_000 });
     expect(state.queryBusy).toBe(false);
     expect(state.rowIndices).toEqual([0, 1, 2]);
+    // The limit flags the stale result set for row-scoped consumers.
+    expect(state.queryLimited).toBe(true);
     expect(notice?.variant).toBe('warning');
     expect(notice?.message).toContain('200,000');
   });

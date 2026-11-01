@@ -11,6 +11,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof ExportDialog>> = {
     defaultFileName: 'data-cleaned.csv',
     filteredCount: 40,
     totalCount: 120,
+    queryLimited: false,
     exportColumnCount: 6,
     totalColumnCount: 8,
     selection: null,
