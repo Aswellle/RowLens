@@ -57,9 +57,4 @@ export class InMemoryDataset {
   getCell(rowIndex: number, columnIndex: number): string | null {
     return this.rows[rowIndex]?.[columnIndex] ?? null;
   }
-
-  /** All cell values of a row (used by global search). */
-  getRowValues(rowIndex: number): (string | null)[] {
-    return this.rows[rowIndex] ?? [];
-  }
 }

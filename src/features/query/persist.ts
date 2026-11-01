@@ -175,33 +175,6 @@ export function isActiveView(view: ViewState): boolean {
 }
 
 /**
- * Drops references that no longer exist, for a view already in memory (a
- * re-import into the same dataset id can change the schema). Returns the same
- * object when nothing changed, so callers can skip a write.
- */
-export function pruneView(view: ViewState, validColumnIds: ReadonlySet<ColumnId>): ViewState {
-  const columnFilters = pruneFilters(view.columnFilters, validColumnIds);
-  const sort = pruneSort(view.sort, validColumnIds);
-  const hiddenColumns = pruneHidden(view.hiddenColumns, validColumnIds);
-
-  const sameFilters =
-    Object.keys(columnFilters).length === Object.keys(view.columnFilters).length &&
-    Object.entries(columnFilters).every(([id, value]) => view.columnFilters[id] === value);
-  const sameSort =
-    sort === view.sort ||
-    (sort !== null &&
-      view.sort !== null &&
-      sort.columnId === view.sort.columnId &&
-      sort.direction === view.sort.direction);
-  const sameHidden =
-    hiddenColumns.length === view.hiddenColumns.length &&
-    hiddenColumns.every((id, index) => view.hiddenColumns[index] === id);
-
-  if (sameFilters && sameSort && sameHidden) return view;
-  return { search: view.search, columnFilters, sort, hiddenColumns };
-}
-
-/**
  * A stable string for the debounced writer to compare against the last write.
  * `updatedAt` is excluded on purpose: only a real change should trigger a save.
  */

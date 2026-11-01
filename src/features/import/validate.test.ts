@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../../app/app-error';
 import type { DatasetFormat } from '../dataset/types';
-import { detectFormat, parseFormat, validateForImport } from './validate';
+import { detectFormat, validateForImport } from './validate';
 
 describe('detectFormat', () => {
   it('detects supported extensions case-insensitively', () => {
@@ -28,15 +28,6 @@ describe('detectFormat', () => {
       detectFormat({ name: 'data.parquet', size: 1, type: 'application/octet-stream' }),
     ).toBeNull();
     expect(detectFormat({ name: 'no-extension', size: 1 })).toBeNull();
-  });
-});
-
-describe('parseFormat', () => {
-  it('normalises ndjson onto the jsonl pipeline', () => {
-    expect(parseFormat('ndjson')).toBe('jsonl');
-    expect(parseFormat('jsonl')).toBe('jsonl');
-    expect(parseFormat('csv')).toBe('csv');
-    expect(parseFormat('tsv')).toBe('tsv');
   });
 });
 

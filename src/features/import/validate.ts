@@ -29,11 +29,6 @@ export type FileLike = {
   type?: string;
 };
 
-/** jsonl and ndjson share one pipeline; normalise the label. */
-export function parseFormat(format: DatasetFormat): 'csv' | 'tsv' | 'jsonl' {
-  return format === 'ndjson' ? 'jsonl' : format;
-}
-
 export function detectFormat(file: FileLike): DatasetFormat | null {
   const name = file.name.toLowerCase();
   const byExtension = EXTENSION_FORMATS.find(({ extension }) => name.endsWith(extension));

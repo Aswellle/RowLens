@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareCellValues, matchesLiteral, rowMatchesSearch, sortIndicesStable } from './literal';
+import { compareCellValues, matchesLiteral, sortIndicesStable } from './literal';
 
 describe('matchesLiteral', () => {
   it('matches case-insensitively as a literal substring', () => {
@@ -19,14 +19,6 @@ describe('matchesLiteral', () => {
     expect(matchesLiteral('anything', '')).toBe(true);
     expect(matchesLiteral(null, 'x')).toBe(false);
     expect(matchesLiteral(undefined, 'x')).toBe(false);
-  });
-});
-
-describe('rowMatchesSearch', () => {
-  it('is true when any cell matches', () => {
-    expect(rowMatchesSearch(['a', 'b', 'c'], 'B')).toBe(true);
-    expect(rowMatchesSearch(['a', null, 'c'], 'c')).toBe(true);
-    expect(rowMatchesSearch(['a', null], 'z')).toBe(false);
   });
 });
 

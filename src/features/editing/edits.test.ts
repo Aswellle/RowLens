@@ -2,14 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_EDITS,
   applyEdits,
-  applyOverrides,
   canRedo,
   canUndo,
   clearEdits,
   editCount,
   editedValue,
   emptyEditState,
-  hasEdits,
   overridesForQuery,
   redoEdits,
   undoEdits,
@@ -40,7 +38,6 @@ describe('edit overlay', () => {
     expect(editedValue(state, 3, 'c2')).toBeUndefined();
     expect(editedValue(state, 4, 'c1')).toBeUndefined();
     expect(editCount(state)).toBe(1);
-    expect(hasEdits(state)).toBe(true);
   });
 
   it('ignores an edit that writes the value already displayed', () => {
@@ -109,7 +106,6 @@ describe('edit overlay', () => {
 
     state = clearEdits(state);
     expect(editCount(state)).toBe(0);
-    expect(hasEdits(state)).toBe(false);
 
     // "Reset edits" is itself undoable, restoring both cells.
     state = undoEdits(state);
@@ -196,14 +192,5 @@ describe('query overrides', () => {
 
   it('returns nothing for an unedited dataset', () => {
     expect(overridesForQuery(emptyEditState())).toEqual([]);
-  });
-
-  it('applies an override without mutating the stored values', () => {
-    const stored = { c0: 'a', c1: null };
-    const applied = applyOverrides(stored, { c1: 'edited' });
-    expect(applied).toEqual({ c0: 'a', c1: 'edited' });
-    expect(stored).toEqual({ c0: 'a', c1: null });
-    // No override: the same object is returned, so scans stay allocation-free.
-    expect(applyOverrides(stored, undefined)).toBe(stored);
   });
 });

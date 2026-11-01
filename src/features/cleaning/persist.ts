@@ -120,26 +120,3 @@ export function isSupportedPipelineRecord(record: unknown): boolean {
   if (!isRecord(record)) return false;
   return record.format === PIPELINE_RECORD_FORMAT;
 }
-
-/**
- * Drops column references that no longer exist, for a pipeline that is
- * already in memory (the user re-imported into the same dataset id).
- * Returns the same array when nothing changed, so callers can skip a write.
- */
-export function prunePipeline(
-  steps: readonly CleaningStep[],
-  validColumnIds: ReadonlySet<ColumnId>,
-): readonly CleaningStep[] {
-  const pruned: CleaningStep[] = [];
-  let changed = false;
-  for (const step of steps) {
-    const next = pruneStep(step, validColumnIds);
-    if (next === null) {
-      changed = true;
-      continue;
-    }
-    if (JSON.stringify(next) !== JSON.stringify(step)) changed = true;
-    pruned.push(next);
-  }
-  return changed ? pruned : steps;
-}

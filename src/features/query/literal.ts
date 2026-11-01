@@ -16,11 +16,6 @@ export function matchesLiteral(haystack: string | null | undefined, needle: stri
   return haystack.toLocaleLowerCase('en-US').includes(needle.toLocaleLowerCase('en-US'));
 }
 
-/** True when any of the row's cell values matches the literal needle. */
-export function rowMatchesSearch(values: ReadonlyArray<string | null>, needle: string): boolean {
-  return values.some((value) => matchesLiteral(value, needle));
-}
-
 /**
  * Compare two cell values for sorting. Missing (null) values sort last in both
  * directions; present values compare by UTF-16 code units (default `<`).

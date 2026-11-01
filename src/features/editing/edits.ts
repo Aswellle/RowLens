@@ -80,10 +80,6 @@ export function editedValue(
   return state.edits.get(rowIndex)?.get(columnId);
 }
 
-export function hasEdits(state: EditState): boolean {
-  return state.edits.size > 0;
-}
-
 export function canUndo(state: EditState): boolean {
   return state.undoStack.length > 0;
 }
@@ -223,17 +219,4 @@ export function overridesForQuery(state: EditState): EditOverride[] {
     out.push({ rowIndex, values });
   }
   return out;
-}
-
-/**
- * Applies the overlay to a stored row's values. Pure and cheap: it only
- * copies when the row actually has an edit, so the scan stays allocation-free
- * for untouched rows.
- */
-export function applyOverrides(
-  values: Record<ColumnId, string | null>,
-  override: Record<ColumnId, string> | undefined,
-): Record<ColumnId, string | null> {
-  if (override === undefined) return values;
-  return { ...values, ...override };
 }

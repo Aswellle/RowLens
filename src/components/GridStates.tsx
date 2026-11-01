@@ -1,5 +1,5 @@
 /**
- * States rendered inside the grid region: loading, no-results and error.
+ * States rendered inside the grid region: loading and no-results.
  * Each is actionable per the UI spec — a spinner alone is never enough.
  */
 
@@ -30,30 +30,6 @@ export function NoResultsState({
       <button type="button" className="btn" onClick={onClear}>
         Clear search
       </button>
-    </div>
-  );
-}
-
-export function GridErrorState({
-  message,
-  onRetry,
-  onDismiss,
-}: {
-  message: string;
-  onRetry: () => void;
-  onDismiss: () => void;
-}) {
-  return (
-    <div className="grid-state" role="alert">
-      <p>{message}</p>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" className="btn btn--primary" onClick={onRetry}>
-          Try again
-        </button>
-        <button type="button" className="btn" onClick={onDismiss}>
-          Back to start
-        </button>
-      </div>
     </div>
   );
 }

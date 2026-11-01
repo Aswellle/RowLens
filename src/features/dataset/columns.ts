@@ -39,13 +39,3 @@ export function deriveColumnsFromHeader(
     };
   });
 }
-
-/** Column schema for headerless files, given the parsed field count. */
-export function generateColumnsForCount(count: number): ColumnDefinition[] {
-  const count_ = Math.max(0, Math.trunc(count));
-  return Array.from({ length: count_ }, (_, index) => ({
-    id: csvColumnId(index),
-    label: placeholderLabel(index),
-    sourceIndex: index,
-  }));
-}

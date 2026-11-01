@@ -6,7 +6,6 @@ import {
   emptyView,
   isActiveView,
   isSupportedViewRecord,
-  pruneView,
   serializeView,
   viewSignature,
 } from './persist';
@@ -181,23 +180,6 @@ describe('view activity and pruning', () => {
       true,
     );
     expect(isActiveView(view({ hiddenColumns: ['c0'] }))).toBe(true);
-  });
-
-  it('returns the same object when everything still applies', () => {
-    const current = view({ search: 'q', columnFilters: { c0: 'x' }, sort: null });
-    expect(pruneView(current, COLUMNS)).toBe(current);
-  });
-
-  it('narrows a view whose columns disappeared', () => {
-    const current = view({
-      search: 'q',
-      columnFilters: { c0: 'x', gone: 'y' },
-      sort: { columnId: 'gone', direction: 'asc', numeric: false },
-      hiddenColumns: ['c1'],
-    });
-    expect(pruneView(current, COLUMNS)).toEqual(
-      view({ search: 'q', columnFilters: { c0: 'x' }, sort: null, hiddenColumns: ['c1'] }),
-    );
   });
 
   it('produces the same signature for equal views regardless of key order', () => {

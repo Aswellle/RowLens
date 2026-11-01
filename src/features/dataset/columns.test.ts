@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { csvColumnId, deriveColumnsFromHeader, generateColumnsForCount } from './columns';
+import { csvColumnId, deriveColumnsFromHeader } from './columns';
 import type { ColumnDefinition } from './types';
 
 describe('deriveColumnsFromHeader', () => {
@@ -51,23 +51,6 @@ describe('deriveColumnsFromHeader', () => {
       hasHeader: true,
     });
     expect(columns.map((c) => c.label)).toEqual(['名前', 'コメント']);
-  });
-});
-
-describe('generateColumnsForCount', () => {
-  it('generates positional columns for headerless files', () => {
-    const columns = generateColumnsForCount(3);
-    expect(columns).toEqual<ColumnDefinition[]>([
-      { id: 'c0', label: 'Column 1', sourceIndex: 0 },
-      { id: 'c1', label: 'Column 2', sourceIndex: 1 },
-      { id: 'c2', label: 'Column 3', sourceIndex: 2 },
-    ]);
-  });
-
-  it('rejects non-positive and fractional counts', () => {
-    expect(generateColumnsForCount(0)).toEqual([]);
-    expect(generateColumnsForCount(-5)).toEqual([]);
-    expect(generateColumnsForCount(2.9)).toHaveLength(2);
   });
 });
 

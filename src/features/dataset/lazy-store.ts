@@ -93,20 +93,6 @@ export class LazyDatasetStore {
     return chunk[local]?.[columnIndex] ?? null;
   }
 
-  /** True when the row is already in memory; used to decide re-renders. */
-  hasRow(rowIndex: RowIndex): boolean {
-    return this.chunks.has(Math.floor(rowIndex / STORE_CHUNK_ROWS));
-  }
-
-  /** Loads the chunk containing a row and resolves once it is in memory. */
-  async ensureRow(rowIndex: RowIndex): Promise<void> {
-    if (rowIndex < 0 || rowIndex >= this.rowCount) return;
-    const chunkIndex = Math.floor(rowIndex / STORE_CHUNK_ROWS);
-    if (this.chunks.has(chunkIndex)) return;
-    this.pending.add(chunkIndex);
-    await this.fetchChunk(chunkIndex);
-  }
-
   /**
    * Warms a window of rows, e.g. the rows the grid is about to render, so the
    * first paint after a scroll does not show blanks. The window is also pinned

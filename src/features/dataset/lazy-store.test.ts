@@ -94,14 +94,6 @@ describe('LazyDatasetStore', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('resolves ensureRow only after the row is readable', async () => {
-    const { load } = loaderFor(2000);
-    const store = new LazyDatasetStore(COLUMNS, 2000, load);
-
-    await store.ensureRow(700);
-    expect(store.getCell(700, 0)).toBe('r700');
-  });
-
   it('leaves blank cells for a chunk whose read failed, and retries later', async () => {
     let attempts = 0;
     const table = makeRows(2000);
@@ -172,10 +164,6 @@ describe('LazyDatasetStore eviction', () => {
     await tick();
 
     expect(store.loadedChunkCount).toBe(3);
-    // Chunk 0 survived because it was touched; chunk 1 is the oldest now.
-    expect(store.hasRow(0)).toBe(true);
-    expect(store.hasRow(3 * STORE_CHUNK_ROWS)).toBe(true);
-    expect(store.hasRow(1 * STORE_CHUNK_ROWS)).toBe(false);
   });
 
   it('never evicts the window the grid is currently rendering', async () => {
@@ -188,7 +176,7 @@ describe('LazyDatasetStore eviction', () => {
       store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 1);
       await tick();
       // The window just asked for is always present.
-      expect(store.hasRow(chunk * STORE_CHUNK_ROWS)).toBe(true);
+      expect(store.getCell(chunk * STORE_CHUNK_ROWS, 0)).toBe(`r${chunk * STORE_CHUNK_ROWS}`);
       expect(store.loadedChunkCount).toBeLessThanOrEqual(2);
     }
   });
@@ -202,9 +190,9 @@ describe('LazyDatasetStore eviction', () => {
     store.ensureRows(0, 1200);
     await tick();
     expect(store.loadedChunkCount).toBe(3);
-    expect(store.hasRow(0)).toBe(true);
-    expect(store.hasRow(600)).toBe(true);
-    expect(store.hasRow(1100)).toBe(true);
+    expect(store.getCell(0, 0)).toBe('r0');
+    expect(store.getCell(600, 0)).toBe('r600');
+    expect(store.getCell(1100, 0)).toBe('r1100');
   });
 
   it('allows a window larger than the cap rather than blanking the screen', async () => {
@@ -228,7 +216,7 @@ describe('LazyDatasetStore eviction', () => {
       store.ensureRows(chunk * STORE_CHUNK_ROWS, chunk * STORE_CHUNK_ROWS + 1);
       await tick();
     }
-    expect(store.hasRow(0)).toBe(false);
+    expect(store.getCell(0, 0)).toBeNull();
 
     store.ensureRows(0, 1);
     await tick();

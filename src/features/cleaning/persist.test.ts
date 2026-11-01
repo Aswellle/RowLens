@@ -4,7 +4,6 @@ import {
   PIPELINE_RECORD_FORMAT,
   deserializePipeline,
   isSupportedPipelineRecord,
-  prunePipeline,
   pruneStep,
 } from './persist';
 
@@ -148,34 +147,5 @@ describe('pipeline record validation', () => {
   it('validates a single step without a record wrapper', () => {
     expect(pruneStep(trim('a'), COLUMNS)).toEqual(trim('a'));
     expect(pruneStep({ id: 'a', type: 'nope' }, COLUMNS)).toBeNull();
-  });
-});
-
-describe('pruning an in-memory pipeline', () => {
-  it('returns the same array when nothing references a missing column', () => {
-    const steps = [trim('s1')];
-    expect(prunePipeline(steps, COLUMNS)).toBe(steps);
-  });
-
-  it('drops steps whose columns are gone', () => {
-    const steps: CleaningStep[] = [
-      trim('s1'),
-      { id: 's2', type: 'select-columns', enabled: true, columnIds: ['gone'] },
-    ];
-    expect(prunePipeline(steps, COLUMNS).map((step) => step.id)).toEqual(['s1']);
-  });
-
-  it('narrows a partially stale column list in place', () => {
-    const steps: CleaningStep[] = [
-      { id: 's1', type: 'select-columns', enabled: true, columnIds: ['c0', 'gone'] },
-    ];
-    expect(prunePipeline(steps, COLUMNS)).toEqual([
-      { id: 's1', type: 'select-columns', enabled: true, columnIds: ['c0'] },
-    ]);
-  });
-
-  it('returns the same array for an empty pipeline', () => {
-    const steps: CleaningStep[] = [];
-    expect(prunePipeline(steps, COLUMNS)).toBe(steps);
   });
 });
