@@ -62,12 +62,16 @@ export function ExportDialog(props: ExportDialogProps) {
     setRiskCount(countRiskCells(scope));
   }, [scope, countRiskCells]);
 
+  // The App sends -1 for a range too large to scan and -2 when the scan
+  // itself failed (a storage read error); neither may show as a count.
   const riskLabel =
     riskCount === null
       ? 'counting…'
-      : riskCount < 0
-        ? 'too many rows to preview quickly'
-        : String(riskCount);
+      : riskCount === -2
+        ? 'unavailable'
+        : riskCount < 0
+          ? 'too many rows to preview quickly'
+          : String(riskCount);
 
   return (
     <Modal label="Export CSV" onClose={props.onCancel} closeDisabled={props.busy}>

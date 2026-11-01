@@ -1255,37 +1255,45 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
         }
         riskInFlightRef.current.add(scope);
         void (async () => {
-          const edits = current.edits;
-          const allColumnIds = meta.columns.map((column) => column.id);
-          let count = 0;
-          const countRow = (rowIndex: number, values: Record<ColumnId, string | null>) => {
-            for (const columnIndex of columnIndexes) {
-              const columnId = allColumnIds[columnIndex];
-              const cell =
-                columnId === undefined
-                  ? null
-                  : (editedValue(edits, rowIndex, columnId) ?? values[columnId] ?? null);
-              if (cell !== null && hasFormulaRisk(cell)) count += 1;
-            }
-          };
-          if (readStoredRows === undefined) {
-            const { store } = current.data;
-            for (const rowIndex of indices) {
-              const values: Record<ColumnId, string | null> = {};
-              for (let d = 0; d < allColumnIds.length; d++) {
-                values[allColumnIds[d]!] = store.getCell(rowIndex, d);
+          try {
+            const edits = current.edits;
+            const allColumnIds = meta.columns.map((column) => column.id);
+            let count = 0;
+            const countRow = (rowIndex: number, values: Record<ColumnId, string | null>) => {
+              for (const columnIndex of columnIndexes) {
+                const columnId = allColumnIds[columnIndex];
+                const cell =
+                  columnId === undefined
+                    ? null
+                    : (editedValue(edits, rowIndex, columnId) ?? values[columnId] ?? null);
+                if (cell !== null && hasFormulaRisk(cell)) count += 1;
               }
-              countRow(rowIndex, values);
+            };
+            if (readStoredRows === undefined) {
+              const { store } = current.data;
+              for (const rowIndex of indices) {
+                const values: Record<ColumnId, string | null> = {};
+                for (let d = 0; d < allColumnIds.length; d++) {
+                  values[allColumnIds[d]!] = store.getCell(rowIndex, d);
+                }
+                countRow(rowIndex, values);
+              }
+            } else {
+              await readRowsForIndices(readStoredRows, indices, (row) => {
+                countRow(row.rowIndex, row.values);
+              });
             }
-          } else {
-            await readRowsForIndices(readStoredRows, indices, (row) => {
-              countRow(row.rowIndex, row.values);
-            });
+            // A dialog reopened for another dataset must not take this result.
+            if (token !== riskOpenTokenRef.current) return;
+            setRiskCounts((prev) => ({ ...prev, [scope]: count }));
+          } catch {
+            // A failed read must not leave the dialog counting forever; -2
+            // renders as "unavailable" (distinct from the -1 too-large case).
+            if (token !== riskOpenTokenRef.current) return;
+            setRiskCounts((prev) => ({ ...prev, [scope]: -2 }));
+          } finally {
+            riskInFlightRef.current.delete(scope);
           }
-          // A dialog reopened for another dataset must not take this result.
-          if (token !== riskOpenTokenRef.current) return;
-          setRiskCounts((prev) => ({ ...prev, [scope]: count }));
-          riskInFlightRef.current.delete(scope);
         })();
       }
       return null;
