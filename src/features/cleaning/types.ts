@@ -91,3 +91,15 @@ export type StepSummary = {
   /** Present for select-columns: the number of columns kept. */
   columnsKept?: number;
 };
+
+/**
+ * The last enabled select-columns step: its column list is what later steps
+ * and the view see, so an earlier select-columns is shadowed entirely.
+ */
+export function finalSelectColumns(steps: readonly CleaningStep[]): SelectColumnsStep | null {
+  for (let index = steps.length - 1; index >= 0; index -= 1) {
+    const step = steps[index];
+    if (step !== undefined && step.type === 'select-columns' && step.enabled) return step;
+  }
+  return null;
+}

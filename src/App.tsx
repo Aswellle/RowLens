@@ -42,6 +42,7 @@ import type {
 } from './features/dataset/types';
 import { createSampleDataset, type SampleDataset } from './features/dataset/sample';
 import type { CleaningStep, CleaningStepType, StepSummary } from './features/cleaning/types';
+import { finalSelectColumns } from './features/cleaning/types';
 import { createCleaningTransform } from './features/cleaning/transform';
 import { trimmedColumnSet } from './features/cleaning/display';
 import {
@@ -935,11 +936,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     const visible = view.data.meta.columns
       .map((column, index) => ({ column, index }))
       .filter(({ column }) => !view.hiddenColumns.includes(column.id));
-    const selection = [...view.cleaningSteps]
-      .reverse()
-      .find((step) => step.type === 'select-columns' && step.enabled);
-    const kept =
-      selection && selection.type === 'select-columns' ? new Set(selection.columnIds) : null;
+    const selection = finalSelectColumns(view.cleaningSteps);
+    const kept = selection ? new Set(selection.columnIds) : null;
     const effective = kept ? visible.filter(({ column }) => kept.has(column.id)) : visible;
     const gridIndex = effective.findIndex(({ index }) => index === view.sort?.datasetIndex);
     if (gridIndex === -1 || view.sort === null) return null;
@@ -969,10 +967,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
   /** Visible columns further narrowed by the last enabled select-columns step. */
   const effectiveDatasetIndexes = useMemo(() => {
     if (view.kind !== 'ready') return [] as number[];
-    const selection = [...view.cleaningSteps]
-      .reverse()
-      .find((step) => step.type === 'select-columns' && step.enabled);
-    if (!selection || selection.type !== 'select-columns') return visibleDatasetIndexes;
+    const selection = finalSelectColumns(view.cleaningSteps);
+    if (!selection) return visibleDatasetIndexes;
     const kept = new Set(selection.columnIds);
     return visibleDatasetIndexes.filter((index) =>
       kept.has(view.data.meta.columns[index]?.id ?? ''),
