@@ -55,7 +55,7 @@ Query Worker             Cleaning pipeline
                   React virtualized grid
                              |
                              v
-                 Export Worker / stream writer
+          Main-thread stream writer (ADR-019: no export worker)
                              |
                              v
                       Download output
@@ -151,7 +151,7 @@ type DatasetMetadata = {
 
 ## 8. 查询与清洗的内存约束
 
-- React state 只保留数据集元信息、查询配置、清洗步骤、可视行切片和状态；不得存整份表。
+- React state 只保留数据集元信息、查询配置、清洗步骤、查询结果索引和状态；不得存整份表，也不得存单元格数据。查询结果索引是与记录数同阶的整数数组（无谓词快路径直接由 finalize 行数生成，见 ADR-020），单元格始终经 store 按需读取。
 - Query Worker 从 IndexedDB 游标扫描数据，执行字面搜索、过滤和稳定排序；向 UI 分页/批次返回匹配 rowIndex。
 - 对全量操作显示进度与取消；新查询开始时取消旧查询或使用 queryId 忽略旧结果。
 - 排序必须稳定并给出资源上限。如果匹配索引数量超过经过验证的上限，清晰提示，不得偷偷截断结果。
