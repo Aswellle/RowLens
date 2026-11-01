@@ -5,8 +5,11 @@
  * synchronously without putting the table into React state. Rows are only
  * appended during import; removal resets the whole store.
  *
- * Memory boundary (ADR-014): acceptable while MAX_FILE_BYTES caps imports;
- * the query worker replaces these reads in a later development step.
+ * Memory boundary (ADR-038): permanent design, acceptable while
+ * MAX_FILE_BYTES caps imports — the grid's synchronous reads during import
+ * are the point, and the query worker never made this store part of any
+ * output path (ADR-037 separated rendering caches from the total row
+ * source). The lazy store serves restored sessions instead.
  */
 import type { ColumnDefinition } from './types';
 import type { ImportWireRow } from '../import/protocol';
