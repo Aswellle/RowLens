@@ -910,6 +910,11 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     })();
     return () => {
       live = false;
+      // Leaving the ready view has no successor run to supersede this one,
+      // so the cleanup cancels: a removed dataset must not keep the worker
+      // scanning rows that no longer exist. A ready→ready transition cancels
+      // a run its successor supersedes anyway, and cancel is idempotent.
+      activeQueryRef.current?.cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
   }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, editsKey, ensureQueryRunner]);
