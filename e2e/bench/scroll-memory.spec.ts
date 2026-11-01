@@ -78,7 +78,6 @@ test(`${profile.name}: scrolling the whole file keeps memory bounded`, async ({ 
       -1,
   );
 
-  // eslint-disable-next-line no-console
   console.log(
     `SCROLL-MEM ${profile.name} steps=${steps} scrollMs=${scrollMs} ` +
       `heapBeforeMB=${Math.round(heapBefore / 1e6)} heapAfterMB=${Math.round(heapAfter / 1e6)}`,

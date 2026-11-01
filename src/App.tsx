@@ -541,7 +541,6 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       );
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- input identity, not the view
   }, [view.kind, searchInput, searchCommitted]);
 
   /**
@@ -837,7 +836,9 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       }
     })();
     // Runs once on mount; the epoch and viewRef guards yield to user actions.
-  }, [ensureRepository]);
+    // The mark* identities are stable ([]-keyed callbacks), so this cannot
+    // re-run — listing them documents what the body reads.
+  }, [ensureRepository, markEditsPersisted, markPipelinePersisted, markViewPersisted]);
 
   // Run the query whenever the committed inputs change. Deps are leaf keys
   // (not the view object) so result updates never re-trigger the query.
@@ -913,6 +914,10 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
   }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, editsKey, ensureQueryRunner]);
 
+  // Drains once per render on purpose: worker completions and async flows
+  // queue notices outside React's lifecycle, and every render must flush
+  // whatever arrived.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (pendingNoticeRef.current === null) return;
     const pending = pendingNoticeRef.current;

@@ -59,7 +59,6 @@ for (const profile of PROFILES) {
       () => document.querySelectorAll('[role="grid"] [role="row"]').length,
     );
 
-    // eslint-disable-next-line no-console
     console.log(
       `RESTORE ${profile.name} rows=${profile.rows} ms=${restoredMs} renderedRows=${renderedRows}`,
     );

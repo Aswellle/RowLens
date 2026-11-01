@@ -93,6 +93,7 @@ built-in **Try sample data** table.
 ### Verification commands
 
 ```bash
+npm run lint         # ESLint (React hooks rules)
 npm run typecheck    # tsc --noEmit (strict mode)
 npm run test:unit    # Vitest unit & component tests
 npm run build        # typecheck + production build + network audit
