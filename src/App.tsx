@@ -89,6 +89,7 @@ import {
 } from './features/query/client';
 import type { SelectionBounds } from './features/grid/selection';
 import { parseSearchQuery } from './features/query/search';
+import { queryInputFingerprint } from './features/query/inputs';
 import {
   deserializeView,
   emptyView,
@@ -841,21 +842,21 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
     // re-run — listing them documents what the body reads.
   }, [ensureRepository, markEditsPersisted, markPipelinePersisted, markViewPersisted]);
 
-  // Run the query whenever the committed inputs change. Deps are leaf keys
-  // (not the view object) so result updates never re-trigger the query.
-  const queryDeps = view.kind === 'ready' ? view : null;
-  const datasetIdKey = queryDeps?.data.meta.id ?? '';
-  const searchKey = queryDeps?.search ?? '';
-  const filtersKey = queryDeps ? JSON.stringify(queryDeps.columnFilters) : '';
-  // The numeric flag is part of the sort identity: toggling it must re-run
-  // the query even though column and direction are unchanged (ADR-035).
-  const sortKey = queryDeps?.sort
-    ? `${queryDeps.sort.datasetIndex}:${queryDeps.sort.direction}:${queryDeps.sort.numeric}`
-    : '';
-  const cleaningKey = queryDeps ? JSON.stringify(queryDeps.cleaningSteps) : '';
-  // The revision, not the overlay itself: an edit bumps it, so edits re-run
-  // the query without the dep list holding a large Map.
-  const editsKey = queryDeps?.edits.revision ?? 0;
+  // Run the query whenever the committed inputs change. One fingerprint over
+  // the full input set (features/query/inputs.ts), not the view object, so
+  // result updates never re-trigger the query and a new input cannot be
+  // forgotten here (ADR-035).
+  const queryFingerprint =
+    view.kind === 'ready'
+      ? queryInputFingerprint({
+          datasetId: view.data.meta.id,
+          search: view.search,
+          columnFilters: view.columnFilters,
+          sort: view.sort,
+          cleaningSteps: view.cleaningSteps,
+          editsRevision: view.edits.revision,
+        })
+      : '';
 
   useEffect(() => {
     if (view.kind !== 'ready') return;
@@ -917,8 +918,8 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
       // a run its successor supersedes anyway, and cancel is idempotent.
       activeQueryRef.current?.cancel();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- leaf keys above
-  }, [datasetIdKey, searchKey, filtersKey, sortKey, cleaningKey, editsKey, ensureQueryRunner]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fingerprint above
+  }, [queryFingerprint, ensureQueryRunner]);
 
   // Drains once per render on purpose: worker completions and async flows
   // queue notices outside React's lifecycle, and every render must flush
