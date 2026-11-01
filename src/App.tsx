@@ -192,7 +192,10 @@ function newPresetId(): string {
 function friendlyImportError(error: AppError): string {
   switch (error.code) {
     case 'STORAGE_QUOTA_EXCEEDED':
-      return 'Browser storage is full. Remove unused datasets or clear this site’s data, then try importing again.';
+      // There is no in-app dataset manager: the only dataset a user can
+      // remove from the UI is the one currently open, so pointing them at
+      // "remove unused datasets" would send them down a dead end.
+      return 'Browser storage is full. Clear this site’s data (removes stored datasets), then try importing again.';
     case 'STORAGE_UNAVAILABLE':
       return 'Browser storage is unavailable (for example in some private-browsing modes). Importing needs IndexedDB.';
     case 'PARSE_FAILED':
