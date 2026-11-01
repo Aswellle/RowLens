@@ -393,11 +393,16 @@ export function DataGrid({
   });
 
   // A new result set keeps the row position but the old rectangle no longer
-  // describes those records; collapse to the active cell.
-  const visibleKey = visibleIndices;
+  // describes those records; collapse to the active cell. Compared by content
+  // (length plus boundary rows), not array identity: a paste triggers a fresh
+  // query whose result re-lists the same rows, and collapsing then would
+  // clear the highlight the paste just set.
+  const visibleSignature = `${visibleIndices.length}:${visibleIndices[0] ?? ''}:${
+    visibleIndices[visibleIndices.length - 1] ?? ''
+  }`;
   useEffect(() => {
     setSelection(collapsed(focusRef.current));
-  }, [visibleKey]);
+  }, [visibleSignature]);
 
   // Drag selection ends anywhere on the page, not just inside the grid.
   useEffect(() => {
