@@ -19,7 +19,9 @@
 
 **Import** CSV, TSV and JSONL/NDJSON (≤ 100 MiB) through a Web Worker in
 bounded batches with explicit backpressure; cancellation removes all partial
-data. **Query** with literal case-insensitive search (`Status:open` targets one
+data. A second file dropped while an import is still running is refused with
+a notice instead of disturbing the first. **Query** with literal
+case-insensitive search (`Status:open` targets one
 column, whitespace-separated terms must all match), per-column filters,
 stable string sort (with an explicit per-column "treat as numbers" mode:
 `9` sorts before `1,050`, unparseable values partition after the numbers) and
@@ -108,9 +110,9 @@ benchmarks live in the same suite.
 
 ### CI
 
-GitHub Actions runs `npm ci`, `typecheck`, `test:unit`, `build` (including
-the network audit) and `format:check` on Node 22 and 24, plus a separate
-Playwright browser job (`.github/workflows/ci.yml`).
+GitHub Actions runs `npm ci`, `lint`, `typecheck`, `test:unit`, `build`
+(including the network audit) and `format:check` on Node 22 and 24, plus a
+separate Playwright browser job (`.github/workflows/ci.yml`).
 
 ## Known limitations
 
@@ -136,7 +138,11 @@ Playwright browser job (`.github/workflows/ci.yml`).
   header and rectangular range selection (Shift+arrows, drag with edge
   auto-scroll, Ctrl/Cmd+A, Ctrl/Cmd+C as TSV). Copies above 100,000 cells are
   refused rather than truncated — the Export dialog's Selected-range scope
-  streams any size. There is no multi-range (Ctrl+click) selection.
+  streams any size. There is no multi-range (Ctrl+click) selection. A query
+  matching more than 200,000 rows stops at that limit and leaves the previous
+  result set on screen with a notice; the Export dialog says when its
+  filtered and selected counts describe that older set rather than the
+  current search.
 - Cell edits, the cleaning pipeline and the query view (search, filters, sort,
   hidden columns) persist in their own IndexedDB stores, but none of them
   carries undo history across a reload. A restored view that hides every
@@ -165,7 +171,9 @@ locally in your browser and are not uploaded to any RowLens server; the app
 contains no telemetry or third-party analytics. Loading the app itself fetches
 static assets from its host, and browsers may cache those assets. Parsed
 records are temporarily stored in the browser's IndexedDB until you remove
-them, the datasets expire (24 h), or you clear site data — see
+the dataset you are viewing, it has gone unopened for 24 hours (reopening one
+restarts that clock, and startup sweeps away expired and interrupted
+datasets), or you clear site data — see
 `docs/05-security-privacy.md` for the full threat model and
 `SECURITY.md` for reporting a vulnerability.
 
