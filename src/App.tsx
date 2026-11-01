@@ -189,6 +189,9 @@ function newPresetId(): string {
     : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+const IMPORT_ALREADY_RUNNING =
+  'An import is already running. Cancel it or wait for it to finish, then try again.';
+
 function friendlyImportError(error: AppError): string {
   switch (error.code) {
     case 'STORAGE_QUOTA_EXCEEDED':
@@ -367,6 +370,16 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           onBatch: (batch) => storeRef.current.appendBatch(batch.schemaAppend, batch.rows),
         });
 
+        // A second file while one is still importing must be refused before
+        // any store is touched: the reset below would wipe the write-through
+        // cache the running import is still appending to. No await sits
+        // between this check and start() registering itself, so the refusal
+        // cannot race a concurrent start.
+        if (coordinatorRef.current.hasActiveJob) {
+          setNotice({ variant: 'warning', message: IMPORT_ALREADY_RUNNING });
+          return;
+        }
+
         lazyStoreRef.current?.dispose();
         lazyStoreRef.current = null;
         storeRef.current.reset();
@@ -411,6 +424,12 @@ export default function App({ sampleSize }: { sampleSize?: number } = {}) {
           setNotice({ variant: 'error', message: friendlyImportError(outcome.error) });
         }
       } catch (error) {
+        if (coordinatorRef.current?.hasActiveJob) {
+          // The refused start lost a race with a concurrent import; the
+          // running import owns the view, so leave it alone.
+          setNotice({ variant: 'warning', message: IMPORT_ALREADY_RUNNING });
+          return;
+        }
         activeImportRef.current = null;
         setView({ kind: 'empty' });
         setNotice({
